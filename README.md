@@ -27,7 +27,6 @@ It replaces the fragmented, manual workflows that consume hours of teacher and a
 | **Role & Permission Matrix** | Admin defines roles; menus/buttons auto-hide based on permissions | Hard-coded role checks |
 | **Multi-madrasah tenant** | One deployment serves many schools; data isolated per schema | Each school needs its own server |
 
-**Current state**: MVP running in production at MTs N 2 Kudus (96 students, 27 classes, 4 teachers, 13 functional modules). Built single-handedly by **Mr. Alaik** (alaiksander) — a real teacher who codes.
 
 ---
 
