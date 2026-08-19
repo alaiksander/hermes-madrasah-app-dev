@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+{% block title %}Kartu QR{% endblock %}
+{% block topbar_title %}Modul Absensi · Kartu QR{% endblock %}
+
+{% block sidebar_menu %}{% include "absensi/_sidebar_menu.html" %}{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl">
+    <h1 class="text-xl font-bold text-zinc-900 mb-4">Kartu QR Absensi</h1>
+
+    {% if tahun_aktif_nama %}
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 text-sm text-blue-800">
+        <i data-lucide="info" class="w-4 h-4 inline"></i>
+        Kelas ditampilkan dari tahun ajaran aktif <strong>{{ tahun_aktif_nama }}</strong>.
+    </div>
+    {% endif %}
+
+    <!-- Tab navigation -->
+    <div class="border-b border-zinc-200 mb-4">
+        <nav class="flex gap-1">
+            <a href="/madrasah-app/absensi/kartu-qr?tab=kelas"
+               class="px-4 py-2 text-sm border-b-2 {% if tab == 'kelas' %}border-teal-700 text-teal-700 font-medium{% else %}border-transparent text-zinc-600 hover:text-zinc-900{% endif %}">
+                <i data-lucide="layers" class="w-4 h-4 inline"></i> Per Kelas (Massal)
+            </a>
+            <a href="/madrasah-app/absensi/kartu-qr?tab=anak"
+               class="px-4 py-2 text-sm border-b-2 {% if tab == 'anak' %}border-teal-700 text-teal-700 font-medium{% else %}border-transparent text-zinc-600 hover:text-zinc-900{% endif %}">
+                <i data-lucide="user" class="w-4 h-4 inline"></i> Per Anak
+            </a>
+        </nav>
+    </div>
+
+    {# ─── TAB 1: Per Kelas ─────────────────────────────────────────── #}
+    {% if tab == 'kelas' %}
+    <!-- Pilih kelas -->
+    <form method="get" action="/madrasah-app/absensi/kartu-qr"
+          class="bg-white rounded-lg border border-zinc-200 p-3 mb-4 flex items-end gap-3">
+        <input type="hidden" name="tab" value="kelas">
+        <div class="min-w-[200px]">
+            <label class="block text-xs font-medium text-zinc-600 mb-1">Kelas</label>
+            <select name="kelas_id" onchange="this.form.submit()"
+                    class="border border-zinc-300 rounded px-3 py-1.5 text-sm">
+                <option value="">— Pilih kelas —</option>
+                {% for k in kelas_list %}
+                <option value="{{ k.id }}" {% if selected_kelas_id == k.id %}selected{% endif %}>
+                    {{ k.nama_kelas }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary text-sm">
+            <i data-lucide="eye" class="w-4 h-4"></i> Tampilkan
+        </button>
+    </form>
+
+    {% if selected_kelas_id %}
+    {% if roster %}
+    <!-- Preview grid (print area) — konsisten dgn PDF: 2 kolom, 10 kartu/halaman -->
+    <div class="bg-white rounded-lg border border-zinc-200 p-4 mb-4 qr-print-area">
+        <div class="flex items-center justify-between mb-3 no-print">
+            <h2 class="font-semibold text-zinc-800">
+                {{ roster[0].kelas_nama }} — {{ roster | length }} murid
+            </h2>
+            <span class="text-xs text-zinc-500">Layout A4: 2 kolom × 5 baris (10 kartu/halaman)</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {% for m in roster %}
+            {% if loop.index0 % 10 == 0 %}<div class="qr-page">{% endif %}
+            <div class="qr-card-item flex flex-col items-center text-center py-2">
+                <img src="/madrasah-app/data/murid/{{ m.id }}/qr-png"
+                     alt="QR {{ m.nama }}" class="qr-img w-32 h-32 mb-3 flex-shrink-0">
+                <div class="qr-name text-sm font-bold text-zinc-900 leading-snug break-words max-w-full">
+                    {% for ln in m.nama_baris %}{{ ln }}{% if not loop.last %}<br>{% endif %}{% endfor %}
+                </div>
+                <div class="qr-kelas text-sm font-bold text-zinc-900 mt-0.5">{{ m.kelas_nama }}</div>
+                <div class="qr-nisn text-sm font-bold text-zinc-900">NISN: {{ m.nisn }}</div>
+            </div>
+            {% if loop.index0 % 10 == 9 or loop.last %}</div>{% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="no-print flex items-center gap-2 mb-4">
+        <button onclick="window.print()" class="btn btn-primary text-sm">
+            <i data-lucide="printer" class="w-4 h-4"></i> Cetak / Save PDF
+        </button>
+        <a href="/madrasah-app/absensi/kartu-qr/pdf?kelas_id={{ selected_kelas_id }}"
+           class="btn btn-secondary text-sm">
+            <i data-lucide="download" class="w-4 h-4"></i> Download PDF
+        </a>
+    </div>
+    {% else %}
+    <div class="bg-white rounded-lg border border-zinc-200 p-8 text-center text-zinc-500">
+        <i data-lucide="users" class="w-12 h-12 mx-auto mb-2 text-zinc-300"></i>
+        <p>Tidak ada murid aktif di kelas ini</p>
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="bg-white rounded-lg border border-zinc-200 p-8 text-center text-zinc-500">
+        <i data-lucide="layers" class="w-12 h-12 mx-auto mb-2 text-zinc-300"></i>
+        <p class="font-medium">Pilih kelas untuk menampilkan kartu QR semua murid</p>
+        <p class="text-xs mt-1">Cetak massal untuk awal tahun ajaran atau penggantian kartu</p>
+    </div>
+    {% endif %}
+
+    {# ─── TAB 2: Per Anak ──────────────────────────────────────────── #}
+    {% else %}
+    <!-- Search -->
+    <form method="get" action="/madrasah-app/absensi/kartu-qr"
+          class="bg-white rounded-lg border border-zinc-200 p-3 mb-4">
+        <input type="hidden" name="tab" value="anak">
+        <div class="flex items-center gap-2">
+            <i data-lucide="search" class="w-5 h-5 text-zinc-400"></i>
+            <input type="text" name="q" value="{{ q }}" placeholder="Cari nama atau NISN murid..."
+                   class="flex-1 border-0 focus:ring-0 text-sm">
+            <button type="submit" class="btn btn-primary text-sm">Cari</button>
+        </div>
+    </form>
+
+    {% if selected_murid %}
+    <!-- Preview kartu tunggal -->
+    <div class="bg-white rounded-lg border border-zinc-200 p-6 mb-4 qr-print-card">
+        <div class="flex flex-col items-center text-center">
+            <img src="/madrasah-app/data/murid/{{ selected_murid.id }}/qr-png"
+                 alt="QR {{ selected_murid.nama }}" class="qr-img w-64 h-64 mb-3">
+            <div class="qr-name text-lg font-bold text-zinc-900 break-words max-w-md leading-snug">
+                {% for ln in selected_murid.nama_baris %}{{ ln }}{% if not loop.last %}<br>{% endif %}{% endfor %}
+            </div>
+            <div class="qr-kelas text-lg font-bold text-zinc-900 mt-1">{{ selected_murid.kelas_nama }}</div>
+            <div class="qr-nisn text-lg font-bold text-zinc-900">NISN: {{ selected_murid.nisn }}</div>
+        </div>
+    </div>
+    <div class="no-print flex items-center gap-2 mb-4">
+        <button onclick="window.print()" class="btn btn-primary text-sm">
+            <i data-lucide="printer" class="w-4 h-4"></i> Cetak / Save PDF
+        </button>
+        <a href="/madrasah-app/absensi/kartu-qr/murid/{{ selected_murid.id }}/pdf"
+           class="btn btn-secondary text-sm">
+            <i data-lucide="download" class="w-4 h-4"></i> Download PDF
+        </a>
+    </div>
+
+    {% elif murid_list %}
+    <!-- Hasil search -->
+    <div class="bg-white rounded-lg border border-zinc-200 divide-y divide-zinc-200">
+        {% for m in murid_list %}
+        <a href="/madrasah-app/absensi/kartu-qr?tab=anak&murid_id={{ m.id }}"
+           class="flex items-center justify-between px-4 py-3 hover:bg-zinc-50">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-teal-50 rounded-lg">
+                    <i data-lucide="user" class="w-5 h-5 text-teal-700"></i>
+                </div>
+                <div>
+                    <div class="font-medium">{{ m.nama }}</div>
+                    <div class="text-xs text-zinc-500">
+                        <span class="font-mono">NISN {{ m.nisn }}</span>
+                        <span class="mx-1">·</span>{{ m.kelas_nama }}
+                    </div>
+                </div>
+            </div>
+            <i data-lucide="chevron-right" class="w-4 h-4 text-zinc-400"></i>
+        </a>
+        {% endfor %}
+    </div>
+    <div class="no-print mt-3 text-xs text-zinc-500">
+        Ditemukan {{ murid_list | length }} murid. Klik untuk lihat kartu QR.
+    </div>
+
+    {% elif q and q|length >= 2 %}
+    <div class="bg-white rounded-lg border border-zinc-200 p-8 text-center text-zinc-500">
+        <i data-lucide="user-x" class="w-12 h-12 mx-auto mb-2 text-zinc-300"></i>
+        <p>Tidak ada murid untuk "<strong>{{ q }}</strong>"</p>
+    </div>
+    {% else %}
+    <div class="bg-white rounded-lg border border-zinc-200 p-8 text-center text-zinc-500">
+        <i data-lucide="user" class="w-12 h-12 mx-auto mb-2 text-zinc-300"></i>
+        <p class="font-medium">Cari murid untuk mencetak kartu QR individual</p>
+        <p class="text-xs mt-1">Untuk murid baru, kartu hilang, atau cetak 1 kartu saja</p>
+    </div>
+    {% endif %}
+    {% endif %}
+</div>
+
+<style>
+/* Print styles — meniru PDF reportlab PERSIS:
+   A4 margin 10mm, 2 kolom × 5 baris (10 kartu), QR 33mm, teks 10pt bold */
+@media print {
+    @page { size: A4; margin: 10mm; }
+    body * { visibility: hidden; }
+    .qr-print-area, .qr-print-area * { visibility: visible; }
+    .qr-print-area {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        border: none;
+        box-shadow: none;
+        padding: 0;
+        margin: 0;
+    }
+    /* Parent grid jadi block; tiap .qr-page jadi grid 2×5 (10 kartu/halaman) */
+    .qr-print-area .grid { display: block; }
+    .qr-page {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(5, 55.4mm);  /* (297 - 20) / 5 — sama dgn PDF */
+        break-after: page;
+        page-break-after: always;
+    }
+    .qr-page:last-child { break-after: auto; page-break-after: auto; }
+    .qr-card-item {
+        border: none;
+        border-radius: 0;
+        padding: 2mm 3mm;
+        break-inside: avoid;
+        page-break-inside: avoid;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        text-align: center;
+    }
+    .qr-card-item .qr-img { width: 33mm; height: 33mm; margin-bottom: 4mm; }
+    .qr-card-item .qr-name {
+        font-size: 10pt;
+        font-weight: 700;
+        color: #1a1a1a;
+        line-height: 1.25;
+        max-width: 100%;
+        word-break: break-word;
+    }
+    .qr-card-item .qr-kelas { font-size: 10pt; font-weight: 700; color: #1a1a1a; margin-top: 0.8mm; }
+    .qr-card-item .qr-nisn { font-size: 10pt; font-weight: 700; color: #1a1a1a; }
+    .qr-print-card, .qr-print-card * { visibility: visible; }
+    .qr-print-card {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        border: none;
+        box-shadow: none;
+        padding: 0;
+    }
+    /* Kartu tunggal — QR 33mm + teks 10pt (sama dgn PDF single card) */
+    .qr-print-card .qr-img { width: 33mm; height: 33mm; margin-bottom: 4mm; }
+    .qr-print-card .qr-name { font-size: 10pt; font-weight: 700; color: #1a1a1a; line-height: 1.25; }
+    .qr-print-card .qr-kelas { font-size: 10pt; font-weight: 700; color: #1a1a1a; margin-top: 0.8mm; }
+    .qr-print-card .qr-nisn { font-size: 10pt; font-weight: 700; color: #1a1a1a; }
+    .no-print { display: none !important; }
+}
+</style>
+{% endblock %}

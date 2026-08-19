@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+{% block title %}Dashboard Absensi{% endblock %}
+{% block topbar_title %}Modul Absensi · Dashboard{% endblock %}
+
+{% block sidebar_menu %}{% include "absensi/_sidebar_menu.html" %}{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-2xl font-bold text-zinc-900">Selamat datang, {{ user.nama }}</h1>
+    <p class="text-sm text-zinc-500 mt-1">{{ today }}</p>
+</div>
+
+<!-- ════════════════════ STAT CARDS ════════════════════ -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white rounded-xl border border-zinc-200 p-5">
+        <div class="flex items-center justify-between mb-2">
+            <span class="text-xs uppercase text-zinc-500 tracking-wider">Murid Aktif</span>
+            <i data-lucide="users" class="w-4 h-4 text-teal-700"></i>
+        </div>
+        <div class="text-3xl font-bold text-zinc-900">{{ total_murid }}</div>
+    </div>
+    <div class="bg-white rounded-xl border border-zinc-200 p-5">
+        <div class="flex items-center justify-between mb-2">
+            <span class="text-xs uppercase text-zinc-500 tracking-wider">Guru</span>
+            <i data-lucide="user-cog" class="w-4 h-4 text-teal-700"></i>
+        </div>
+        <div class="text-3xl font-bold text-zinc-900">{% if total_guru is not none %}{{ total_guru }}{% else %}—{% endif %}</div>
+    </div>
+    <div class="bg-white rounded-xl border border-zinc-200 p-5">
+        <div class="flex items-center justify-between mb-2">
+            <span class="text-xs uppercase text-zinc-500 tracking-wider">Kelas</span>
+            <i data-lucide="school" class="w-4 h-4 text-teal-700"></i>
+        </div>
+        <div class="text-3xl font-bold text-zinc-900">{{ total_kelas }}</div>
+    </div>
+    <div class="bg-white rounded-xl border border-zinc-200 p-5">
+        <div class="flex items-center justify-between mb-2">
+            <span class="text-xs uppercase text-zinc-500 tracking-wider">Hadir Hari Ini</span>
+            <i data-lucide="check-circle" class="w-4 h-4 text-green-600"></i>
+        </div>
+        <div class="text-3xl font-bold text-zinc-900">{{ hadir_count }}</div>
+        <div class="text-xs text-zinc-500 mt-1">dari {{ absensi_count }} absensi</div>
+    </div>
+</div>
+
+<!-- ════════════════════ SECTION 2: Rekap per Kelas 7 hari (Top 3 + Bottom 3) ════════════════════ -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+    <!-- TOP 3 -->
+    <div class="bg-white rounded-xl border border-zinc-200 p-5">
+        <div class="flex items-center justify-between mb-3">
+            <h2 class="text-sm font-semibold text-zinc-700">
+                <i data-lucide="trending-up" class="w-4 h-4 inline text-green-600"></i>
+                Top 3 Kehadiran Kelas (7 hari)
+            </h2>
+            <a href="/madrasah-app/absensi/rekap"
+               class="text-xs text-teal-700 hover:underline">Lihat semua</a>
+        </div>
+        {% if top3 %}
+        <div class="space-y-3">
+            {% for k in top3 %}
+            <div>
+                <div class="flex items-center justify-between text-sm mb-1">
+                    <span class="font-medium text-zinc-800">
+                        {{ k.kelas_nama }}
+                        <span class="text-xs text-zinc-500 font-normal">({{ k.jumlah_murid }} murid)</span>
+                    </span>
+                    <span class="font-mono font-semibold text-green-700">{{ "%.0f"|format(k.persen) }}%</span>
+                </div>
+                <div class="h-2 bg-zinc-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-green-500 rounded-full"
+                         style="width: {{ [k.persen, 100] | min }}%"></div>
+                </div>
+                <div class="text-xs text-zinc-500 mt-1">
+                    H: {{ k.hadir }} · I: {{ k.izin }} · S: {{ k.sakit }} · A: {{ k.alpa }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-sm text-zinc-400 italic">Belum ada data kehadiran.</p>
+        {% endif %}
+    </div>
+
+    <!-- BOTTOM 3 -->
+    <div class="bg-white rounded-xl border border-zinc-200 p-5">
+        <div class="flex items-center justify-between mb-3">
+            <h2 class="text-sm font-semibold text-zinc-700">
+                <i data-lucide="trending-down" class="w-4 h-4 inline text-red-600"></i>
+                Bottom 3 Kehadiran Kelas (7 hari)
+            </h2>
+            <a href="/madrasah-app/absensi/rekap"
+               class="text-xs text-teal-700 hover:underline">Lihat semua</a>
+        </div>
+        {% if bottom3 %}
+        <div class="space-y-3">
+            {% for k in bottom3 %}
+            <div>
+                <div class="flex items-center justify-between text-sm mb-1">
+                    <span class="font-medium text-zinc-800">
+                        {{ k.kelas_nama }}
+                        <span class="text-xs text-zinc-500 font-normal">({{ k.jumlah_murid }} murid)</span>
+                    </span>
+                    <span class="font-mono font-semibold
+                        {% if k.persen < 70 %}text-red-700
+                        {% elif k.persen < 85 %}text-amber-700
+                        {% else %}text-zinc-700{% endif %}">
+                        {{ "%.0f"|format(k.persen) }}%
+                    </span>
+                </div>
+                <div class="h-2 bg-zinc-100 rounded-full overflow-hidden">
+                    <div class="h-full rounded-full
+                        {% if k.persen < 70 %}bg-red-500
+                        {% elif k.persen < 85 %}bg-amber-500
+                        {% else %}bg-teal-500{% endif %}"
+                         style="width: {{ [k.persen, 100] | min }}%"></div>
+                </div>
+                <div class="text-xs text-zinc-500 mt-1">
+                    H: {{ k.hadir }} · I: {{ k.izin }} · S: {{ k.sakit }} · A: {{ k.alpa }}
+                </div>
+            </div>
+            {% endfor %}
+            {% if bottom3|length < 3 %}
+            <div class="text-xs text-zinc-400 italic pt-2 border-t border-zinc-100">
+                Hanya {{ bottom3|length }} kelas lain punya data — kemungkinan besar
+                kelas baru yang belum diinput absensinya.
+            </div>
+            {% endif %}
+        </div>
+        {% else %}
+        <p class="text-sm text-zinc-400 italic">Belum ada data kehadiran untuk kelas lain.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ════════════════════ SECTION 3: Rekap Bulan Ini ════════════════════ -->
+<div class="bg-white rounded-xl border border-zinc-200 p-5 mb-6">
+    <div class="flex items-center justify-between mb-3">
+        <h2 class="text-sm font-semibold text-zinc-700">
+            <i data-lucide="calendar" class="w-4 h-4 inline text-teal-700"></i>
+            Rekap Bulan Ini
+            <span class="text-xs font-normal text-zinc-500">({{ rekap_bulan.label or '—' }})</span>
+        </h2>
+        <a href="/madrasah-app/absensi/cetak-absen?mode=kelas&periode=bulan&bulan={{ rekap_bulan.bulan }}-01"
+           class="text-xs text-teal-700 hover:underline">
+            Cetak Rekap Bulanan
+        </a>
+    </div>
+    {% if rekap_bulan and rekap_bulan.total %}
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div>
+            <div class="text-xs text-zinc-500 uppercase">Hadir</div>
+            <div class="text-2xl font-bold text-green-700">{{ rekap_bulan.hadir }}</div>
+        </div>
+        <div>
+            <div class="text-xs text-zinc-500 uppercase">Izin</div>
+            <div class="text-2xl font-bold text-blue-700">{{ rekap_bulan.izin }}</div>
+        </div>
+        <div>
+            <div class="text-xs text-zinc-500 uppercase">Sakit</div>
+            <div class="text-2xl font-bold text-amber-700">{{ rekap_bulan.sakit }}</div>
+        </div>
+        <div>
+            <div class="text-xs text-zinc-500 uppercase">Alpha</div>
+            <div class="text-2xl font-bold text-red-700">{{ rekap_bulan.alpa }}</div>
+        </div>
+        <div>
+            <div class="text-xs text-zinc-500 uppercase">Kehadiran</div>
+            <div class="text-2xl font-bold text-zinc-900">{{ "%.0f"|format(rekap_bulan.persen) }}%</div>
+            <div class="text-xs text-zinc-400 mt-0.5">dari {{ rekap_bulan.total }} absensi</div>
+        </div>
+    </div>
+    {% else %}
+    <p class="text-sm text-zinc-400 italic">Belum ada data absensi bulan ini.</p>
+    {% endif %}
+</div>
+
+<!-- ════════════════════ SECTION 4: Top Murid Alpha per Bulan ════════════════════ -->
+<div class="bg-white rounded-xl border border-zinc-200 p-5 mb-6">
+    <div class="flex items-center justify-between mb-3">
+        <h2 class="text-sm font-semibold text-zinc-700">
+            <i data-lucide="alert-triangle" class="w-4 h-4 inline text-red-600"></i>
+            Perhatian: Murid dengan Alpha Terbanyak
+            <span class="text-xs font-normal text-zinc-500">({{ rekap_bulan.label or '—' }})</span>
+        </h2>
+        <a href="/madrasah-app/bk/catatan" class="text-xs text-teal-700 hover:underline">Buka BK</a>
+    </div>
+    {% if top_alpha %}
+    <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+        <thead class="text-xs uppercase text-zinc-500 border-b border-zinc-200">
+            <tr>
+                <th class="text-left py-2 font-medium">Murid</th>
+                <th class="text-left py-2 font-medium">Kelas</th>
+                <th class="text-right py-2 font-medium">Alpha Bulan Ini</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for m in top_alpha %}
+            <tr class="border-b border-zinc-100 hover:bg-zinc-50">
+                <td class="py-2">
+                    <a href="/madrasah-app/data/murid/{{ m.murid_id }}"
+                       class="text-teal-700 hover:underline font-medium">{{ m.nama }}</a>
+                    <span class="text-xs text-zinc-400 ml-1 font-mono">{{ m.nisn }}</span>
+                </td>
+                <td class="py-2 text-zinc-700">{{ m.kelas_nama }}</td>
+                <td class="py-2 text-right">
+                    <span class="font-mono font-semibold text-red-700">{{ m.alpa }} hari</span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+    {% else %}
+    <p class="text-sm text-zinc-400 italic">Tidak ada murid dengan Alpha di bulan ini. 🎉</p>
+    {% endif %}
+</div>
+
+<!-- ════════════════════ AKSI CEPAT ════════════════════ -->
+<div class="bg-white rounded-xl border border-zinc-200 p-5 mb-6">
+    <h2 class="text-sm font-semibold text-zinc-700 mb-3">Aksi Cepat</h2>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <a href="/madrasah-app/absensi/input-manual" class="btn btn-primary justify-center">
+            <i data-lucide="edit-3" class="w-4 h-4"></i> Input Manual
+        </a>
+        <a href="/madrasah-app/absensi/rekap" class="btn btn-secondary justify-center">
+            <i data-lucide="bar-chart-3" class="w-4 h-4"></i> Lihat Rekap
+        </a>
+        <a href="/madrasah-app/absensi/cetak-absen" class="btn btn-secondary justify-center">
+            <i data-lucide="printer" class="w-4 h-4"></i> Cetak Absen
+        </a>
+        <a href="/madrasah-app/data/murid" class="btn btn-secondary justify-center">
+            <i data-lucide="list" class="w-4 h-4"></i> Kelola Murid
+        </a>
+    </div>
+</div>
+
+<!-- ════════════════════ INFO MODUL LAIN ════════════════════ -->
+<div class="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800">
+    <div class="flex items-start gap-2">
+        <i data-lucide="info" class="w-4 h-4 mt-0.5 flex-shrink-0"></i>
+        <div>
+            <strong>Modul lain segera hadir:</strong> Jurnal Mengajar, Rapor Digital,
+            dan modul-modul lain akan tersedia di sidebar setelah diaktifkan.
+        </div>
+    </div>
+</div>
+{% endblock %}

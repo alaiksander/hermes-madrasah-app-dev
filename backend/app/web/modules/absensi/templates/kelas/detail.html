@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Kelas {{ kelas.nama_kelas }}{% endblock %}
+{% block topbar_title %}Modul Absensi · Kelas {{ kelas.nama_kelas }}{% endblock %}
+
+{% block sidebar_menu %}{% include "absensi/_sidebar_menu.html" %}{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-4">
+    <div>
+        <h1 class="text-xl font-bold text-zinc-900">Kelas {{ kelas.nama_kelas }}</h1>
+        <p class="text-sm text-zinc-500 mt-1">
+            {{ kelas.tahun_ajaran_nama or '—' }}
+            {% if kelas.wali_guru_nama %} · Wali: {{ kelas.wali_guru_nama }}{% endif %}
+        </p>
+    </div>
+    <div class="flex items-center gap-2">
+        {% if has_perm(user, 'kelas.update') %}
+        <a href="/madrasah-app/data/kelas/{{ kelas.id }}/edit" class="btn btn-secondary text-sm">
+            <i data-lucide="pencil" class="w-4 h-4"></i> Edit
+        </a>
+        <form method="post" action="/madrasah-app/data/kelas/{{ kelas.id }}/luluskan"
+              class="inline" onsubmit="return confirm('Luluskan semua murid aktif di kelas ini?')">
+            <button type="submit" class="btn btn-secondary text-sm">
+                <i data-lucide="graduation-cap" class="w-4 h-4"></i> Luluskan Semua
+            </button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Stat cards -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+    <div class="bg-white rounded-xl border border-zinc-200 p-5">
+        <div class="text-xs uppercase text-zinc-500 tracking-wider mb-1">Total Murid</div>
+        <div class="text-3xl font-bold text-zinc-900">{{ all_count }}</div>
+    </div>
+    <div class="bg-white rounded-xl border border-zinc-200 p-5">
+        <div class="text-xs uppercase text-zinc-500 tracking-wider mb-1">Aktif / Lulus</div>
+        <div class="text-3xl font-bold text-zinc-900">
+            {{ active_count }} <span class="text-base text-zinc-400 font-normal">/ {{ lulus_count }}</span>
+        </div>
+    </div>
+</div>
+
+<!-- Tabel roster -->
+<div class="bg-white rounded-lg border border-zinc-200 overflow-x-auto">
+    {% if items %}
+    <table class="table-dense w-full text-sm">
+        <thead class="bg-zinc-50 text-zinc-600 text-xs uppercase">
+            <tr>
+                <th>NISN</th>
+                <th>Nama</th>
+                <th>Telepon</th>
+                <th>Status</th>
+                <th class="w-32">Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for m in items %}
+            <tr class="{% if not m.is_active %}bg-zinc-50 text-zinc-500{% endif %}">
+                <td class="font-mono text-xs">{{ m.nisn }}</td>
+                <td>{{ m.nama }}</td>
+                <td class="text-xs">{{ m.telepon or '—' }}</td>
+                <td>
+                    {% if m.is_active %}
+                    <span class="inline-block px-2 py-0.5 rounded text-xs bg-green-100 text-green-700">Aktif</span>
+                    {% else %}
+                    <span class="inline-block px-2 py-0.5 rounded text-xs bg-zinc-200 text-zinc-600">Lulus</span>
+                    {% endif %}
+                </td>
+                <td class="text-right">
+                    <a href="/madrasah-app/data/murid/{{ m.id }}" class="text-teal-700 hover:underline text-xs">
+                        Edit
+                    </a>
+                    {% if has_perm(user, 'kelas.update') %}
+                    <form method="post" action="/madrasah-app/data/murid/{{ m.id }}/hapus"
+                          class="inline" onsubmit="return confirm('Arsipkan {{ m.nama }}?')">
+                        <button type="submit" class="text-red-600 hover:underline text-xs ml-2">Arsip</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="p-12 text-center text-zinc-500">
+        <i data-lucide="users" class="w-12 h-12 mx-auto mb-2 text-zinc-300"></i>
+        <p>Belum ada murid di kelas ini</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

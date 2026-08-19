@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Input Jurnal Mengajar{% endblock %}
+{% block sidebar_menu %}{% include "absensi/_sidebar_menu.html" %}{% endblock %}
+{% block content %}
+<div class="max-w-2xl">
+    <h1 class="text-2xl font-bold text-zinc-800 mb-6">Input Jurnal Mengajar</h1>
+
+    <form method="POST" action="/madrasah-app/jurnal/input"
+          class="bg-white border border-zinc-200 rounded-xl shadow-sm p-6 space-y-5">
+        {# Kelas #}
+        <div>
+            <label class="block text-sm font-medium text-zinc-700 mb-1">Kelas <span class="text-red-500">*</span></label>
+            <select name="kelas_id" required
+                    class="w-full border border-zinc-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
+                <option value="">— Pilih kelas —</option>
+                {% for k in kelas_list %}
+                <option value="{{ k.id }}">{{ k.nama_kelas }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        {# Mata Pelajaran #}
+        <div>
+            <label class="block text-sm font-medium text-zinc-700 mb-1">Mata Pelajaran <span class="text-red-500">*</span></label>
+            <select name="mapel_id" required
+                    class="w-full border border-zinc-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
+                <option value="">— Pilih mata pelajaran —</option>
+                {% for m in mapel_list %}
+                <option value="{{ m.id }}">{{ m.nama }}{% if m.kode %} ({{ m.kode }}){% endif %}</option>
+                {% endfor %}
+            </select>
+            {% if not mapel_list %}
+            <p class="text-xs text-amber-600 mt-1">
+                Belum ada mata pelajaran. <a href="/madrasah-app/data/mapel" class="underline">Kelola di Data → Mata Pelajaran</a>
+            </p>
+            {% endif %}
+        </div>
+
+        {# Tanggal + Jam dalam 1 row #}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div>
+                <label class="block text-sm font-medium text-zinc-700 mb-1">Tanggal <span class="text-red-500">*</span></label>
+                <input type="date" name="tanggal" value="{{ today }}" required
+                       class="w-full border border-zinc-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-zinc-700 mb-1">Jam Mulai <span class="text-red-500">*</span></label>
+                <input type="time" name="jam_mulai" required
+                       class="w-full border border-zinc-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-zinc-700 mb-1">Jam Selesai <span class="text-red-500">*</span></label>
+                <input type="time" name="jam_selesai" required
+                       class="w-full border border-zinc-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
+            </div>
+        </div>
+
+        {# Materi #}
+        <div>
+            <label class="block text-sm font-medium text-zinc-700 mb-1">Materi</label>
+            <textarea name="materi" rows="3" placeholder="Topik yang diajarkan hari ini..."
+                      class="w-full border border-zinc-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"></textarea>
+        </div>
+
+        {# Catatan #}
+        <div>
+            <label class="block text-sm font-medium text-zinc-700 mb-1">Catatan</label>
+            <textarea name="catatan" rows="2" placeholder="Catatan tambahan (metode, kondisi kelas, dll.)..."
+                      class="w-full border border-zinc-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"></textarea>
+        </div>
+
+        <div class="flex gap-3 pt-2">
+            <button type="submit"
+                    class="flex-1 bg-teal-600 hover:bg-teal-700 text-white font-medium px-4 py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2">
+                <i data-lucide="save" class="w-4 h-4"></i>
+                Simpan & Lanjut ke Absensi
+            </button>
+            <a href="/madrasah-app/jurnal/"
+               class="px-4 py-2.5 border border-zinc-300 rounded-lg text-zinc-600 hover:bg-zinc-50 font-medium transition-colors">
+                Batal
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

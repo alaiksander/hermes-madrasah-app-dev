@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Audit Global{% endblock %}
+{% block topbar_title %}Super Admin · Audit{% endblock %}
+
+{% block sidebar_menu %}{% include "superadmin/_sidebar_menu.html" %}{% endblock %}
+
+{% block content %}
+<h1 class="text-xl font-bold text-zinc-900 mb-4">Audit Trail Global</h1>
+
+<div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 text-sm text-blue-800">
+    <i data-lucide="info" class="w-4 h-4 inline"></i>
+    Jejak aksi sensitif di <strong>semua tenant</strong> (superadmin + admin sekolah).
+</div>
+
+<!-- Filter -->
+<form method="get" action="/madrasah-app/superadmin/audit"
+      class="bg-white rounded-lg border border-zinc-200 p-3 mb-3 flex flex-wrap items-end gap-3">
+    <div>
+        <label class="block text-xs font-medium text-zinc-600 mb-1">Dari Tanggal</label>
+        <input type="date" name="tanggal_dari" value="{{ tanggal_dari }}"
+               class="border border-zinc-300 rounded px-3 py-1.5 text-sm">
+    </div>
+    <div>
+        <label class="block text-xs font-medium text-zinc-600 mb-1">Sampai Tanggal</label>
+        <input type="date" name="tanggal_sampai" value="{{ tanggal_sampai }}"
+               class="border border-zinc-300 rounded px-3 py-1.5 text-sm">
+    </div>
+    <div>
+        <label class="block text-xs font-medium text-zinc-600 mb-1">Tenant</label>
+        <input type="text" name="tenant" value="{{ tenant }}" placeholder="kode tenant (mis. mtsn2kudus)"
+               class="border border-zinc-300 rounded px-3 py-1.5 text-sm font-mono">
+    </div>
+    <button type="submit" class="btn btn-secondary text-sm">
+        <i data-lucide="filter" class="w-4 h-4"></i> Filter
+    </button>
+    {% if tanggal_dari or tanggal_sampai or tenant %}
+    <a href="/madrasah-app/superadmin/audit" class="btn btn-secondary text-sm">
+        <i data-lucide="x" class="w-4 h-4"></i> Reset
+    </a>
+    {% endif %}
+    <div class="flex-1"></div>
+    <span class="text-xs text-zinc-500">{{ total }} total log</span>
+</form>
+
+<!-- Tabel -->
+<div class="bg-white rounded-lg border border-zinc-200 overflow-hidden">
+    {% if items %}
+    <table class="table-dense w-full text-sm">
+        <thead class="bg-zinc-50 text-zinc-600 text-xs uppercase">
+            <tr>
+                <th class="w-32">Waktu</th>
+                <th class="w-32">User</th>
+                <th class="w-24">Tenant</th>
+                <th class="w-40">Aksi</th>
+                <th>Rincian</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td class="font-mono text-xs">{{ item.waktu }}</td>
+                <td class="text-xs">{{ item.user or '—' }}</td>
+                <td class="text-xs">
+                    {% if item.tenant %}
+                    <span class="inline-block px-2 py-0.5 rounded bg-zinc-100 text-zinc-600 font-mono">{{ item.tenant }}</span>
+                    {% else %}
+                    <span class="text-zinc-300">—</span>
+                    {% endif %}
+                </td>
+                <td class="text-xs">
+                    <span class="inline-block px-2 py-0.5 rounded bg-zinc-100 text-zinc-700 font-mono">
+                        {{ item.aksi }}
+                    </span>
+                </td>
+                <td class="text-xs">{{ item.rincian or '—' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="bg-zinc-50 px-4 py-3 border-t border-zinc-200 flex items-center justify-between">
+        <span class="text-xs text-zinc-500">
+            Menampilkan {{ offset + 1 }}–{{ offset + items | length }} dari {{ total }}
+        </span>
+        <div class="flex gap-2">
+            {% if has_prev %}
+            <a href="?offset={{ offset - limit }}{% if tanggal_dari %}&tanggal_dari={{ tanggal_dari }}{% endif %}{% if tanggal_sampai %}&tanggal_sampai={{ tanggal_sampai }}{% endif %}"
+               class="btn btn-secondary text-xs">
+                <i data-lucide="chevron-left" class="w-3 h-3"></i> Sebelumnya
+            </a>
+            {% endif %}
+            {% if has_next %}
+            <a href="?offset={{ offset + limit }}{% if tanggal_dari %}&tanggal_dari={{ tanggal_dari }}{% endif %}{% if tanggal_sampai %}&tanggal_sampai={{ tanggal_sampai }}{% endif %}"
+               class="btn btn-secondary text-xs">
+                Berikutnya <i data-lucide="chevron-right" class="w-3 h-3"></i>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+    <div class="p-12 text-center text-zinc-500">
+        <i data-lucide="scroll-text" class="w-12 h-12 mx-auto mb-2 text-zinc-300"></i>
+        <p class="font-medium">Belum ada log audit</p>
+        {% if tanggal_dari or tanggal_sampai or tenant %}
+        <p class="text-xs mt-1">Coba ubah filter</p>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

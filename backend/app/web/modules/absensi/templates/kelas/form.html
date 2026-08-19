@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}{{ form_title }}{% endblock %}
+{% block topbar_title %}Modul Absensi · {{ form_title }}{% endblock %}
+
+{% block sidebar_menu %}{% include "absensi/_sidebar_menu.html" %}{% endblock %}
+
+{% block content %}
+<div class="max-w-xl">
+    <a href="/madrasah-app/data/kelas" class="inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-700 mb-3">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke daftar kelas
+    </a>
+
+    <div class="bg-white rounded-lg border border-zinc-200 p-6">
+        <h1 class="text-lg font-bold text-zinc-900 mb-4">{{ form_title }}</h1>
+
+        {% if error %}
+        <div class="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg p-3 mb-4">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <form method="post" action="{{ form_action }}" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-zinc-700 mb-1">
+                    Nama Kelas <span class="text-red-600">*</span>
+                </label>
+                <input type="text" name="nama_kelas" required
+                       value="{{ kelas.nama_kelas if kelas else '' }}"
+                       placeholder="contoh: 8A, 9B, 7C"
+                       class="w-full border border-zinc-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-zinc-700 mb-1">
+                    Wali Kelas (opsional)
+                </label>
+                <select name="wali_guru_id"
+                        class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                    <option value="">— Tanpa wali kelas —</option>
+                    {% for g in guru_list %}
+                    {% if g.role in ('guru', 'admin') %}
+                    <option value="{{ g.id }}" {% if kelas and kelas.wali_guru_id == g.id %}selected{% endif %}>
+                        {{ g.nama }} ({{ g.username }})
+                    </option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+            {% if form_title == 'Tambah Kelas' %}
+            <div>
+                <label class="block text-sm font-medium text-zinc-700 mb-1">
+                    Tahun Ajaran
+                </label>
+                <select name="tahun_ajaran_id"
+                        class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                    {% for ta in tahun_ajaran_list %}
+                    <option value="{{ ta.id }}" {% if ta.id == tahun_aktif_id %}selected{% endif %}>
+                        {{ ta.nama }}{% if ta.is_active %} (aktif){% endif %}
+                    </option>
+                    {% endfor %}
+                </select>
+                <p class="text-xs text-zinc-500 mt-1">
+                    Default ke tahun ajaran aktif. Kelas tidak boleh duplikat di tahun ajaran yang sama.
+                </p>
+            </div>
+            {% endif %}
+            <div class="flex items-center justify-end gap-2 pt-3 border-t border-zinc-200">
+                <a href="/madrasah-app/data/kelas" class="btn btn-secondary">Batal</a>
+                <button type="submit" class="btn btn-primary">
+                    <i data-lucide="save" class="w-4 h-4"></i> Simpan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

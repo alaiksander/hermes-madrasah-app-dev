@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}Detail Jurnal · Aplikasi Madrasah{% endblock %}
+{% block sidebar_menu %}{% include "absensi/_sidebar_menu.html" %}{% endblock %}
+{% block content %}
+<div class="max-w-3xl">
+    {# Info jurnal #}
+    <div class="bg-white border border-zinc-200 rounded-xl shadow-sm p-6 mb-6">
+        <div class="flex items-start justify-between mb-4">
+            <div>
+                <h1 class="text-xl font-bold text-zinc-800">{{ jurnal.mata_pelajaran }}</h1>
+                <p class="text-zinc-500 text-sm mt-1">
+                    {{ jurnal.kelas_nama }} &nbsp;·&nbsp;
+                    {{ jurnal.tanggal }} &nbsp;·&nbsp;
+                    {{ jurnal.jam_mulai[:5] }}–{{ jurnal.jam_selesai[:5] }}
+                </p>
+                <p class="text-zinc-400 text-xs mt-0.5">Oleh {{ jurnal.guru_nama }}</p>
+            </div>
+            <div>
+                {% if jurnal.status == 'draft' %}
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-zinc-100 text-zinc-600">Draft</span>
+                {% elif jurnal.status == 'submitted' %}
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700">Submitted</span>
+                {% else %}
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-teal-100 text-teal-700">Verified</span>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if jurnal.materi %}
+        <div class="mb-3">
+            <div class="text-xs font-semibold text-zinc-500 uppercase mb-1">Materi</div>
+            <p class="text-sm text-zinc-700 bg-zinc-50 rounded-lg px-3 py-2">{{ jurnal.materi }}</p>
+        </div>
+        {% endif %}
+
+        {% if jurnal.catatan %}
+        <div class="mb-3">
+            <div class="text-xs font-semibold text-zinc-500 uppercase mb-1">Catatan</div>
+            <p class="text-sm text-zinc-700 bg-zinc-50 rounded-lg px-3 py-2">{{ jurnal.catatan }}</p>
+        </div>
+        {% endif %}
+
+        <div class="flex gap-2 mt-4">
+            {% if has_perm(user, "jurnal.input") %}
+            <a href="/madrasah-app/jurnal/{{ jurnal.id }}/edit"
+               class="flex items-center gap-1.5 px-3 py-1.5 border border-zinc-300 rounded-lg text-sm text-zinc-600 hover:bg-zinc-50 transition-colors">
+                <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+                Edit
+            </a>
+            {% endif %}
+            {% if jurnal.status == 'draft' and has_perm(user, "jurnal.input") %}
+            <form method="POST" action="/madrasah-app/jurnal/{{ jurnal.id }}/submit" style="display:inline">
+                <button type="submit"
+                        class="flex items-center gap-1.5 px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-sm transition-colors">
+                    <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                    Submit
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+
+    {# Absensi per-murid #}
+    <div class="bg-white border border-zinc-200 rounded-xl shadow-sm overflow-hidden">
+        <div class="border-b border-zinc-100 px-4 py-3 flex items-center justify-between">
+            <h2 class="font-semibold text-zinc-700">Absensi Murid</h2>
+            <span class="text-xs text-zinc-400">{{ jurnal.absensi|length }} murid</span>
+        </div>
+
+        {% if jurnal.absensi %}
+        <form method="POST" action="/madrasah-app/jurnal/{{ jurnal.id }}/absensi">
+            <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="bg-zinc-50 text-zinc-500 text-xs uppercase">
+                    <tr>
+                        <th class="text-left px-4 py-2 w-8">#</th>
+                        <th class="text-left px-4 py-2">Nama Murid</th>
+                        <th class="text-center px-4 py-2">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-zinc-100">
+                    {% for a in jurnal.absensi %}
+                    <tr class="hover:bg-zinc-50">
+                        <td class="px-4 py-2 text-zinc-400 text-xs">{{ loop.index }}</td>
+                        <td class="px-4 py-2">{{ a.murid_nama }}</td>
+                        <td class="px-4 py-2 text-center">
+                            <select name="absen_{{ a.murid_id }}"
+                                    class="border border-zinc-300 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-teal-500
+                                    {% if a.status == 'hadir' %}bg-green-50 text-green-700
+                                    {% elif a.status == 'izin' %}bg-blue-50 text-blue-700
+                                    {% elif a.status == 'sakit' %}bg-amber-50 text-amber-700
+                                    {% else %}bg-red-50 text-red-700{% endif %}">
+                                <option value="hadir" {% if a.status=='hadir' %}selected{% endif %}>Hadir</option>
+                                <option value="izin" {% if a.status=='izin' %}selected{% endif %}>Izin</option>
+                                <option value="sakit" {% if a.status=='sakit' %}selected{% endif %}>Sakit</option>
+                                <option value="alpa" {% if a.status=='alpa' %}selected{% endif %}>Alpha</option>
+                            </select>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            </div>
+            <div class="px-4 py-3 border-t border-zinc-100 flex justify-end">
+                <button type="submit"
+                        class="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white font-medium px-4 py-2 rounded-lg text-sm transition-colors">
+                    <i data-lucide="save" class="w-4 h-4"></i>
+                    Simpan Absensi
+                </button>
+            </div>
+        </form>
+        {% else %}
+        <div class="p-8 text-center text-zinc-400">
+            <p>Belum ada data absensi.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

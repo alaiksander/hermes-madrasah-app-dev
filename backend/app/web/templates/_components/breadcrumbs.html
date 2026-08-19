@@ -1,0 +1,43 @@
+<!-- Breadcrumbs — generated dari URL path.
+     Map path → label modul agar crumb-aware (sesuai struktur modular:
+     /madrasah-app/absensi/<x>, /madrasah-app/bk/<x>, /madrasah-app/data/<x>, dll.).
+     Default: capitalize + replace dash dengan spasi. -->
+{% set path = request.url.path %}
+{% if path.startswith("/madrasah-app/") %}
+{% set crumbs = path.replace("/madrasah-app/", "").split("/") %}
+{# Label khusus per top-level modul (mr: BK/Data/System jadi label sendiri) #}
+{% set module_label_map = {
+     "absensi": "Absensi",
+     "bk":      "Bimbingan Konseling",
+     "data":    "Data",
+     "system":  "Sistem",
+     "ortu":    "Portal Orang Tua",
+     "login":   "Masuk",
+} %}
+{% if crumbs and crumbs[0] %}
+<nav class="text-xs text-zinc-500 mb-3" aria-label="Breadcrumb">
+    <a href="/madrasah-app/" class="hover:text-zinc-700">Beranda</a>
+    {% for c in crumbs %}
+        {% if loop.last %}
+        <span class="mx-1">/</span>
+        <span class="text-zinc-700">
+            {%- if loop.first and module_label_map.get(c) -%}
+                {{ module_label_map[c] }}
+            {%- else -%}
+                {{ c|replace('-', ' ')|capitalize }}
+            {%- endif -%}
+        </span>
+        {% else %}
+        <span class="mx-1">/</span>
+        <span class="capitalize">
+            {%- if loop.first and module_label_map.get(c) -%}
+                {{ module_label_map[c] }}
+            {%- else -%}
+                {{ c|replace('-', ' ') }}
+            {%- endif -%}
+        </span>
+        {% endif %}
+    {% endfor %}
+</nav>
+{% endif %}
+{% endif %}

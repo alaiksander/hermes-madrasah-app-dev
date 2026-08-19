@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+{% block title %}Portal Orang Tua{% endblock %}
+
+{# Halaman PUBLIK — tanpa sidebar, topbar, breadcrumb (override body) #}
+{% block body %}
+<div class="min-h-screen bg-zinc-50 flex flex-col">
+    <!-- Header mini -->
+    <header class="bg-white border-b border-zinc-200">
+        <div class="max-w-3xl mx-auto px-4 py-3 flex items-center gap-2">
+            <i data-lucide="graduation-cap" class="w-5 h-5 text-teal-700"></i>
+            <span class="font-semibold text-zinc-900">Aplikasi Madrasah</span>
+            <span class="text-xs text-zinc-400">· Portal Orang Tua</span>
+        </div>
+    </header>
+
+    <main class="flex-1 p-4 sm:p-6">
+        {% include "_components/flash.html" %}
+        {{ self.content() }}
+    </main>
+
+    <footer class="text-center py-4 text-xs text-zinc-400">
+        © 2026 Aplikasi Madrasah · Rekap absensi untuk orang tua
+    </footer>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <div class="text-center mb-6">
+        <div class="mx-auto w-14 h-14 bg-teal-50 rounded-2xl flex items-center justify-center mb-3">
+            <i data-lucide="users" class="w-7 h-7 text-teal-700"></i>
+        </div>
+        <h1 class="text-2xl font-bold text-zinc-900">Portal Orang Tua</h1>
+        <p class="text-sm text-zinc-500 mt-1">
+            Lihat rekap absensi putra/putri Anda secara berkala.
+            Masukkan <strong>NISN</strong> dan <strong>Nama Orang Tua</strong> untuk memulai.
+        </p>
+    </div>
+
+    {% if err %}
+    <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4 text-sm text-red-700 flex items-start gap-2">
+        <i data-lucide="alert-triangle" class="w-4 h-4 mt-0.5 flex-shrink-0"></i>
+        <span>{{ err }}</span>
+    </div>
+    {% endif %}
+
+    <!-- Form verifikasi -->
+    <div class="bg-white rounded-xl border border-zinc-200 p-6 mb-6">
+        <form method="get" action="/madrasah-app/ortu" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-zinc-700 mb-1">Kode Madrasah</label>
+                <input type="text" name="kode" value="{{ kode or 'mtsn2kudus' }}" required
+                       placeholder="kode madrasah (dari sekolah)"
+                       class="w-full border border-zinc-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 font-mono">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-zinc-700 mb-1">NISN Anak</label>
+                <input type="text" name="nisn" value="{{ nisn }}" required
+                       placeholder="contoh: 260001"
+                       class="w-full border border-zinc-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-zinc-700 mb-1">Nama Orang Tua</label>
+                <input type="text" name="nama_ortu" value="{{ nama_ortu }}" required
+                       placeholder="sesuai data di sekolah"
+                       class="w-full border border-zinc-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+            </div>
+            <button type="submit" class="w-full bg-teal-700 text-white rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-teal-800 transition-colors">
+                <i data-lucide="search" class="w-4 h-4 inline"></i> Lihat Rekap Absensi
+            </button>
+        </form>
+    </div>
+
+    {% if data %}
+    <!-- Hasil rekap -->
+    <div class="bg-white rounded-xl border border-zinc-200 overflow-hidden">
+        <!-- Identitas -->
+        <div class="p-5 border-b border-zinc-100 flex items-center justify-between">
+            <div>
+                <h2 class="text-lg font-bold text-zinc-900">{{ data.murid.nama }}</h2>
+                <p class="text-sm text-zinc-500 mt-0.5">
+                    NISN <span class="font-mono">{{ data.murid.nisn }}</span>
+                    · Kelas <strong>{{ data.murid.kelas_nama }}</strong>
+                    · {{ data.murid.nama_ortu }}
+                </p>
+            </div>
+            <!-- Dropdown bulan -->
+            <form method="get" action="/madrasah-app/ortu" class="flex items-center gap-2">
+                <input type="hidden" name="kode" value="{{ kode }}">
+                <input type="hidden" name="nisn" value="{{ nisn }}">
+                <input type="hidden" name="nama_ortu" value="{{ nama_ortu }}">
+                <select name="bulan" onchange="this.form.submit()"
+                        class="border border-zinc-300 rounded-lg px-3 py-2 text-sm">
+                    {% for b in bulan_list %}
+                    <option value="{{ b.kode }}" {% if b.kode == bulan_terpilih %}selected{% endif %}>{{ b.label }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+
+        <!-- Ringkasan -->
+        <div class="grid grid-cols-5 gap-2 p-4 bg-zinc-50 border-b border-zinc-100">
+            <div class="text-center">
+                <div class="text-xl font-bold text-green-600">{{ data.ringkas.hadir }}</div>
+                <div class="text-[10px] uppercase text-zinc-500">Hadir</div>
+            </div>
+            <div class="text-center">
+                <div class="text-xl font-bold text-amber-500">{{ data.ringkas.izin }}</div>
+                <div class="text-[10px] uppercase text-zinc-500">Izin</div>
+            </div>
+            <div class="text-center">
+                <div class="text-xl font-bold text-sky-500">{{ data.ringkas.sakit }}</div>
+                <div class="text-[10px] uppercase text-zinc-500">Sakit</div>
+            </div>
+            <div class="text-center">
+                <div class="text-xl font-bold text-red-500">{{ data.ringkas.alpa }}</div>
+                <div class="text-[10px] uppercase text-zinc-500">Alpa</div>
+            </div>
+            <div class="text-center">
+                <div class="text-xl font-bold text-zinc-900">{{ data.pct }}</div>
+                <div class="text-[10px] uppercase text-zinc-500">Kehadiran</div>
+            </div>
+        </div>
+
+        <!-- Tabel rincian -->
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="bg-zinc-50 text-zinc-600 text-xs uppercase">
+                    <tr>
+                        <th class="text-left px-4 py-2">No</th>
+                        <th class="text-left px-4 py-2">Tanggal</th>
+                        <th class="text-left px-4 py-2">Hari</th>
+                        <th class="text-center px-4 py-2">Masuk</th>
+                        <th class="text-center px-4 py-2">Pulang</th>
+                        <th class="text-center px-4 py-2">Status</th>
+                        <th class="text-center px-4 py-2">Telat</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-zinc-100">
+                    {% for r in data.rows %}
+                    <tr class="hover:bg-zinc-50">
+                        <td class="px-4 py-2 text-zinc-500">{{ loop.index }}</td>
+                        <td class="px-4 py-2">{{ r.tanggal }}</td>
+                        <td class="px-4 py-2 text-zinc-600">{{ r.hari }}</td>
+                        <td class="px-4 py-2 text-center font-mono text-xs">{{ r.jam_masuk }}</td>
+                        <td class="px-4 py-2 text-center font-mono text-xs">{{ r.jam_pulang }}</td>
+                        <td class="px-4 py-2 text-center">
+                            {% if r.status == 'hadir' %}
+                            <span class="inline-block px-2 py-0.5 rounded text-xs bg-green-100 text-green-700 font-medium">H</span>
+                            {% elif r.status == 'izin' %}
+                            <span class="inline-block px-2 py-0.5 rounded text-xs bg-amber-100 text-amber-700 font-medium">I</span>
+                            {% elif r.status == 'sakit' %}
+                            <span class="inline-block px-2 py-0.5 rounded text-xs bg-sky-100 text-sky-700 font-medium">S</span>
+                            {% elif r.status == 'alpa' %}
+                            <span class="inline-block px-2 py-0.5 rounded text-xs bg-red-100 text-red-700 font-medium">A</span>
+                            {% else %}
+                            <span class="text-zinc-400">{{ r.status_letter }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-2 text-center text-zinc-500">{{ r.telat }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="px-4 py-8 text-center text-zinc-400">
+                            <i data-lucide="calendar-x" class="w-8 h-8 mx-auto mb-2 text-zinc-300"></i>
+                            Belum ada data absensi di bulan ini
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="px-4 py-3 text-xs text-zinc-400 border-t border-zinc-100">
+            <i data-lucide="info" class="w-3 h-3 inline"></i>
+            H = Hadir · I = Izin · S = Sakit · A = Alpa. Data rekap absensi <strong>{{ data.bulan_label }}</strong>.
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

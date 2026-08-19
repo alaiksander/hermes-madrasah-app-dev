@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}{{ form_title }}{% endblock %}
+{% block topbar_title %}Super Admin · {{ form_title }}{% endblock %}
+
+{% block sidebar_menu %}{% include "superadmin/_sidebar_menu.html" %}{% endblock %}
+
+{% block content %}
+<div class="max-w-xl">
+    <a href="/madrasah-app/superadmin/plans"
+       class="inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-700 mb-3">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke Plans
+    </a>
+    <h1 class="text-xl font-bold text-zinc-900 mb-4">{{ form_title }}</h1>
+
+    <form method="post"
+          action="{% if plan %}/madrasah-app/superadmin/plans/{{ plan.id }}{% else %}/madrasah-app/superadmin/plans{% endif %}"
+          class="bg-white rounded-lg border border-zinc-200 p-5 space-y-4">
+        {% if not plan %}
+        <div>
+            <label class="block text-sm font-medium text-zinc-700 mb-1">Nama Plan *</label>
+            <input type="text" name="nama" required placeholder="contoh: free, pilot, pro"
+                   class="w-full border border-zinc-300 rounded px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+            <p class="text-xs text-zinc-500 mt-1">Huruf kecil, tanpa spasi. Tidak bisa diubah setelah dibuat (identitas unik)</p>
+        </div>
+        {% endif %}
+        <div>
+            <label class="block text-sm font-medium text-zinc-700 mb-1">Label / Nama Tampilan</label>
+            <input type="text" name="label" value="{{ plan.label if plan else '' }}"
+                   placeholder="contoh: Free, Pilot, Pro"
+                   class="w-full border border-zinc-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+            <div>
+                <label class="block text-sm font-medium text-zinc-700 mb-1">Max Murid</label>
+                <input type="number" name="max_murid"
+                       value="{{ plan.max_murid if plan and plan.max_murid else '' }}"
+                       min="0" placeholder="0 = tanpa batas"
+                       class="w-full border border-zinc-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-zinc-700 mb-1">Max Guru</label>
+                <input type="number" name="max_guru"
+                       value="{{ plan.max_guru if plan and plan.max_guru else '' }}"
+                       min="0" placeholder="0 = tanpa batas"
+                       class="w-full border border-zinc-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+            </div>
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-zinc-700 mb-1">Fitur (satu per baris)</label>
+            <textarea name="fitur" rows="5"
+                      placeholder="contoh:&#10;1 madrasah, 50 murid&#10;export Excel&#10;rekap bulanan"
+                      class="w-full border border-zinc-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500">{{ plan.fitur | join('\n') if plan and plan.fitur else '' }}</textarea>
+        </div>
+        <div class="flex gap-2 pt-2">
+            <button type="submit" class="btn btn-primary text-sm">
+                <i data-lucide="save" class="w-4 h-4"></i> Simpan
+            </button>
+            <a href="/madrasah-app/superadmin/plans" class="btn btn-secondary text-sm">Batal</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

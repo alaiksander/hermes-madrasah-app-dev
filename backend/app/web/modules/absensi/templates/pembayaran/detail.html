@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block title %}Tagihan · {{ t.murid_nama }}{% endblock %}
+{% block topbar_title %}Pembayaran · Detail{% endblock %}
+
+{% block sidebar_menu %}{% include "absensi/_sidebar_menu.html" %}{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl">
+    <div class="mb-4 flex items-center justify-between">
+        <div>
+            <a href="/madrasah-app/pembayaran" class="text-sm text-zinc-500 hover:text-zinc-700">
+                <i data-lucide="arrow-left" class="w-4 h-4 inline"></i> Kembali
+            </a>
+            <h1 class="text-2xl font-bold text-zinc-800 mt-2">{{ t.murid_nama }}</h1>
+            <p class="text-sm text-zinc-500 mt-1">
+                {{ t.jenis_nama }} · {{ t.periode }} · NISN {{ t.murid_nisn or '—' }} · {{ t.murid_kelas }}
+            </p>
+        </div>
+    </div>
+
+    {% if request.query_params.get('ok') %}
+    <div class="mb-4 px-4 py-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">
+        <i data-lucide="check-circle" class="w-4 h-4 inline"></i> Disimpan.
+    </div>
+    {% endif %}
+
+    {# Ringkasan status #}
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+        <div class="bg-white rounded-xl border border-zinc-200 p-4">
+            <div class="text-xs uppercase text-zinc-400 tracking-wider">Nominal</div>
+            <div class="text-lg font-bold text-zinc-900 mt-1 font-mono">Rp{{ "{:,.0f}".format(t.nominal) }}</div>
+        </div>
+        <div class="bg-white rounded-xl border border-zinc-200 p-4">
+            <div class="text-xs uppercase text-zinc-400 tracking-wider">Potongan</div>
+            <div class="text-lg font-bold text-zinc-900 mt-1 font-mono">{{ t.potongan or '—' }}</div>
+        </div>
+        <div class="bg-white rounded-xl border border-zinc-200 p-4">
+            <div class="text-xs uppercase text-zinc-400 tracking-wider">Terbayar</div>
+            <div class="text-lg font-bold text-green-700 mt-1 font-mono">Rp{{ "{:,.0f}".format(t.dibayar) }}</div>
+        </div>
+        <div class="bg-white rounded-xl border border-zinc-200 p-4">
+            <div class="text-xs uppercase text-zinc-400 tracking-wider">Sisa</div>
+            <div class="text-lg font-bold {% if t.sisa > 0 %}text-red-600{% else %}text-zinc-900{% endif %} mt-1 font-mono">
+                Rp{{ "{:,.0f}".format(t.sisa) }}
+            </div>
+        </div>
+    </div>
+
+    {# Badge status + jatuh tempo #}
+    <div class="flex items-center gap-3 mb-6 px-4 py-3 bg-zinc-50 border border-zinc-200 rounded-lg text-sm">
+        {% if t.status == 'lunas' %}
+        <span class="px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-semibold">● LUNAS</span>
+        {% elif t.status == 'sebagian' %}
+        <span class="px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-semibold">● SEBAGIAN (CICIL)</span>
+        {% elif t.status == 'ditunda' %}
+        <span class="px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold">● DITUNDA s/d {{ t.ditunda_sampai[:10] }}</span>
+        {% else %}
+        <span class="px-3 py-1 rounded-full bg-zinc-200 text-zinc-600 text-xs font-semibold">● BELUM DIBAYAR</span>
+        {% endif %}
+        <span class="text-zinc-500">Jatuh tempo:
+            {% if t.jatuh_tempo %}{{ t.jatuh_tempo[:10] }}{% else %}—{% endif %}
+        </span>
+        {% if t.catatan %}<span class="text-zinc-400 italic">· {{ t.catatan }}</span>{% endif %}
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        {# Form bayar #}
+        {% if has_perm(user, "tagihan.input") and t.sisa > 0 %}
+        <div class="bg-white border border-zinc-200 rounded-xl shadow-sm p-5">
+            <h2 class="font-semibold text-zinc-900 mb-3">Input Pembayaran</h2>
+            {% if t.jenis_periode == 'bulanan' and not t.jenis_boleh_cicil is defined %}
+            {% endif %}
+            <form method="POST" action="/madrasah-app/pembayaran/{{ t.id }}/bayar" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-medium text-zinc-600 mb-1">Nominal (Rp) — sisa Rp{{ "{:,.0f}".format(t.sisa) }}</label>
+                    <input type="number" name="nominal" min="1" max="{{ t.sisa }}" required
+                           value="{{ t.sisa }}"
+                           class="w-full border border-zinc-300 rounded px-3 py-2 text-sm font-mono">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-zinc-600 mb-1">Metode</label>
+                    <select name="metode" class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                        <option value="cash">Tunai (cash)</option>
+                        <option value="transfer">Transfer</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-zinc-600 mb-1">Catatan</label>
+                    <input type="text" name="catatan" placeholder="Opsional"
+                           class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                </div>
+                <div class="flex gap-2">
+                    <button type="submit"
+                            class="flex-1 bg-teal-600 hover:bg-teal-700 text-white font-medium px-4 py-2.5 rounded-lg text-sm">
+                        <i data-lucide="check-circle" class="w-4 h-4 inline"></i>
+                        {{ 'Bayar Lunas' if t.dibayar == 0 else 'Simpan Pembayaran' }}
+                    </button>
+                </div>
+                <p class="text-xs text-zinc-400">
+                    Bayar sebagian = cicilan otomatis tercatat. Status update otomatis.
+                </p>
+            </form>
+        </div>
+        {% endif %}
+
+        {# Riwayat pembayaran #}
+        <div class="bg-white border border-zinc-200 rounded-xl shadow-sm p-5">
+            <h2 class="font-semibold text-zinc-900 mb-3">Riwayat Pembayaran</h2>
+            {% if t.pembayaran %}
+            <div class="divide-y divide-zinc-100">
+                {% for p in t.pembayaran %}
+                <div class="py-2.5 flex items-center justify-between">
+                    <div>
+                        <div class="text-sm font-mono font-medium text-zinc-800">Rp{{ "{:,.0f}".format(p.nominal) }}</div>
+                        <div class="text-xs text-zinc-400">
+                            {{ p.tanggal[:16].replace('T', ' ') }} · {{ p.metode }}
+                            {% if p.guru_nama %}· {{ p.guru_nama }}{% endif %}
+                        </div>
+                    </div>
+                    <div class="text-xs text-zinc-400 italic max-w-[40%] text-right">{{ p.catatan }}</div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center text-zinc-400 text-sm py-8">Belum ada pembayaran.</div>
+            {% endif %}
+
+            {% if has_perm(user, "tagihan.input") %}
+            {# Keringanan #}
+            <div class="mt-5 pt-4 border-t border-zinc-100">
+                <h3 class="text-sm font-semibold text-zinc-800 mb-2">Keringanan (kasus khusus)</h3>
+                <form method="POST" action="/madrasah-app/pembayaran/{{ t.id }}/keringanan" class="flex gap-2">
+                    <input type="number" name="potongan" min="1" max="{{ t.nominal - 1 }}" placeholder="Potongan Rp"
+                           class="flex-1 border border-zinc-300 rounded px-3 py-2 text-sm">
+                    <button type="submit" class="px-3 py-2 border border-teal-600 text-teal-700 hover:bg-teal-50 rounded-lg text-sm whitespace-nowrap">
+                        Terapkan
+                    </button>
+                </form>
+                <p class="text-xs text-zinc-400 mt-1">Potongan Rp dari tagihan (yatim, prestasi, dll).</p>
+            </div>
+
+            {# Penundaan #}
+            <div class="mt-4 pt-4 border-t border-zinc-100">
+                <h3 class="text-sm font-semibold text-zinc-800 mb-2">Penundaan</h3>
+                <form method="POST" action="/madrasah-app/pembayaran/{{ t.id }}/tunda" class="flex gap-2">
+                    <input type="date" name="ditunda_sampai" required
+                           class="flex-1 border border-zinc-300 rounded px-3 py-2 text-sm">
+                    <button type="submit" class="px-3 py-2 border border-teal-600 text-teal-700 hover:bg-teal-50 rounded-lg text-sm whitespace-nowrap">
+                        Tunda
+                    </button>
+                </form>
+                <p class="text-xs text-zinc-400 mt-1">Status jadi "Ditunda" sampai tanggal baru.</p>
+            </div>
+            {% endif %}
+
+            {% if has_perm(user, "tagihan.kelola") %}
+            <form method="POST" action="/madrasah-app/pembayaran/{{ t.id }}/hapus" class="mt-4 pt-4 border-t border-zinc-100"
+                  onsubmit="return confirm('Hapus tagihan ini + semua pembayarannya?')">
+                <button type="submit" class="text-xs text-red-500 hover:underline">
+                    Hapus tagihan
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

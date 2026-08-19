@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+{% block title %}Dashboard Super Admin{% endblock %}
+{% block topbar_title %}Super Admin · Dashboard{% endblock %}
+
+{% block sidebar_menu %}{% include "superadmin/_sidebar_menu.html" %}{% endblock %}
+
+{% block content %}
+<h1 class="text-xl font-bold text-zinc-900 mb-4">Dashboard Platform</h1>
+
+<!-- Stat cards -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+    <a href="/madrasah-app/superadmin/tenants"
+       class="bg-white rounded-xl border border-zinc-200 p-4 hover:border-teal-500 hover:shadow-md transition-all">
+        <div class="text-xs uppercase text-zinc-500 tracking-wider mb-1">Total Tenant</div>
+        <div class="text-2xl font-bold text-zinc-900">{{ dash.tenant_total or dash.get('tenant_count', tenants | length) }}</div>
+        <div class="text-xs text-teal-700 mt-1">Lihat daftar →</div>
+    </a>
+    <div class="bg-white rounded-xl border border-zinc-200 p-4">
+        <div class="text-xs uppercase text-zinc-500 tracking-wider mb-1">Total Murid</div>
+        <div class="text-2xl font-bold text-zinc-900">{{ dash.murid_total or dash.get('total_murid', '—') }}</div>
+    </div>
+    <div class="bg-white rounded-xl border border-zinc-200 p-4">
+        <div class="text-xs uppercase text-zinc-500 tracking-wider mb-1">Total Guru</div>
+        <div class="text-2xl font-bold text-zinc-900">{{ dash.guru_total or dash.get('total_guru', '—') }}</div>
+    </div>
+    <a href="/madrasah-app/superadmin/aktivitas"
+       class="bg-white rounded-xl border border-zinc-200 p-4 hover:border-teal-500 hover:shadow-md transition-all">
+        <div class="text-xs uppercase text-zinc-500 tracking-wider mb-2">Aktivitas Tenant</div>
+        <div class="space-y-1.5">
+            <div class="flex items-center justify-between text-sm">
+                <span class="text-zinc-600"><i data-lucide="activity" class="w-3 h-3 inline text-green-600"></i> Aktif</span>
+                <span class="font-bold text-green-600">{{ aktivitas.ringkas.aktif or 0 }}</span>
+            </div>
+            <div class="flex items-center justify-between text-sm">
+                <span class="text-zinc-600"><i data-lucide="pause-circle" class="w-3 h-3 inline text-amber-600"></i> Jarang</span>
+                <span class="font-bold text-amber-600">{{ aktivitas.ringkas.jarang or 0 }}</span>
+            </div>
+            <div class="flex items-center justify-between text-sm">
+                <span class="text-zinc-600"><i data-lucide="moon" class="w-3 h-3 inline text-red-600"></i> Tidak Aktif</span>
+                <span class="font-bold text-red-600">{{ aktivitas.ringkas.tidak_aktif or 0 }}</span>
+            </div>
+        </div>
+    </a>
+</div>
+
+<!-- Server status -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+    <div class="bg-white rounded-xl border border-zinc-200 p-4">
+        <h2 class="text-sm font-semibold text-zinc-800 mb-3 flex items-center gap-2">
+            <i data-lucide="server" class="w-4 h-4 text-zinc-500"></i> Server Status
+        </h2>
+        <div class="space-y-3 text-sm">
+            <div>
+                <div class="flex justify-between mb-1">
+                    <span class="text-zinc-500">RAM</span>
+                    <span class="font-mono">
+                        {% if server.ram and server.ram.used_pct is not none %}
+                        {{ server.ram.used_pct }}% ({{ server.ram.avail_mb }}MB bebas / {{ server.ram.total_mb }}MB)
+                        {% else %}—{% endif %}
+                    </span>
+                </div>
+                {% if server.ram and server.ram.used_pct is not none %}
+                <div class="h-1.5 bg-zinc-100 rounded overflow-hidden">
+                    <div class="h-full {% if server.ram.used_pct > 85 %}bg-red-500{% elif server.ram.used_pct > 70 %}bg-amber-500{% else %}bg-teal-500{% endif %}"
+                         style="width: {{ server.ram.used_pct }}%"></div>
+                </div>
+                {% endif %}
+            </div>
+            <div>
+                <div class="flex justify-between mb-1">
+                    <span class="text-zinc-500">Disk</span>
+                    <span class="font-mono">
+                        {% if server.disk and server.disk.used_pct is not none %}
+                        {{ server.disk.used_pct }}% ({{ server.disk.free_gb }}GB bebas / {{ server.disk.total_gb }}GB)
+                        {% else %}—{% endif %}
+                    </span>
+                </div>
+                {% if server.disk and server.disk.used_pct is not none %}
+                <div class="h-1.5 bg-zinc-100 rounded overflow-hidden">
+                    <div class="h-full {% if server.disk.used_pct > 85 %}bg-red-500{% elif server.disk.used_pct > 70 %}bg-amber-500{% else %}bg-teal-500{% endif %}"
+                         style="width: {{ server.disk.used_pct }}%"></div>
+                </div>
+                {% endif %}
+            </div>
+            <div class="flex justify-between">
+                <span class="text-zinc-500">Swap</span>
+                <span class="font-mono">
+                    {% if server.swap %}{{ server.swap.used_mb }}MB / {{ server.swap.total_mb }}MB{% else %}—{% endif %}
+                </span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-zinc-500">Uptime</span>
+                <span class="font-mono">{{ server.uptime or '—' }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-zinc-500">Load</span>
+                <span class="font-mono">{{ server.load or '—' }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-zinc-500">DB Total</span>
+                <span class="font-mono">
+                    {% if server.db %}{{ server.db.jumlah }} db · {{ server.db.total_mb }}MB{% else %}—{% endif %}
+                </span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-zinc-500">Backup Terakhir</span>
+                <span class="font-mono text-xs">
+                    {% if server.last_backup and server.last_backup.status == 'ok' %}
+                    <span class="text-green-600">✓</span> {{ server.last_backup.waktu }}
+                    {% elif server.last_backup %}
+                    <span class="text-amber-600">{{ server.last_backup.status }}</span> {{ server.last_backup.waktu }}
+                    {% else %}—{% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerts -->
+    <div class="bg-white rounded-xl border border-zinc-200 p-4">
+        <h2 class="text-sm font-semibold text-zinc-800 mb-3 flex items-center gap-2">
+            <i data-lucide="bell" class="w-4 h-4 text-zinc-500"></i> Alert Status
+        </h2>
+        <div class="space-y-2 text-sm">
+            <div class="flex justify-between">
+                <span class="text-zinc-500">Status</span>
+                <span class="{% if alerts.status == 'ok' %}text-green-600{% else %}text-amber-600{% endif %} font-medium">
+                    {{ alerts.status or '—' }}
+                </span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-zinc-500">Last Check</span>
+                <span class="font-mono text-xs">{{ alerts.last_check or '—' }}</span>
+            </div>
+            {% if alerts.issues %}
+            <div class="text-xs text-amber-700 bg-amber-50 rounded p-2 mt-2">
+                {{ alerts.issues }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Recent tenants -->
+<div class="bg-white rounded-xl border border-zinc-200 overflow-hidden">
+    <div class="px-4 py-3 border-b border-zinc-200 flex items-center justify-between">
+        <h2 class="text-sm font-semibold text-zinc-800">Daftar Madrasah</h2>
+        <a href="/madrasah-app/superadmin/tenants" class="text-xs text-teal-700 hover:underline">Lihat semua →</a>
+    </div>
+    {% if tenants %}
+    <table class="table-dense w-full text-sm">
+        <thead class="bg-zinc-50 text-zinc-600 text-xs uppercase">
+            <tr>
+                <th>Nama</th>
+                <th>Kode</th>
+                <th>Plan</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for t in tenants[:10] %}
+            <tr>
+                <td class="font-medium">
+                    <a href="/madrasah-app/superadmin/tenants/{{ t.id }}" class="text-teal-700 hover:underline">{{ t.nama }}</a>
+                </td>
+                <td class="font-mono text-xs">{{ t.kode }}</td>
+                <td class="text-xs">{{ t.plan or '—' }}</td>
+                <td>
+                    {% if t.status == 'active' %}
+                    <span class="inline-block px-2 py-0.5 rounded text-xs bg-green-100 text-green-700">Aktif</span>
+                    {% elif t.status == 'trial' %}
+                    <span class="inline-block px-2 py-0.5 rounded text-xs bg-amber-100 text-amber-700">Trial</span>
+                    {% elif t.status == 'suspended' %}
+                    <span class="inline-block px-2 py-0.5 rounded text-xs bg-red-100 text-red-700">Ditangguhkan</span>
+                    {% else %}
+                    <span class="inline-block px-2 py-0.5 rounded text-xs bg-zinc-200 text-zinc-600">{{ t.status }}</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="p-8 text-center text-zinc-500">Belum ada tenant</div>
+    {% endif %}
+</div>
+{% endblock %}

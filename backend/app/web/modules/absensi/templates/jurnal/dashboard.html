@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}Dashboard Jurnal Mengajar{% endblock %}
+{% block sidebar_menu %}{% include "absensi/_sidebar_menu.html" %}{% endblock %}
+{% block content %}
+<div class="max-w-4xl">
+    <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+        <h1 class="text-2xl font-bold text-zinc-800">Jurnal Mengajar</h1>
+        <div class="flex items-center gap-2">
+            {% if has_perm(user, "jurnal.export") or has_perm(user, "jurnal.verify") %}
+            <a href="/madrasah-app/jurnal/export?dari={{ dari }}&sampai={{ sampai }}"
+               class="flex items-center gap-1.5 bg-teal-600 hover:bg-teal-700 text-white font-medium px-4 py-2 rounded-lg transition-colors text-sm">
+                <i data-lucide="download" class="w-4 h-4"></i>
+                Export
+            </a>
+            {% endif %}
+            {% if has_perm(user, "jurnal.input") %}
+            <a href="/madrasah-app/jurnal/input"
+               class="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white font-medium px-4 py-2 rounded-lg transition-colors text-sm">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                Input Jurnal
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    {# Stat cards — pola konsisten dashboard Absensi #}
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-xl border border-zinc-200 p-5">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs uppercase text-zinc-500 tracking-wider">Total</span>
+                <i data-lucide="notebook-pen" class="w-4 h-4 text-teal-700"></i>
+            </div>
+            <div class="text-3xl font-bold text-zinc-900">{{ stats.total_jurnal or 0 }}</div>
+            <div class="text-xs text-zinc-500 mt-1">Bulan {{ stats.bulan or 0 }}/{{ stats.tahun or '' }}</div>
+        </div>
+        <div class="bg-white rounded-xl border border-zinc-200 p-5">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs uppercase text-zinc-500 tracking-wider">Draft</span>
+                <i data-lucide="pencil" class="w-4 h-4 text-teal-700"></i>
+            </div>
+            <div class="text-3xl font-bold text-zinc-900">{{ stats.draft or 0 }}</div>
+            <div class="text-xs text-zinc-500 mt-1">belum disubmit</div>
+        </div>
+        <div class="bg-white rounded-xl border border-zinc-200 p-5">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs uppercase text-zinc-500 tracking-wider">Submitted</span>
+                <i data-lucide="send" class="w-4 h-4 text-teal-700"></i>
+            </div>
+            <div class="text-3xl font-bold text-zinc-900">{{ stats.submitted or 0 }}</div>
+            <div class="text-xs text-zinc-500 mt-1">menunggu verifikasi</div>
+        </div>
+        <div class="bg-white rounded-xl border border-zinc-200 p-5">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs uppercase text-zinc-500 tracking-wider">Verified</span>
+                <i data-lucide="check-circle" class="w-4 h-4 text-teal-700"></i>
+            </div>
+            <div class="text-3xl font-bold text-zinc-900">{{ stats.verified or 0 }}</div>
+            <div class="text-xs text-zinc-500 mt-1">sudah diverifikasi</div>
+        </div>
+    </div>
+
+    {# Jurnal bulan ini #}
+    <div class="bg-white border border-zinc-200 rounded-xl shadow-sm overflow-hidden">
+        <div class="border-b border-zinc-100 px-4 py-3 flex items-center justify-between">
+            <h2 class="font-semibold text-zinc-700">Jurnal Bulan Ini</h2>
+            <span class="text-xs text-zinc-400">{{ dari }} — {{ sampai }}</span>
+        </div>
+        {% if jurnal_list %}
+        <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead class="bg-zinc-50 text-zinc-500 text-xs uppercase">
+                <tr>
+                    <th class="text-left px-4 py-2">Tanggal</th>
+                    <th class="text-left px-4 py-2">Kelas</th>
+                    <th class="text-left px-4 py-2">Mapel</th>
+                    <th class="text-left px-4 py-2">Jam</th>
+                    <th class="text-left px-4 py-2">Status</th>
+                    <th class="text-right px-4 py-2"></th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-zinc-100">
+                {% for j in jurnal_list %}
+                <tr class="hover:bg-zinc-50">
+                    <td class="px-4 py-2">{{ j.tanggal }}</td>
+                    <td class="px-4 py-2">{{ j.kelas_nama }}</td>
+                    <td class="px-4 py-2">{{ j.mata_pelajaran }}</td>
+                    <td class="px-4 py-2">{{ j.jam_mulai[:5] }}–{{ j.jam_selesai[:5] }}</td>
+                    <td class="px-4 py-2">
+                        {% if j.status == 'draft' %}
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-zinc-100 text-zinc-600">Draft</span>
+                        {% elif j.status == 'submitted' %}
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-700">Submitted</span>
+                        {% else %}
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-teal-100 text-teal-700">Verified</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-2 text-right">
+                        <a href="/madrasah-app/jurnal/{{ j.id }}"
+                           class="text-teal-600 hover:text-teal-800 text-sm font-medium">Buka</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+        {% else %}
+        <div class="p-8 text-center text-zinc-400">
+            <i data-lucide="notebook-pen" class="w-8 h-8 mx-auto mb-2 opacity-40"></i>
+            <p>Belum ada jurnal bulan ini.</p>
+            {% if has_perm(user, "jurnal.input") %}
+            <a href="/madrasah-app/jurnal/input" class="text-teal-600 hover:underline text-sm mt-1 inline-block">Buat jurnal pertama</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="mt-4 text-right">
+        <a href="/madrasah-app/jurnal/riwayat" class="text-sm text-teal-600 hover:underline">Lihat semua riwayat →</a>
+    </div>
+</div>
+{% endblock %}

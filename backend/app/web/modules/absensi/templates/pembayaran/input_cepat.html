@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+{% block title %}Input Cepat Pembayaran{% endblock %}
+{% block topbar_title %}Pembayaran · Input Cepat{% endblock %}
+
+{% block sidebar_menu %}{% include "absensi/_sidebar_menu.html" %}{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl">
+    <div class="mb-4 flex items-center justify-between">
+        <div>
+            <a href="/madrasah-app/pembayaran" class="text-sm text-zinc-500 hover:text-zinc-700">
+                <i data-lucide="arrow-left" class="w-4 h-4 inline"></i> Kembali
+            </a>
+            <h1 class="text-2xl font-bold text-zinc-800 mt-2">Input Cepat Pembayaran</h1>
+            <p class="text-sm text-zinc-500 mt-1">
+                Isi nominal langsung per baris — kosongkan kalau tidak dibayar. Satu klik simpan untuk semua.
+            </p>
+        </div>
+    </div>
+
+    {% if request.query_params.get('ok') %}
+    <div class="mb-4 px-4 py-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">
+        <i data-lucide="check-circle" class="w-4 h-4 inline"></i>
+        {{ request.query_params.get('ok') }} pembayaran disimpan.
+        {% if request.query_params.get('gagal') %}
+        <span class="text-red-600">{{ request.query_params.get('gagal') }} gagal (cek tanggal/validasi).</span>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {# Filter #}
+    <form method="GET" action="/madrasah-app/pembayaran/input-cepat"
+          class="bg-white border border-zinc-200 rounded-xl shadow-sm p-4 mb-5">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+            <div>
+                <label class="block text-xs font-medium text-zinc-600 mb-1">Periode (bulan)</label>
+                <select name="periode" class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                    {% for b in bulan_list %}
+                    <option value="{{ b.value }}" {% if filter_periode == b.value %}selected{% endif %}>{{ b.label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-zinc-600 mb-1">Kelas</label>
+                <select name="kelas_id" class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                    <option value="">Semua kelas</option>
+                    {% for k in kelas_list %}
+                    <option value="{{ k.id }}" {% if filter_kelas_id|string == k.id|string %}selected{% endif %}>{{ k.nama_kelas }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-zinc-600 mb-1">Status</label>
+                <select name="status" class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                    <option value="">Semua status</option>
+                    <option value="belum" {% if filter_status == 'belum' %}selected{% endif %}>Belum</option>
+                    <option value="sebagian" {% if filter_status == 'sebagian' %}selected{% endif %}>Sebagian</option>
+                    <option value="lunas" {% if filter_status == 'lunas' %}selected{% endif %}>Lunas</option>
+                    <option value="ditunda" {% if filter_status == 'ditunda' %}selected{% endif %}>Ditunda</option>
+                </select>
+            </div>
+        </div>
+        <div class="flex gap-2 mt-3">
+            <button type="submit" class="bg-teal-600 hover:bg-teal-700 text-white font-medium px-4 py-2 rounded-lg text-sm">
+                <i data-lucide="search" class="w-3.5 h-3.5 inline"></i> Tampilkan
+            </button>
+            <a href="/madrasah-app/pembayaran/input-cepat"
+               class="px-4 py-2 border border-zinc-300 rounded-lg text-zinc-600 hover:bg-zinc-50 text-sm">Reset</a>
+        </div>
+    </form>
+
+    {# Tabel input cepat #}
+    <form id="bulk-form">
+        <div class="bg-white border border-zinc-200 rounded-xl shadow-sm overflow-x-auto">
+            <table class="w-full text-sm" id="bulk-table">
+                <thead class="bg-zinc-50 text-zinc-500 text-xs uppercase border-b border-zinc-100">
+                    <tr>
+                        <th class="text-left px-4 py-3 w-8"><input type="checkbox" id="check-all" class="w-4 h-4 accent-teal-600" checked></th>
+                        <th class="text-left px-4 py-3">Murid</th>
+                        <th class="text-left px-4 py-3">Jenis</th>
+                        <th class="text-right px-4 py-3">Sisa</th>
+                        <th class="text-left px-4 py-3 w-32">Bayar (Rp)</th>
+                        <th class="text-left px-4 py-3 w-28">Metode</th>
+                        <th class="text-left px-4 py-3">Catatan</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-zinc-100">
+                    {% for t in tagihan %}
+                    <tr class="hover:bg-zinc-50/50 bulk-row" data-tagihan="{{ t.id }}"
+                        data-lunas="{{ '1' if t.status == 'lunas' else '0' }}">
+                        <td class="px-4 py-2 text-center">
+                            <input type="checkbox" class="row-check w-4 h-4 accent-teal-600"
+                                   {% if t.status == 'lunas' %}disabled{% else %}checked{% endif %}>
+                        </td>
+                        <td class="px-4 py-2">
+                            <div class="text-zinc-800">{{ t.murid_nama }}</div>
+                            <div class="text-xs text-zinc-400 font-mono">{{ t.murid_kelas }}</div>
+                        </td>
+                        <td class="px-4 py-2">
+                            <div class="text-zinc-700">{{ t.jenis_nama }}</div>
+                            <div class="text-xs text-zinc-400">{{ t.periode }}</div>
+                        </td>
+                        <td class="px-4 py-2 text-right font-mono text-zinc-700">Rp{{ "{:,.0f}".format(t.sisa) }}</td>
+                        <td class="px-4 py-2">
+                            {% if t.status == 'lunas' %}
+                            <span class="text-xs text-green-600 font-medium">✓ Lunas</span>
+                            {% else %}
+                            <input type="number" class="bayar-input w-full border border-zinc-300 rounded px-2 py-1.5 text-sm font-mono"
+                                   min="1" max="{{ t.sisa }}" value="{{ t.sisa }}" placeholder="—">
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-2">
+                            {% if t.status == 'lunas' %}<span class="text-xs text-zinc-300">—</span>
+                            {% else %}
+                            <select class="metode-select w-full border border-zinc-300 rounded px-2 py-1.5 text-sm">
+                                <option value="cash">Cash</option>
+                                <option value="transfer">Transfer</option>
+                            </select>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-2">
+                            <input type="text" class="catatan-input w-full border border-zinc-300 rounded px-2 py-1.5 text-sm"
+                                   placeholder="Opsional" {% if t.status == 'lunas' %}disabled{% endif %}>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="7" class="px-4 py-10 text-center text-zinc-400">Tidak ada tagihan untuk filter ini.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="mt-4 flex items-center gap-3">
+            <button type="button" onclick="simpanBulk()"
+                    class="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white font-medium px-6 py-2.5 rounded-lg text-sm">
+                <i data-lucide="save" class="w-4 h-4"></i>
+                Simpan Semua Pembayaran
+            </button>
+            <span class="text-xs text-zinc-500">
+                <span id="selected-count">0</span> baris siap disimpan · <span id="total-nominal">Rp0</span>
+            </span>
+        </div>
+    </form>
+</div>
+
+<script>
+document.getElementById('check-all').addEventListener('change', function() {
+    document.querySelectorAll('.row-check:not(:disabled)').forEach(cb => cb.checked = this.checked);
+    updateSummary();
+});
+document.querySelectorAll('.bayar-input').forEach(i => {
+    i.addEventListener('input', updateSummary);
+});
+document.querySelectorAll('.row-check').forEach(cb => cb.addEventListener('change', updateSummary));
+updateSummary();
+
+function updateSummary() {
+    let count = 0, total = 0;
+    document.querySelectorAll('.bulk-row').forEach(row => {
+        const cb = row.querySelector('.row-check');
+        const input = row.querySelector('.bayar-input');
+        if (cb && cb.checked && input) {
+            count++;
+            total += parseInt(input.value || 0) || 0;
+        }
+    });
+    document.getElementById('selected-count').textContent = count;
+    document.getElementById('total-nominal').textContent = 'Rp' + total.toLocaleString('id-ID');
+}
+
+async function simpanBulk() {
+    const entries = [];
+    document.querySelectorAll('.bulk-row').forEach(row => {
+        const cb = row.querySelector('.row-check');
+        const input = row.querySelector('.bayar-input');
+        if (!cb || cb.disabled || !cb.checked) return;
+        const nominal = parseInt(input.value || '0') || 0;
+        if (nominal <= 0) return;
+        entries.push({
+            tagihan_id: parseInt(row.dataset.tagihan),
+            nominal: nominal,
+            metode: row.querySelector('.metode-select')?.value || 'cash',
+            catatan: row.querySelector('.catatan-input')?.value || ''
+        });
+    });
+    if (entries.length === 0) { alert('Tidak ada baris yang diisi.'); return; }
+    if (!confirm(`Simpan ${entries.length} pembayaran (total Rp${entries.reduce((a,e)=>a+e.nominal,0).toLocaleString('id-ID')})?`)) return;
+    const res = await fetch('/madrasah-app/pembayaran/input-cepat/simpan', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(entries)
+    });
+    if (res.redirected) window.location.href = res.url;
+    else window.location.href = '/madrasah-app/pembayaran/input-cepat?err=1';
+}
+</script>
+{% endblock %}

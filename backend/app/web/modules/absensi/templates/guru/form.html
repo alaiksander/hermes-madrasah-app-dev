@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}{{ form_title }}{% endblock %}
+{% block topbar_title %}Modul Absensi · {{ form_title }}{% endblock %}
+
+{% block sidebar_menu %}{% include "absensi/_sidebar_menu.html" %}{% endblock %}
+
+{% block content %}
+<div class="max-w-xl">
+    <a href="/madrasah-app/data/guru" class="inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-700 mb-3">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke daftar guru
+    </a>
+
+    <div class="bg-white rounded-lg border border-zinc-200 p-6">
+        <h1 class="text-lg font-bold text-zinc-900 mb-4">{{ form_title }}</h1>
+
+        {% if error %}
+        <div class="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg p-3 mb-4">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        {% if is_self %}
+        <div class="bg-amber-50 border border-amber-200 text-amber-800 text-sm rounded-lg p-3 mb-4">
+            <i data-lucide="alert-triangle" class="w-4 h-4 inline"></i>
+            Anda sedang mengedit akun sendiri. Tidak dapat mengubah role atau menonaktifkan akun sendiri.
+        </div>
+        {% endif %}
+
+        <form method="post" action="{{ form_action }}" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-zinc-700 mb-1">
+                    Nama Lengkap <span class="text-red-600">*</span>
+                </label>
+                <input type="text" name="nama" required
+                       value="{{ guru.nama if guru else '' }}"
+                       placeholder="contoh: Ahmad Sobari, S.Pd"
+                       class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-zinc-700 mb-1">
+                    Username <span class="text-red-600">*</span>
+                </label>
+                <input type="text" name="username" required
+                       value="{{ guru.username if guru else '' }}"
+                       placeholder="huruf kecil, tanpa spasi"
+                       pattern="[a-z0-9_]+"
+                       class="w-full border border-zinc-300 rounded px-3 py-2 text-sm font-mono">
+                <p class="text-xs text-zinc-500 mt-1">Digunakan untuk login. Tidak bisa diubah setelah dibuat.</p>
+            </div>
+            {% if show_password %}
+            <div>
+                <label class="block text-sm font-medium text-zinc-700 mb-1">
+                    Password <span class="text-red-600">*</span>
+                </label>
+                <input type="text" name="password" required minlength="6"
+                       placeholder="Minimal 6 karakter"
+                       class="w-full border border-zinc-300 rounded px-3 py-2 text-sm font-mono">
+            </div>
+            {% endif %}
+            <div>
+                <label class="block text-sm font-medium text-zinc-700 mb-1">
+                    Role
+                </label>
+                <select name="role"
+                        {% if is_self %}disabled{% endif %}
+                        class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                    <option value="guru" {% if guru and guru.role == 'guru' %}selected{% endif %}>Guru — akses terbatas ke data absensi & murid</option>
+                    <option value="admin" {% if guru and guru.role == 'admin' %}selected{% endif %}>Admin — akses penuh termasuk manajemen user</option>
+                </select>
+                {% if is_self %}
+                <input type="hidden" name="role" value="{{ guru.role }}">
+                <p class="text-xs text-zinc-500 mt-1">Tidak dapat mengubah role akun sendiri.</p>
+                {% endif %}
+            </div>
+            <div class="flex items-center justify-end gap-2 pt-3 border-t border-zinc-200">
+                <a href="/madrasah-app/data/guru" class="btn btn-secondary">Batal</a>
+                <button type="submit" class="btn btn-primary">
+                    <i data-lucide="save" class="w-4 h-4"></i> Simpan
+                </button>
+            </div>
+        </form>
+    </div>
+
+    {% if guru %}
+    <!-- Audit info -->
+    <div class="bg-zinc-50 border border-zinc-200 rounded-lg p-4 mt-4 text-xs text-zinc-600">
+        <p><strong>Dibuat:</strong> {{ guru.created_at | format_datetime_id if guru.created_at else '—' }}</p>
+        {% if guru.last_login %}
+        <p class="mt-1"><strong>Login terakhir:</strong> {{ guru.last_login | format_datetime_id }}</p>
+        {% endif %}
+        {% if guru.id == user.id %}
+        <p class="mt-1 text-amber-700">
+            <i data-lucide="alert-triangle" class="w-3 h-3 inline"></i>
+            Untuk reset password akun sendiri, hubungi admin lain.
+        </p>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

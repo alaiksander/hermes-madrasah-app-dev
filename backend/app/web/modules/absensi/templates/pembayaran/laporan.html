@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}Laporan Pembayaran{% endblock %}
+{% block topbar_title %}Pembayaran · Laporan{% endblock %}
+
+{% block sidebar_menu %}{% include "absensi/_sidebar_menu.html" %}{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl">
+    <div class="mb-4 flex items-center justify-between">
+        <div>
+            <a href="/madrasah-app/pembayaran" class="text-sm text-zinc-500 hover:text-zinc-700">
+                <i data-lucide="arrow-left" class="w-4 h-4 inline"></i> Kembali
+            </a>
+            <h1 class="text-2xl font-bold text-zinc-800 mt-2">Laporan Pembayaran</h1>
+            <p class="text-sm text-zinc-500 mt-1">Rekap tagihan & pembayaran — export Excel untuk arsip.</p>
+        </div>
+    </div>
+
+    {# Ringkasan #}
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+        <div class="bg-white rounded-xl border border-zinc-200 p-4">
+            <div class="text-xs uppercase text-zinc-400 tracking-wider">Total Tagihan</div>
+            <div class="text-xl font-bold text-zinc-900 mt-1 font-mono">Rp{{ "{:,.0f}".format(total_nominal) }}</div>
+        </div>
+        <div class="bg-white rounded-xl border border-zinc-200 p-4">
+            <div class="text-xs uppercase text-zinc-400 tracking-wider">Terbayar</div>
+            <div class="text-xl font-bold text-green-600 mt-1 font-mono">Rp{{ "{:,.0f}".format(total_terbayar) }}</div>
+        </div>
+        <div class="bg-white rounded-xl border border-zinc-200 p-4">
+            <div class="text-xs uppercase text-zinc-400 tracking-wider">Sisa</div>
+            <div class="text-xl font-bold text-red-600 mt-1 font-mono">Rp{{ "{:,.0f}".format(total_sisa) }}</div>
+        </div>
+        <div class="bg-white rounded-xl border border-zinc-200 p-4">
+            <div class="text-xs uppercase text-zinc-400 tracking-wider">Lunas</div>
+            <div class="text-xl font-bold text-zinc-900 mt-1">{{ total_lunas }} tagihan</div>
+        </div>
+    </div>
+
+    {# Filter + export #}
+    <form method="GET" action="/madrasah-app/pembayaran/laporan"
+          class="bg-white border border-zinc-200 rounded-xl shadow-sm p-4 mb-5">
+        <div class="flex flex-wrap gap-3 items-end">
+            <div>
+                <label class="block text-xs font-medium text-zinc-600 mb-1">Periode (bulan)</label>
+                <select name="periode" class="border border-zinc-300 rounded px-3 py-2 text-sm">
+                    {% for b in bulan_list %}
+                    <option value="{{ b.value }}" {% if filter_periode == b.value %}selected{% endif %}>{{ b.label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-zinc-600 mb-1">Kelas</label>
+                <select name="kelas_id" class="border border-zinc-300 rounded px-3 py-2 text-sm">
+                    <option value="">Semua kelas</option>
+                    {% for k in kelas_list %}
+                    <option value="{{ k.id }}" {% if filter_kelas_id|string == k.id|string %}selected{% endif %}>{{ k.nama_kelas }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-zinc-600 mb-1">Status</label>
+                <select name="status" class="border border-zinc-300 rounded px-3 py-2 text-sm">
+                    <option value="">Semua</option>
+                    <option value="belum" {% if filter_status == 'belum' %}selected{% endif %}>Belum</option>
+                    <option value="sebagian" {% if filter_status == 'sebagian' %}selected{% endif %}>Sebagian</option>
+                    <option value="lunas" {% if filter_status == 'lunas' %}selected{% endif %}>Lunas</option>
+                    <option value="ditunda" {% if filter_status == 'ditunda' %}selected{% endif %}>Ditunda</option>
+                </select>
+            </div>
+            <button type="submit" class="bg-teal-600 hover:bg-teal-700 text-white font-medium px-4 py-2 rounded-lg text-sm">
+                <i data-lucide="filter" class="w-3.5 h-3.5 inline"></i> Filter
+            </button>
+            <a href="/madrasah-app/pembayaran/laporan/export?periode={{ filter_periode }}{% if filter_kelas_id %}&kelas_id={{ filter_kelas_id }}{% endif %}{% if filter_status %}&status={{ filter_status }}{% endif %}"
+               class="ml-auto flex items-center gap-2 border border-teal-600 text-teal-700 hover:bg-teal-50 font-medium px-4 py-2 rounded-lg text-sm">
+                <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+                Export Excel
+            </a>
+        </div>
+    </form>
+
+    {# Tabel laporan #}
+    <div class="bg-white border border-zinc-200 rounded-xl shadow-sm overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead class="bg-zinc-50 text-zinc-500 text-xs uppercase border-b border-zinc-100">
+                <tr>
+                    <th class="text-left px-4 py-3">Murid</th>
+                    <th class="text-left px-4 py-3">Kelas</th>
+                    <th class="text-left px-4 py-3">Jenis</th>
+                    <th class="text-right px-4 py-3">Nominal</th>
+                    <th class="text-right px-4 py-3">Potongan</th>
+                    <th class="text-right px-4 py-3">Terbayar</th>
+                    <th class="text-right px-4 py-3">Sisa</th>
+                    <th class="text-center px-4 py-3">Status</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-zinc-100">
+                {% for t in tagihan %}
+                <tr class="hover:bg-zinc-50/50">
+                    <td class="px-4 py-2.5">
+                        <div class="text-zinc-800">{{ t.murid_nama }}</div>
+                        <div class="text-xs text-zinc-400 font-mono">{{ t.murid_nisn or '—' }}</div>
+                    </td>
+                    <td class="px-4 py-2.5 text-zinc-600">{{ t.murid_kelas }}</td>
+                    <td class="px-4 py-2.5">
+                        <div class="text-zinc-700">{{ t.jenis_nama }}</div>
+                        <div class="text-xs text-zinc-400">{{ t.periode }}</div>
+                    </td>
+                    <td class="px-4 py-2.5 text-right font-mono">Rp{{ "{:,.0f}".format(t.nominal) }}</td>
+                    <td class="px-4 py-2.5 text-right font-mono text-zinc-500">{{ t.potongan or '—' }}</td>
+                    <td class="px-4 py-2.5 text-right font-mono text-green-700">Rp{{ "{:,.0f}".format(t.dibayar) }}</td>
+                    <td class="px-4 py-2.5 text-right font-mono {% if t.sisa > 0 %}text-red-600{% else %}text-zinc-400{% endif %}">
+                        Rp{{ "{:,.0f}".format(t.sisa) }}
+                    </td>
+                    <td class="px-4 py-2.5 text-center">
+                        {% if t.status == 'lunas' %}
+                        <span class="px-2 py-0.5 rounded-full bg-green-50 text-green-700 text-xs font-medium">Lunas</span>
+                        {% elif t.status == 'sebagian' %}
+                        <span class="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-xs font-medium">Sebagian</span>
+                        {% elif t.status == 'ditunda' %}
+                        <span class="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-xs font-medium">Ditunda</span>
+                        {% else %}
+                        <span class="px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600 text-xs font-medium">Belum</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="8" class="px-4 py-10 text-center text-zinc-400">Tidak ada data untuk filter ini.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

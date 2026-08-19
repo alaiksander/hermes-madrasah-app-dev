@@ -1,0 +1,276 @@
+{% extends "base.html" %}
+{% block title %}Input Absen Manual{% endblock %}
+{% block topbar_title %}Modul Absensi · Input Manual{% endblock %}
+
+{% block sidebar_menu %}{% include "absensi/_sidebar_menu.html" %}{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl">
+    <h1 class="text-xl font-bold text-zinc-900 mb-4">Input Absen Manual</h1>
+
+    <!-- Tab navigation -->
+    <div class="border-b border-zinc-200 mb-4">
+        <nav class="flex gap-1">
+            <a href="/madrasah-app/absensi/input-manual?tab=bulk{% if kelas_id %}&kelas_id={{ kelas_id }}{% endif %}{% if tgl_str %}&tanggal={{ tgl_str }}{% endif %}"
+               class="px-4 py-2 text-sm border-b-2 {% if tab == 'bulk' %}border-teal-700 text-teal-700 font-medium{% else %}border-transparent text-zinc-600 hover:text-zinc-900{% endif %}">
+                <i data-lucide="list-checks" class="w-4 h-4 inline"></i>
+                Bulk per Kelas
+            </a>
+            <a href="/madrasah-app/absensi/input-manual?tab=individual"
+               class="px-4 py-2 text-sm border-b-2 {% if tab == 'individual' %}border-teal-700 text-teal-700 font-medium{% else %}border-transparent text-zinc-600 hover:text-zinc-900{% endif %}">
+                <i data-lucide="user-search" class="w-4 h-4 inline"></i>
+                Individual (QR Rusak/Hilang)
+            </a>
+        </nav>
+    </div>
+
+    {# ─── Tab 1: Bulk per Kelas ───────────────────────────────── #}
+    {% if tab == 'bulk' %}
+    <!-- Filter kelas + tanggal -->
+    <form method="get" action="/madrasah-app/absensi/input-manual" class="bg-white rounded-lg border border-zinc-200 p-3 mb-3 flex flex-wrap items-end gap-3">
+        <input type="hidden" name="tab" value="bulk">
+        <div class="min-w-[180px]">
+            <label class="block text-xs font-medium text-zinc-600 mb-1">Kelas</label>
+            <select name="kelas_id"
+                    onchange="this.form.submit()"
+                    class="border border-zinc-300 rounded px-3 py-1.5 text-sm">
+                {% for k in kelas_list %}
+                <option value="{{ k.id }}" {% if kelas_id == k.id %}selected{% endif %}>
+                    {{ k.nama_kelas }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs font-medium text-zinc-600 mb-1">Tanggal</label>
+            <input type="date" name="tanggal" value="{{ tgl_str }}"
+                   onchange="this.form.submit()"
+                   class="border border-zinc-300 rounded px-3 py-1.5 text-sm font-mono">
+        </div>
+    </form>
+
+    <!-- Roster dengan master button per kolom -->
+    <form method="post" action="/madrasah-app/absensi/input-manual/bulk" class="bg-white rounded-lg border border-zinc-200 overflow-x-auto">
+        <input type="hidden" name="kelas_id" value="{{ kelas_id }}">
+        <input type="hidden" name="tanggal" value="{{ tgl_str }}">
+
+        <table class="table-dense w-full text-sm min-w-[720px]">
+            <thead class="bg-zinc-50 text-zinc-600 text-xs uppercase">
+                <tr>
+                    <th class="w-12">No</th>
+                    <th>NISN</th>
+                    <th class="sticky left-0 bg-zinc-50 z-10 border-r border-zinc-200">Nama</th>
+                    <th>Status Saat Ini</th>
+                    <th class="text-center w-20">
+                        <button type="button" data-status="hadir" onclick="setAll('hadir')"
+                                class="px-2 py-0.5 rounded bg-green-600 text-white text-xs hover:bg-green-700 cursor-pointer"
+                                title="Set SEMUA murid = Hadir">
+                            Hadir
+                        </button>
+                    </th>
+                    <th class="text-center w-20">
+                        <button type="button" data-status="izin" onclick="setAll('izin')"
+                                class="px-2 py-0.5 rounded bg-blue-600 text-white text-xs hover:bg-blue-700 cursor-pointer"
+                                title="Set SEMUA murid = Izin">
+                            Izin
+                        </button>
+                    </th>
+                    <th class="text-center w-20">
+                        <button type="button" data-status="sakit" onclick="setAll('sakit')"
+                                class="px-2 py-0.5 rounded bg-amber-600 text-white text-xs hover:bg-amber-700 cursor-pointer"
+                                title="Set SEMUA murid = Sakit">
+                            Sakit
+                        </button>
+                    </th>
+                    <th class="text-center w-20">
+                        <button type="button" data-status="alpa" onclick="setAll('alpa')"
+                                class="px-2 py-0.5 rounded bg-zinc-700 text-white text-xs hover:bg-zinc-800 cursor-pointer"
+                                title="Set SEMUA murid = Alpa">
+                            Alpa
+                        </button>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in roster %}
+                <tr class="{% if not r.status %}bg-amber-50/30{% endif %}">
+                    <td class="text-center text-zinc-400">{{ loop.index }}</td>
+                    <td class="font-mono text-xs">{{ r.nisn }}</td>
+                    <td class="sticky left-0 {% if r.status %}bg-white{% else %}bg-amber-50/80{% endif %} z-10 border-r border-zinc-200">
+                        <div class="font-medium">{{ r.nama }}</div>
+                        {% if r.waktu %}
+                        <div class="text-xs text-zinc-500">{{ r.waktu }} · {{ r.guru or '—' }}</div>
+                        {% endif %}
+                    </td>
+                    <td class="text-xs">
+                        {% if r.status == 'hadir' %}
+                        <span class="inline-block px-2 py-0.5 rounded bg-green-100 text-green-700">Hadir</span>
+                        {% elif r.status == 'izin' %}
+                        <span class="inline-block px-2 py-0.5 rounded bg-blue-100 text-blue-700">Izin</span>
+                        {% elif r.status == 'sakit' %}
+                        <span class="inline-block px-2 py-0.5 rounded bg-amber-100 text-amber-700">Sakit</span>
+                        {% elif r.status == 'alpa' %}
+                        <span class="inline-block px-2 py-0.5 rounded bg-zinc-200 text-zinc-700">Alpa</span>
+                        {% else %}
+                        <span class="inline-block px-2 py-0.5 rounded bg-amber-100 text-amber-700">Belum</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        <input type="checkbox" name="entries" value="{{ r.murid_id }}:hadir"
+                               {% if r.status == 'hadir' %}checked{% endif %}
+                               class="radio-status w-4 h-4 text-green-600 focus:ring-green-500 cursor-pointer rounded"
+                               data-status="hadir">
+                    </td>
+                    <td class="text-center">
+                        <input type="checkbox" name="entries" value="{{ r.murid_id }}:izin"
+                               {% if r.status == 'izin' %}checked{% endif %}
+                               class="radio-status w-4 h-4 text-blue-600 focus:ring-blue-500 cursor-pointer rounded"
+                               data-status="izin">
+                    </td>
+                    <td class="text-center">
+                        <input type="checkbox" name="entries" value="{{ r.murid_id }}:sakit"
+                               {% if r.status == 'sakit' %}checked{% endif %}
+                               class="radio-status w-4 h-4 text-amber-600 focus:ring-amber-500 cursor-pointer rounded"
+                               data-status="sakit">
+                    </td>
+                    <td class="text-center">
+                        <input type="checkbox" name="entries" value="{{ r.murid_id }}:alpa"
+                               {% if r.status == 'alpa' %}checked{% endif %}
+                               class="radio-status w-4 h-4 text-zinc-600 focus:ring-zinc-500 cursor-pointer rounded"
+                               data-status="alpa">
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% if roster %}
+        <div class="bg-zinc-50 px-4 py-3 border-t border-zinc-200 flex items-center justify-between">
+            <span class="text-xs text-zinc-500">
+                <i data-lucide="info" class="w-3 h-3 inline"></i>
+                Klik tombol master untuk set semua murid. Klik radio per-murid untuk override.
+            </span>
+            <button type="submit" class="btn btn-primary text-sm">
+                <i data-lucide="save" class="w-4 h-4"></i> Simpan Semua
+            </button>
+        </div>
+        {% else %}
+        <div class="p-8 text-center text-zinc-500">
+            <i data-lucide="users" class="w-12 h-12 mx-auto mb-2 text-zinc-300"></i>
+            <p>Tidak ada murid aktif di kelas ini</p>
+        </div>
+        {% endif %}
+    </form>
+
+<script>
+/**
+ * Mutual exclusion untuk checkbox status per murid.
+ * Pattern mirip Flutter: tap 1 status = auto-uncheck yang lain di row yang sama.
+ *
+ * - Saat user check salah satu checkbox di row, uncheck 3 sibling
+ * - Saat user uncheck, tetap uncheck (no auto-revert ke status sebelumnya)
+ * - Master "Set Semua" button: set checked di kolom tertentu + uncheck siblings
+ *   (konsisten dengan behavior per-row)
+ */
+function handleStatusChange(checkbox) {
+    if (!checkbox.checked) return;  // Uncheck: biarkan unchecked
+    const row = checkbox.closest('tr');
+    // Uncheck 3 sibling di row ini
+    row.querySelectorAll('.radio-status').forEach(cb => {
+        if (cb !== checkbox) cb.checked = false;
+    });
+}
+
+function setAll(status) {
+    const radios = document.querySelectorAll('.radio-status[data-status="' + status + '"]');
+    radios.forEach(r => {
+        r.checked = true;
+        // Uncheck sibling lain di row yang sama (konsisten mutual exclusion)
+        const row = r.closest('tr');
+        row.querySelectorAll('.radio-status').forEach(cb => {
+            if (cb !== r) cb.checked = false;
+        });
+    });
+    // Visual feedback: highlight tombol master dengan data-status attr
+    const header = document.querySelector(
+        'th button[data-status="' + status + '"]'
+    );
+    if (header) {
+        header.classList.add('ring-2', 'ring-white');
+        setTimeout(() => header.classList.remove('ring-2', 'ring-white'), 200);
+    }
+}
+
+// Attach handler ke SEMUA radio-status setelah page load
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.radio-status').forEach(cb => {
+        cb.addEventListener('change', () => handleStatusChange(cb));
+    });
+});
+</script>
+
+    {# ─── Tab 2: Individual ─────────────────────────────────── #}
+    {% else %}
+    <!-- Search box -->
+    <form method="get" action="/madrasah-app/absensi/input-manual" class="bg-white rounded-lg border border-zinc-200 p-3 mb-4">
+        <input type="hidden" name="tab" value="individual">
+        <div class="flex items-center gap-2">
+            <i data-lucide="search" class="w-5 h-5 text-zinc-400"></i>
+            <input type="text" name="q" value="{{ q }}" placeholder="Cari nama atau NISN murid..."
+                   autofocus
+                   class="flex-1 border-0 focus:ring-0 text-sm">
+            <button type="submit" class="btn btn-primary text-sm">Cari</button>
+        </div>
+    </form>
+
+    <!-- Info kalau ada query -->
+    {% if q %}
+    <div class="mb-3 text-sm text-zinc-600">
+        {% if murid_results %}
+        Ditemukan <strong>{{ murid_results | length }}</strong> murid
+        {% elif q|length >= 2 %}
+        Tidak ada murid untuk "<strong>{{ q }}</strong>"
+        {% else %}
+        Ketik minimal 2 karakter
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Results -->
+    {% if murid_results %}
+    <div class="bg-white rounded-lg border border-zinc-200 divide-y divide-zinc-200">
+        {% for m in murid_results %}
+        <div class="flex items-center justify-between px-4 py-3 hover:bg-zinc-50">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-teal-50 rounded-lg">
+                    <i data-lucide="user" class="w-5 h-5 text-teal-700"></i>
+                </div>
+                <div>
+                    <div class="font-medium">{{ m.nama }}</div>
+                    <div class="text-xs text-zinc-500">
+                        <span class="font-mono">NISN {{ m.nisn }}</span>
+                        <span class="mx-1">·</span>
+                        <span>{{ m.kelas_nama }}</span>
+                    </div>
+                </div>
+            </div>
+            <form method="post" action="/madrasah-app/absensi/input-manual" class="inline">
+                <input type="hidden" name="murid_id" value="{{ m.id }}">
+                <input type="hidden" name="q" value="{{ q }}">
+                <button type="submit" class="btn btn-primary text-sm">
+                    <i data-lucide="check" class="w-4 h-4"></i> Tandai Hadir
+                </button>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+    {% elif not q %}
+    <div class="bg-white rounded-lg border border-zinc-200 p-12 text-center text-zinc-500">
+        <i data-lucide="user-search" class="w-12 h-12 mx-auto mb-2 text-zinc-300"></i>
+        <p class="font-medium">Untuk QR yang rusak / hilang</p>
+        <p class="text-xs mt-1">Cari murid berdasarkan nama atau NISN, lalu tandai hadir manual</p>
+    </div>
+    {% endif %}
+    {% endif %}
+</div>
+{% endblock %}

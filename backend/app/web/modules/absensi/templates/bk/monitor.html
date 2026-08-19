@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block title %}Monitor {{ data.murid.nama }}{% endblock %}
+{% block topbar_title %}Monitor BK{% endblock %}
+
+{% block sidebar_menu %}{% include "absensi/_sidebar_menu.html" %}{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="/madrasah-app/bk/catatan" class="text-sm text-zinc-500 hover:text-zinc-700">
+        <i data-lucide="arrow-left" class="w-4 h-4 inline"></i> Kembali
+    </a>
+    <h1 class="text-xl font-bold text-zinc-900 mt-2">{{ data.murid.nama }}</h1>
+    <p class="text-sm text-zinc-500 mt-1">NISN {{ data.murid.nisn }} · Kelas {{ data.murid.kelas_nama }}</p>
+</div>
+
+<!-- Filter -->
+<form method="get" class="bg-white rounded-lg border border-zinc-200 p-3 mb-4 flex flex-wrap items-end gap-3">
+    <div>
+        <label class="block text-xs font-medium text-zinc-600 mb-1">Dari</label>
+        <input type="date" name="dari" value="{{ filter_dari or '' }}" class="px-3 py-1.5 border border-zinc-300 rounded-md text-sm">
+    </div>
+    <div>
+        <label class="block text-xs font-medium text-zinc-600 mb-1">Sampai</label>
+        <input type="date" name="sampai" value="{{ filter_sampai or '' }}" class="px-3 py-1.5 border border-zinc-300 rounded-md text-sm">
+    </div>
+    <button type="submit" class="px-3 py-1.5 bg-zinc-700 text-white rounded-md text-sm">Filter</button>
+    <a href="/madrasah-app/bk/monitor/{{ data.murid.id }}" class="px-3 py-1.5 text-zinc-600 text-sm">Reset</a>
+</form>
+
+<!-- Ringkasan poin -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+    <div class="bg-white rounded-xl border border-red-200 p-4">
+        <div class="text-xs uppercase text-red-700 tracking-wider mb-1">Poin Pelanggaran</div>
+        <div class="text-2xl font-bold text-red-700">{{ data.rekap.total_poin_pelanggaran }}</div>
+    </div>
+    <div class="bg-white rounded-xl border border-green-200 p-4">
+        <div class="text-xs uppercase text-green-700 tracking-wider mb-1">Poin Prestasi</div>
+        <div class="text-2xl font-bold text-green-700">{{ data.rekap.total_poin_prestasi }}</div>
+    </div>
+    <div class="bg-white rounded-xl border border-zinc-200 p-4">
+        <div class="text-xs uppercase text-zinc-500 tracking-wider mb-1">Total Catatan</div>
+        <div class="text-2xl font-bold text-zinc-900">{{ data.rekap.total_catatan }}</div>
+    </div>
+    <div class="bg-white rounded-xl border border-blue-200 p-4">
+        <div class="text-xs uppercase text-blue-700 tracking-wider mb-1">Sesi Konseling</div>
+        <div class="text-2xl font-bold text-blue-700">{{ data.rekap.total_sesi }}</div>
+    </div>
+</div>
+
+<!-- Status SP -->
+<div class="bg-white rounded-lg border border-zinc-200 p-4 mb-6">
+    <div class="flex items-center justify-between">
+        <div>
+            <div class="text-sm text-zinc-600">Status SP</div>
+            <div class="text-2xl font-bold mt-1
+                        {% if data.rekap.status_sp == 'SP 3 / Panggilan Ortu' %}text-red-700
+                        {% elif data.rekap.status_sp == 'SP 2' %}text-red-600
+                        {% elif data.rekap.status_sp == 'SP 1' %}text-orange-600
+                        {% elif data.rekap.status_sp == 'Peringatan Lisan' %}text-amber-600
+                        {% else %}text-green-600{% endif %}">
+                {{ data.rekap.status_sp }}
+            </div>
+        </div>
+        <div class="text-xs text-zinc-500 text-right">
+            Threshold SP: {{ data.rekap.threshold.sp1 }} / {{ data.rekap.threshold.sp2 }} / {{ data.rekap.threshold.sp3 }}<br>
+            <a href="/madrasah-app/bk/konfigurasi" class="text-teal-700 hover:underline">Ubah setelan</a>
+        </div>
+    </div>
+</div>
+
+<!-- Catatan -->
+<h2 class="text-lg font-semibold text-zinc-900 mb-3">Catatan ({{ data.catatan|length }})</h2>
+<div class="bg-white rounded-lg border border-zinc-200 overflow-x-auto mb-6">
+    <table class="w-full text-sm">
+        <thead class="bg-zinc-50 text-zinc-600 text-xs uppercase">
+            <tr>
+                <th class="text-left px-4 py-2">Tanggal</th>
+                <th class="text-left px-4 py-2">Kategori</th>
+                <th class="text-left px-4 py-2">Judul</th>
+                <th class="text-center px-4 py-2">Poin</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-zinc-100">
+            {% for c in data.catatan %}
+            <tr>
+                <td class="px-4 py-2 font-mono text-xs">{{ c.tanggal }}</td>
+                <td class="px-4 py-2">
+                    <span class="inline-block px-2 py-0.5 rounded text-xs
+                                 {% if c.kategori_jenis == 'negatif' %}bg-red-50 text-red-700
+                                 {% elif c.kategori_jenis == 'positif' %}bg-green-50 text-green-700
+                                 {% else %}bg-blue-50 text-blue-700{% endif %}">
+                        {{ c.kategori_nama }}
+                    </span>
+                </td>
+                <td class="px-4 py-2">
+                    <div>{{ c.judul }}</div>
+                    {% if c.isi %}<div class="text-xs text-zinc-500 mt-0.5">{{ c.isi }}</div>{% endif %}
+                </td>
+                <td class="px-4 py-2 text-center font-bold">{{ c.poin_snapshot or '—' }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4" class="px-4 py-6 text-center text-zinc-500 text-sm">Belum ada catatan</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Sesi -->
+<h2 class="text-lg font-semibold text-zinc-900 mb-3">Sesi Konseling ({{ data.sesi|length }})</h2>
+<div class="bg-white rounded-lg border border-zinc-200 overflow-x-auto mb-6">
+    <table class="w-full text-sm">
+        <thead class="bg-zinc-50 text-zinc-600 text-xs uppercase">
+            <tr>
+                <th class="text-left px-4 py-2">Tanggal</th>
+                <th class="text-left px-4 py-2">Topik</th>
+                <th class="text-left px-4 py-2">Hasil</th>
+                <th class="text-left px-4 py-2">Tindak Lanjut</th>
+                <th class="text-left px-4 py-2">Berikutnya</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-zinc-100">
+            {% for s in data.sesi %}
+            <tr>
+                <td class="px-4 py-2 font-mono text-xs">{{ s.tanggal }}</td>
+                <td class="px-4 py-2">{{ s.topik }}</td>
+                <td class="px-4 py-2 text-xs text-zinc-600">{{ s.hasil or '—' }}</td>
+                <td class="px-4 py-2 text-xs text-zinc-600">{{ s.tindak_lanjut or '—' }}</td>
+                <td class="px-4 py-2 font-mono text-xs">{{ s.berikutnya_tanggal or '—' }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="px-4 py-6 text-center text-zinc-500 text-sm">Belum ada sesi</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Quick actions -->
+<div class="flex gap-3">
+    <a href="/madrasah-app/bk/catatan/new?murid_id={{ data.murid.id }}"
+       class="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm hover:bg-teal-700">
+        <i data-lucide="plus" class="w-4 h-4 inline"></i> Catatan
+    </a>
+    <a href="/madrasah-app/bk/sesi/new?murid_id={{ data.murid.id }}"
+       class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">
+        <i data-lucide="message-circle" class="w-4 h-4 inline"></i> Sesi Konseling
+    </a>
+</div>
+{% endblock %}

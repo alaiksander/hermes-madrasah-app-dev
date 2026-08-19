@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+{% block title %}Backup & Pemulihan{% endblock %}
+{% block topbar_title %}Super Admin · Backup{% endblock %}
+
+{% block sidebar_menu %}{% include "superadmin/_sidebar_menu.html" %}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl">
+    <h1 class="text-xl font-bold text-zinc-900 mb-4">Backup & Pemulihan</h1>
+
+    <!-- Jadwal backup -->
+    <div class="bg-white rounded-lg border border-zinc-200 p-5 mb-4">
+        <h2 class="text-sm font-semibold text-zinc-800 mb-3 flex items-center gap-2">
+            <i data-lucide="clock" class="w-4 h-4 text-zinc-500"></i> Jadwal Backup Otomatis
+        </h2>
+        <form method="post" action="/madrasah-app/superadmin/backup/config" class="space-y-4">
+            <div class="flex items-center gap-2">
+                <input type="checkbox" name="enabled" id="enabled" value="on"
+                       {% if config.enabled %}checked{% endif %}
+                       class="w-4 h-4 text-teal-600 rounded">
+                <label for="enabled" class="text-sm text-zinc-700">Aktifkan backup otomatis harian</label>
+            </div>
+            <div class="grid grid-cols-2 gap-3 max-w-md">
+                <div>
+                    <label class="block text-sm font-medium text-zinc-700 mb-1">Jam (WIB)</label>
+                    <input type="time" name="jam" value="{{ config.jam or '02:00' }}"
+                           class="w-full border border-zinc-300 rounded px-3 py-2 text-sm font-mono">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-zinc-700 mb-1">Retensi (hari)</label>
+                    <input type="number" name="retensi" value="{{ config.retensi or 14 }}" min="1" max="90"
+                           class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                </div>
+            </div>
+            <p class="text-xs text-zinc-500">Backup otomatis dijalankan via cron platform setiap hari pada jam tersebut. File lebih lama dari retensi dihapus otomatis.</p>
+            <button type="submit" class="btn btn-primary text-sm">
+                <i data-lucide="save" class="w-4 h-4"></i> Simpan Jadwal
+            </button>
+        </form>
+    </div>
+
+    <!-- Backup manual -->
+    <div class="bg-white rounded-lg border border-zinc-200 p-5 mb-4">
+        <h2 class="text-sm font-semibold text-zinc-800 mb-3 flex items-center gap-2">
+            <i data-lucide="database-backup" class="w-4 h-4 text-zinc-500"></i> Backup Manual
+        </h2>
+        <p class="text-xs text-zinc-500 mb-3">Jalankan backup sekarang — semua database tenant + global + .env dikemas ke arsip .tar.gz</p>
+        <form method="post" action="/madrasah-app/superadmin/backup/run">
+            <button type="submit" class="btn btn-primary text-sm">
+                <i data-lucide="play" class="w-4 h-4"></i> Backup Sekarang
+            </button>
+        </form>
+    </div>
+
+    <!-- Daftar file backup -->
+    <div class="bg-white rounded-lg border border-zinc-200 overflow-hidden mb-4">
+        <div class="px-4 py-3 border-b border-zinc-200 flex items-center justify-between">
+            <h2 class="text-sm font-semibold text-zinc-800">Arsip Backup</h2>
+            <span class="text-xs text-zinc-500">{{ files | length }} file</span>
+        </div>
+        {% if files %}
+        <table class="table-dense w-full text-sm">
+            <thead class="bg-zinc-50 text-zinc-600 text-xs uppercase">
+                <tr>
+                    <th>Nama File</th>
+                    <th>Tanggal</th>
+                    <th>Ukuran</th>
+                    <th class="text-right">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for f in files %}
+                <tr>
+                    <td class="font-mono text-xs">{{ f.nama }}</td>
+                    <td class="text-xs">{{ f.tanggal }}</td>
+                    <td class="text-xs">{{ (f.ukuran / 1024) | round(1) }} KB</td>
+                    <td class="text-right">
+                        <a href="/madrasah-app/superadmin/backup/download/{{ f.nama }}"
+                           class="text-teal-700 hover:underline text-xs">
+                            <i data-lucide="download" class="w-3 h-3 inline"></i> Download
+                        </a>
+                        <details class="inline ml-3 align-middle">
+                            <summary class="text-xs text-red-600 hover:underline cursor-pointer">
+                                <i data-lucide="trash-2" class="w-3 h-3 inline"></i> Hapus
+                            </summary>
+                            <form method="post" action="/madrasah-app/superadmin/backup/delete/{{ f.nama }}"
+                                  class="mt-2 p-2 bg-red-50 rounded border border-red-200 inline-block">
+                                <label class="block text-xs text-red-700 mb-1">
+                                    Ketik <span class="font-mono">{{ f.nama }}</span> untuk konfirmasi
+                                </label>
+                                <div class="flex gap-1">
+                                    <input type="text" name="konfirmasi" required
+                                           placeholder="{{ f.nama }}"
+                                           class="border border-red-300 rounded px-2 py-1 text-xs font-mono w-56">
+                                    <button type="submit" class="bg-red-600 text-white text-xs rounded px-2 py-1 hover:bg-red-700">
+                                        Hapus
+                                    </button>
+                                </div>
+                            </form>
+                        </details>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="p-8 text-center text-zinc-500 text-sm">Belum ada file backup</div>
+        {% endif %}
+    </div>
+
+    <!-- Riwayat -->
+    <div class="bg-white rounded-lg border border-zinc-200 overflow-hidden mb-4">
+        <div class="px-4 py-3 border-b border-zinc-200">
+            <h2 class="text-sm font-semibold text-zinc-800">Riwayat Backup</h2>
+        </div>
+        {% if riwayat %}
+        <table class="table-dense w-full text-sm">
+            <thead class="bg-zinc-50 text-zinc-600 text-xs uppercase">
+                <tr>
+                    <th>Waktu</th>
+                    <th>Jenis</th>
+                    <th>Status</th>
+                    <th>Ukuran</th>
+                    <th>Pesan</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in riwayat %}
+                <tr>
+                    <td class="font-mono text-xs">{{ r.waktu[:16] }}</td>
+                    <td class="text-xs">{{ r.jenis }}</td>
+                    <td>
+                        {% if r.status == 'ok' %}
+                        <span class="inline-block px-2 py-0.5 rounded text-xs bg-green-100 text-green-700">OK</span>
+                        {% else %}
+                        <span class="inline-block px-2 py-0.5 rounded text-xs bg-red-100 text-red-700">{{ r.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-xs">{% if r.ukuran %}{{ (r.ukuran / 1024) | round(1) }} KB{% else %}—{% endif %}</td>
+                    <td class="text-xs">{{ r.pesan or '—' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="p-8 text-center text-zinc-500 text-sm">Belum ada riwayat</div>
+        {% endif %}
+    </div>
+
+    <!-- Restore -->
+    <div class="bg-red-50 border border-red-200 rounded-lg p-5 mb-4">
+        <h2 class="text-sm font-semibold text-red-800 mb-2 flex items-center gap-2">
+            <i data-lucide="alert-triangle" class="w-4 h-4"></i> Restore dari Backup
+        </h2>
+        <p class="text-xs text-red-700 mb-3">
+            DESTRUKTIF: mengganti global.db + semua tenant DB + .env dari arsip.
+            Backup kondisi sekarang dibuat otomatis sebelum restore.
+            Service akan <strong>restart otomatis</strong> — koneksi terputus ±5 detik.
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Opsi 1: file di server -->
+            <div class="bg-white/70 rounded-lg border border-red-200 p-4">
+                <h3 class="text-sm font-semibold text-red-800 mb-1 flex items-center gap-1.5">
+                    <i data-lucide="folder-open" class="w-4 h-4"></i> Dari file di server
+                </h3>
+                <p class="text-xs text-red-600 mb-3">Pilih arsip yang sudah ada di daftar di atas</p>
+                <form method="post" action="/madrasah-app/superadmin/backup/restore" class="space-y-2">
+                    <select name="nama_file" required
+                            class="w-full border border-red-300 rounded px-3 py-2 text-sm font-mono bg-white">
+                        <option value="">— Pilih file backup —</option>
+                        {% for f in files %}
+                        <option value="{{ f.nama }}">{{ f.nama }}</option>
+                        {% endfor %}
+                    </select>
+                    <input type="hidden" name="konfirmasi" value="" id="konfirmasi-server">
+                    <button type="submit" class="btn bg-red-600 text-white text-xs hover:bg-red-700 w-full"
+                            onclick="document.getElementById('konfirmasi-server').value = document.querySelector('select[name=nama_file]').value; return confirm('RESTORE SEMUA DATA dari arsip? Tindakan ini mengganti seluruh database!')">
+                        <i data-lucide="rotate-ccw" class="w-3 h-3"></i> Restore dari Server
+                    </button>
+                </form>
+            </div>
+
+            <!-- Opsi 2: upload dari komputer -->
+            <div class="bg-white/70 rounded-lg border border-red-200 p-4">
+                <h3 class="text-sm font-semibold text-red-800 mb-1 flex items-center gap-1.5">
+                    <i data-lucide="upload" class="w-4 h-4"></i> Upload dari komputer lain
+                </h3>
+                <p class="text-xs text-red-600 mb-3">Upload file .tar.gz (maks 100MB), lalu restore otomatis</p>
+                <form method="post" action="/madrasah-app/superadmin/backup/restore-upload"
+                      enctype="multipart/form-data" class="space-y-2"
+                      onsubmit="return confirm('RESTORE SEMUA DATA dari file yang diupload? Tindakan ini mengganti seluruh database!')">
+                    <input type="file" name="file" accept=".tar.gz,application/gzip" required
+                           class="block w-full text-xs text-zinc-500 file:mr-2 file:py-1.5 file:px-2 file:rounded file:border-0 file:bg-red-50 file:text-red-700 file:text-xs file:font-medium hover:file:bg-red-100">
+                    <button type="submit" class="btn bg-red-600 text-white text-xs hover:bg-red-700 w-full">
+                        <i data-lucide="upload" class="w-3 h-3"></i> Upload & Restore
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

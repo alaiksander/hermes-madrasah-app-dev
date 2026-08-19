@@ -1,0 +1,53 @@
+<!-- Grup: Data — expandable accordion (gaya: icon kiri + chevron kanan).
+     Group hanya tampil kalau ada minimal satu submenu yang permission-nya aktif. -->
+{% if has_any_perm(user, "murid.view", "murid.create", "murid.update", "murid.delete", "murid.import", "murid.qr", "kelas.view", "kelas.create", "kelas.update", "kelas.delete", "kelas.naik", "guru.view", "guru.create", "guru.update", "guru.delete", "guru.reset", "mapel.view", "mapel.create", "mapel.update", "mapel.delete", "ta.view", "ta.create", "ta.update") %}
+<details class="sidebar-group" {% if '/murid' in request.url.path or '/kelas' in request.url.path or '/guru' in request.url.path or '/tahun-ajaran' in request.url.path or '/mapel' in request.url.path %}open{% endif %}>
+    <summary class="sidebar-group-summary" title="Data">
+        <i data-lucide="database" class="w-4 h-4 flex-shrink-0 menu-icon"></i>
+        <span class="menu-text">Data</span>
+        <i data-lucide="chevron-right" class="sidebar-group-chevron w-3 h-3 ml-auto"></i>
+    </summary>
+    <div class="sidebar-group-items">
+        {% if has_any_perm(user, "murid.view", "murid.create", "murid.update", "murid.delete", "murid.import", "murid.qr") %}
+        <a href="/madrasah-app/data/murid"
+           class="flex items-center gap-2 px-3 py-2 rounded-lg {% if '/murid' in request.url.path and '/murid-import' not in request.url.path and '/murid-template' not in request.url.path and '/murid-export' not in request.url.path %}bg-teal-50 text-teal-700 font-medium{% else %}text-zinc-700 hover:bg-zinc-100{% endif %}"
+           title="Daftar Murid">
+            <i data-lucide="users" class="w-4 h-4 flex-shrink-0 menu-icon"></i>
+            <span class="menu-text">Murid</span>
+        </a>
+        {% endif %}
+        {% if has_any_perm(user, "kelas.view", "kelas.create", "kelas.update", "kelas.delete", "kelas.naik") %}
+        <a href="/madrasah-app/data/kelas"
+           class="flex items-center gap-2 px-3 py-2 rounded-lg {% if '/kelas' in request.url.path and '/naik-kelas' not in request.url.path %}bg-teal-50 text-teal-700 font-medium{% else %}text-zinc-700 hover:bg-zinc-100{% endif %}"
+           title="Daftar Kelas">
+            <i data-lucide="school" class="w-4 h-4 flex-shrink-0 menu-icon"></i>
+            <span class="menu-text">Kelas</span>
+        </a>
+        {% endif %}
+        {% if has_any_perm(user, "guru.view", "guru.create", "guru.update", "guru.delete", "guru.reset") %}
+        <a href="/madrasah-app/data/guru"
+           class="flex items-center gap-2 px-3 py-2 rounded-lg {% if '/guru' in request.url.path and '/guru-import' not in request.url.path and '/guru-template' not in request.url.path %}bg-teal-50 text-teal-700 font-medium{% else %}text-zinc-700 hover:bg-zinc-100{% endif %}"
+           title="Data Guru">
+            <i data-lucide="user-cog" class="w-4 h-4 flex-shrink-0 menu-icon"></i>
+            <span class="menu-text">Guru</span>
+        </a>
+        {% endif %}
+        {% if has_any_perm(user, "mapel.view", "mapel.create", "mapel.update", "mapel.delete") %}
+        <a href="/madrasah-app/data/mapel"
+           class="flex items-center gap-2 px-3 py-2 rounded-lg {% if '/mapel' in request.url.path %}bg-teal-50 text-teal-700 font-medium{% else %}text-zinc-700 hover:bg-zinc-100{% endif %}"
+           title="Mata Pelajaran">
+            <i data-lucide="book-open-check" class="w-4 h-4 flex-shrink-0 menu-icon"></i>
+            <span class="menu-text">Mata Pelajaran</span>
+        </a>
+        {% endif %}
+        {% if has_any_perm(user, "ta.view", "ta.create", "ta.update") %}
+        <a href="/madrasah-app/data/tahun-ajaran"
+           class="flex items-center gap-2 px-3 py-2 rounded-lg {% if '/tahun-ajaran' in request.url.path %}bg-teal-50 text-teal-700 font-medium{% else %}text-zinc-700 hover:bg-zinc-100{% endif %}"
+           title="Tahun Ajaran">
+            <i data-lucide="calendar" class="w-4 h-4 flex-shrink-0 menu-icon"></i>
+            <span class="menu-text">Tahun Ajaran</span>
+        </a>
+        {% endif %}
+    </div>
+</details>
+{% endif %}

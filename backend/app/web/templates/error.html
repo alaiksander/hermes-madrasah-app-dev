@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Kesalahan {{ status_code }}{% endblock %}
+{% block content %}
+<div class="text-center py-16">
+    <h1 class="text-6xl font-bold text-zinc-300 mb-4">{{ status_code }}</h1>
+    <p class="text-lg text-zinc-600 mb-6">{{ message }}</p>
+    <a href="/madrasah-app/" class="btn btn-primary">
+        <i data-lucide="home" class="w-4 h-4"></i> Kembali ke Beranda
+    </a>
+</div>
+{% endblock %}

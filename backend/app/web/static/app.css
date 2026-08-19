@@ -1,0 +1,329 @@
+/* Madrasah Web — Shared styles.
+   Tailwind handles 90%. This file = small custom tweaks. */
+
+/* Print stylesheet — hide chrome when printing */
+@media print {
+    .no-print { display: none !important; }
+    body { background: white !important; }
+}
+
+/* HTMX indicator — show spinner saat request jalan */
+.htmx-indicator {
+    display: none;
+}
+.htmx-request .htmx-indicator {
+    display: inline-block;
+}
+.htmx-request.htmx-indicator {
+    display: inline-block;
+}
+
+/* A4 print sheet — untuk QR code bulk */
+@page { size: A4; margin: 10mm; }
+.qr-print-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    gap: 4mm;
+    page-break-after: always;
+}
+.qr-print-grid:last-child { page-break-after: auto; }
+.qr-card {
+    border: 1px solid #d4d4d8;
+    border-radius: 4mm;
+    padding: 4mm;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+.qr-card img { width: 35mm; height: 35mm; }
+.qr-card .name { font-weight: 700; font-size: 12pt; margin-top: 2mm; }
+.qr-card .nis { font-size: 9pt; color: #71717a; }
+
+/* Button styles — sedikit tuning di atas Tailwind */
+.btn {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.5rem 0.9rem; border-radius: 0.5rem;
+    font-weight: 500; font-size: 0.875rem;
+    transition: all 0.15s;
+}
+.btn-primary { background: #0f766e; color: white; }
+.btn-primary:hover { background: #115e59; }
+.btn-secondary { background: #f4f4f5; color: #27272a; border: 1px solid #d4d4d8; }
+.btn-secondary:hover { background: #e4e4e7; }
+.btn-danger { background: #dc2626; color: white; }
+.btn-danger:hover { background: #b91c1c; }
+
+/* Table density */
+.table-dense tbody tr { border-bottom: 1px solid #f4f4f5; }
+.table-dense tbody tr:hover { background: #fafafa; }
+.table-dense th, .table-dense td { padding: 0.65rem 0.75rem; text-align: left; }
+
+/* ── Collapsible Sidebar (P-WEB-50) ─────────────────────────────── */
+
+#app-sidebar[data-state="collapsed"] {
+    width: 4rem; /* 64px */
+}
+#app-sidebar[data-state="collapsed"] .menu-text,
+#app-sidebar[data-state="collapsed"] .section-label,
+#app-sidebar[data-state="collapsed"] .brand-text,
+#app-sidebar[data-state="collapsed"] .footer-text {
+    display: none;
+}
+#app-sidebar[data-state="collapsed"] nav {
+    padding: 0.5rem 0.4rem;
+}
+#app-sidebar[data-state="collapsed"] nav a {
+    justify-content: center;
+    padding-left: 0.5rem;    padding-right: 0.5rem;
+}
+#app-sidebar[data-state="collapsed"] .footer-link {
+    justify-content: center;
+}
+#app-sidebar[data-state="collapsed"] #sidebar-toggle-icon {
+    transform: rotate(180deg);
+}
+
+/* When sidebar collapsed, auto-close all accordions (save vertical space) */
+#app-sidebar[data-state="collapsed"] .sidebar-group-items {
+    display: none;
+}
+/* Show only the summary chevron in collapsed state (icon-only) */
+#app-sidebar[data-state="collapsed"] .sidebar-group-summary {
+    padding: 0.5rem;
+    justify-content: center;
+}
+#app-sidebar[data-state="collapsed"] .sidebar-group-summary::marker,
+#app-sidebar[data-state="collapsed"] .sidebar-group-summary::-webkit-details-marker {
+    display: none;
+}
+
+/* Tooltip on collapsed hover (pure CSS) — applies to menu links AND group summaries */
+#app-sidebar[data-state="collapsed"] nav a,
+#app-sidebar[data-state="collapsed"] .sidebar-group-summary {
+    position: relative;
+}
+#app-sidebar[data-state="collapsed"] nav a:hover::after,
+#app-sidebar[data-state="collapsed"] .sidebar-group-summary:hover::after {
+    content: attr(title);
+    position: absolute;
+    left: calc(100% + 0.5rem);
+    top: 50%;
+    transform: translateY(-50%);
+    background: #18181b;
+    color: white;
+    padding: 0.35rem 0.7rem;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    z-index: 50;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+}
+#app-sidebar[data-state="collapsed"] nav a:hover::before,
+#app-sidebar[data-state="collapsed"] .sidebar-group-summary:hover::before {
+    content: '';
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    border-style: solid;
+    border-width: 5px 5px 5px 0;
+    border-color: transparent #18181b transparent transparent;
+    z-index: 50;
+}
+
+/* ── Mobile Sidebar Drawer (P-WEB-82) ────────────────────────────── */
+/* Layar < lg: sidebar jadi off-canvas drawer (translate-x via JS).
+   State "collapsed" (desktop icon-only) TIDAK berlaku di mobile —
+   drawer selalu full width + teks tampil. */
+@media (max-width: 1023.98px) {
+    #app-sidebar[data-state="collapsed"] {
+        width: 15rem; /* w-60 — abaikan collapsed di mobile */
+    }
+    #app-sidebar[data-state="collapsed"] .menu-text,
+    #app-sidebar[data-state="collapsed"] .section-label,
+    #app-sidebar[data-state="collapsed"] .brand-text,
+    #app-sidebar[data-state="collapsed"] .footer-text {
+        display: inline;
+    }
+    #app-sidebar[data-state="collapsed"] nav {
+        padding: 0.75rem;
+    }
+    #app-sidebar[data-state="collapsed"] nav a {
+        justify-content: flex-start;
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+    #app-sidebar[data-state="collapsed"] .sidebar-group-items {
+        display: block;
+    }
+    #app-sidebar[data-state="collapsed"] .sidebar-group-summary {
+        justify-content: flex-start;
+        padding: 0.5rem 0.75rem;
+    }
+    #app-sidebar[data-state="collapsed"] nav a:hover::after,
+    #app-sidebar[data-state="collapsed"] .sidebar-group-summary:hover::after,
+    #app-sidebar[data-state="collapsed"] nav a:hover::before,
+    #app-sidebar[data-state="collapsed"] .sidebar-group-summary:hover::before {
+        content: none; /* matikan tooltip di mobile */
+    }
+}
+
+/* ── Expandable Sidebar Groups (P-WEB-53) ────────────────────────── */
+/* Pakai <details>/<summary> HTML5 native — no JS needed for accordion. */
+
+.sidebar-group {
+    margin-top: 0.5rem;
+}
+.sidebar-group:first-child {
+    margin-top: 0;
+}
+
+/* Summary — clickable header per group */
+.sidebar-group-summary {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.6875rem;  /* 11px */
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #71717a; /* zinc-500 */
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    user-select: none;
+    border-radius: 0.375rem;
+    transition: background-color 0.15s, color 0.15s;
+}
+
+/* Strip ALL default browser disclosure markers */
+.sidebar-group-summary::-webkit-details-marker {
+    display: none !important;
+}
+.sidebar-group-summary::marker {
+    display: none !important;
+}
+.sidebar-group-summary::-moz-list-bullet {
+    list-style: none;
+}
+/* Fallback: hide via list-style */
+.sidebar-group-summary {
+    list-style: none;
+}
+/* Firefox: explicit display */
+.sidebar-group-summary {
+    display: flex;
+}
+
+/* Chevron icon — clean, properly aligned */
+.sidebar-group-chevron {
+    flex-shrink: 0;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    color: #a1a1aa; /* zinc-400 */
+}
+
+/* Rotate chevron 90° when open */
+.sidebar-group[open] > .sidebar-group-summary .sidebar-group-chevron {
+    transform: rotate(90deg);
+    color: #52525b; /* zinc-600 */
+}
+
+/* Hover state — make it feel clickable */
+.sidebar-group-summary:hover {
+    background-color: #f4f4f5; /* zinc-100 */
+    color: #27272a; /* zinc-800 */
+}
+.sidebar-group-summary:hover .sidebar-group-chevron {
+    color: #52525b;
+}
+
+/* Active state — when summary has focus */
+.sidebar-group-summary:focus {
+    outline: none;
+    background-color: #e4e4e7;
+}
+
+/* Items container */
+.sidebar-group-items {
+    margin-top: 0.25rem;
+    padding-left: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+/* ── Nested Sub-group (untuk Pengaturan > Umum/Jam-Hari/Scan-Mode) ─── */
+
+.sidebar-subgroup {
+    margin: 2px 0;
+}
+.sidebar-subgroup[open] > .sidebar-subgroup-summary .sidebar-subgroup-chevron {
+    transform: rotate(180deg);
+}
+.sidebar-subgroup-summary {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    border-radius: 0.375rem;
+    color: #3f3f46;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.15s;
+}
+.sidebar-subgroup-summary::-webkit-details-marker { display: none !important; }
+.sidebar-subgroup-summary::marker { display: none !important; }
+.sidebar-subgroup-summary:hover { background-color: #f4f4f5; }
+.sidebar-subgroup-chevron {
+    transition: transform 0.15s;
+    color: #a1a1aa;
+    margin-left: auto;
+}
+.sidebar-subgroup-items {
+    margin: 2px 0 4px 0;
+    padding-left: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+.sidebar-subgroup-items a {
+    font-size: 0.8125rem;
+    padding: 0.35rem 0.75rem;
+}
+
+/* When sidebar collapsed, hide sub-group items but keep parent */
+#app-sidebar[data-state="collapsed"] .sidebar-subgroup-items {
+    display: none;
+}
+#app-sidebar[data-state="collapsed"] .sidebar-subgroup-summary {
+    justify-content: center;
+    padding: 0.5rem;
+}
+#app-sidebar[data-state="collapsed"] .sidebar-subgroup-summary .menu-icon,
+#app-sidebar[data-state="collapsed"] .sidebar-subgroup-summary .sidebar-subgroup-chevron,
+#app-sidebar[data-state="collapsed"] .sidebar-subgroup-summary > .menu-text {
+    display: none;
+}
+#app-sidebar[data-state="collapsed"] .sidebar-subgroup[open] .sidebar-subgroup-items {
+    /* Even if somehow open, items hidden in collapsed mode */
+    display: none;
+}
+/* ── Mobile Polish (P-WEB-85) ─────────────────────────────────────── */
+/* iOS Safari auto-zoom ke input kalau font-size < 16px — paksa 16px
+   di layar sentuh (mobile). Desktop tetap 14px (text-sm). */
+@media (max-width: 767.98px) {
+    input, select, textarea {
+        font-size: 16px !important;
+    }
+    /* Touch target minimal 44px (Apple HIG) untuk tombol — cegah salah ketuk */
+    button, [role="button"], a.btn, a.inline-flex {
+        min-height: 44px;
+    }
+    /* Tombol icon kecil tetap 44px tapi padding rapat */
+    button.p-1\\.5, button.p-2 {
+        min-height: 44px;
+        min-width: 44px;
+    }
+}

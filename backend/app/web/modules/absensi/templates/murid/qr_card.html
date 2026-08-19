@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}QR Card — {{ murid.nama }}{% endblock %}
+{% block topbar_title %}Modul Absensi · QR Card{% endblock %}
+
+{% block sidebar_menu %}{% include "absensi/_sidebar_menu.html" %}{% endblock %}
+
+{% block content %}
+<div class="max-w-xl">
+    <a href="/madrasah-app/data/murid/{{ murid.id }}" class="inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-700 mb-3">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke detail murid
+    </a>
+
+    <!-- Card QR (print-friendly) -->
+    <div class="bg-white rounded-lg border border-zinc-200 p-6 mb-4 qr-print-card">
+        <div class="flex flex-col items-center text-center">
+            <img src="{{ qr_png_url }}" alt="QR Code" class="w-64 h-64 mb-3">
+            <div class="text-lg font-bold text-zinc-900">{{ murid.nama }}</div>
+            <div class="text-sm text-zinc-600 mt-1">{{ murid.kelas_nama }}</div>
+            <div class="text-xs text-zinc-400 mt-1 font-mono">NISN: {{ murid.nisn }}</div>
+        </div>
+    </div>
+
+    <!-- Actions (hidden saat print) -->
+    <div class="no-print flex items-center gap-2">
+        <button onclick="window.print()" class="btn btn-primary">
+            <i data-lucide="printer" class="w-4 h-4"></i> Print / Save PDF
+        </button>
+        <a href="/madrasah-app/data/murid/{{ murid.id }}/qr-pdf"
+           class="btn btn-secondary">
+            <i data-lucide="download" class="w-4 h-4"></i> Download PDF
+        </a>
+    </div>
+
+    <!-- Help -->
+    <div class="no-print mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800">
+        <p class="font-medium mb-2">
+            <i data-lucide="info" class="w-4 h-4 inline"></i> Tips Cetak QR
+        </p>
+        <ul class="list-disc list-inside space-y-1 text-xs">
+            <li>Klik "Print / Save PDF" untuk print langsung atau save sebagai PDF</li>
+            <li>QR code berisi UUID unik murid — aman di-share, gak ada data pribadi</li>
+            <li>Ukuran rekomendasi: 4×6 cm per kartu (print ke stiker label)</li>
+            <li>Untuk cetak massal per kelas, gunakan menu "Cetak QR Massal"</li>
+        </ul>
+    </div>
+</div>
+
+<style>
+/* Print styles — hide everything except QR card */
+@media print {
+    body * { visibility: hidden; }
+    .qr-print-card, .qr-print-card * { visibility: visible; }
+    .qr-print-card {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        border: none;
+        box-shadow: none;
+        padding: 0;
+    }
+    .no-print { display: none !important; }
+}
+</style>
+{% endblock %}

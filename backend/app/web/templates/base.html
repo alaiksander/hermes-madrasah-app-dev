@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Madrasah{% endblock %} · {{ get_nama_aplikasi(user) }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/madrasah-app/static/app.css">
+    <script src="/madrasah-app/static/htmx.min.js"></script>
+    <script src="/madrasah-app/static/fuse.min.js"></script>
+    <script src="/madrasah-app/static/app.js"></script>
+    <script src="/madrasah-app/static/lucide.min.js"></script>
+<link rel="stylesheet" href="/madrasah-app/static/choices.min.css">
+<script src="/madrasah-app/static/choices.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        });
+        // Re-render Lucide icons setelah HTMX swap
+        document.addEventListener('htmx:afterSwap', function() {
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        });
+    </script>
+<style>
+/* Samakan tinggi & sudut input murid (Choices.js) dengan input lain */
+.choices__inner {
+    min-height: 36px !important;   /* = py-2 */
+    border-radius: 0.5rem !important; /* = rounded-lg */
+    padding: 0.25rem 0.75rem !important;
+    font-size: 0.875rem !important; /* = text-sm */
+    display: flex !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+    background-color: #ffffff !important; /* PASTI putih, bukan #f9f9f9 */
+    border: 1px solid #d4d4d8 !important; /* = border-zinc-300 */
+    overflow: hidden !important;
+}
+.choices__inner:hover {
+    border-color: #d4d4d8 !important;
+}
+.choices__input {
+    font-size: 0.875rem !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: #ffffff !important;   /* PASTI putih, bukan #f9f9f9 default Choices */
+    border: none !important;
+    box-shadow: none !important;
+    min-width: 0 !important;
+    width: auto !important;
+    flex: 1 1 auto !important;
+}
+.choices__list--multiple .choices__item {
+    border-radius: 0.375rem !important;
+    font-size: 0.875rem !important;
+}
+</style>
+</head>
+<body class="bg-zinc-50 text-zinc-900 min-h-screen">
+    {% block body %}
+    <!-- Backdrop mobile (muncul saat drawer sidebar terbuka di layar kecil) -->
+    <div id="sidebar-backdrop"
+         class="fixed inset-0 z-30 bg-black/40 hidden lg:hidden"
+         onclick="closeSidebarMobile()"></div>
+    <div class="flex min-h-screen">
+        {% block sidebar %}
+        <aside id="app-sidebar"
+               data-state="expanded"
+               class="w-60 bg-white border-r border-zinc-200 flex flex-col flex-shrink-0 transition-all duration-200 ease-in-out
+                      fixed inset-y-0 left-0 z-40 -translate-x-full
+                      lg:static lg:translate-x-0">
+            <div class="p-4 border-b border-zinc-200 flex items-center justify-between flex-shrink-0">
+                <a href="/madrasah-app/" class="flex items-center gap-2 text-zinc-900 brand-link">
+                    <i data-lucide="graduation-cap" class="w-5 h-5 text-teal-700 flex-shrink-0"></i>
+                    <span class="font-semibold brand-text">{{ get_nama_aplikasi(user) }}</span>
+                </a>
+                <button type="button"
+                        id="sidebar-toggle-btn"
+                        onclick="toggleSidebar()"
+                        class="p-1.5 rounded hover:bg-zinc-100 text-zinc-500 hover:text-zinc-700 hidden lg:block"
+                        title="Toggle sidebar"
+                        aria-label="Toggle sidebar">
+                    <i data-lucide="chevrons-left" id="sidebar-toggle-icon" class="w-4 h-4"></i>
+                </button>
+                <button type="button"
+                        id="sidebar-close-mobile-btn"
+                        onclick="closeSidebarMobile()"
+                        class="p-1.5 rounded hover:bg-zinc-100 text-zinc-500 hover:text-zinc-700 lg:hidden"
+                        title="Tutup menu"
+                        aria-label="Tutup menu">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+            <nav class="flex-1 p-3 space-y-1 text-sm overflow-y-auto">
+                {% block sidebar_menu %}
+                <!-- Menu per-modul di-inject via child template override -->
+                {% endblock %}
+            </nav>
+            <div class="p-3 border-t border-zinc-200 flex-shrink-0">
+                <a href="/madrasah/" class="flex items-center gap-2 text-xs text-zinc-500 hover:text-zinc-700 mb-2">
+                    <i data-lucide="smartphone" class="w-4 h-4 flex-shrink-0"></i>
+                    <span class="footer-text">Buka di HP</span>
+                </a>
+                <form method="post" action="/madrasah-app/logout">
+                    <button type="submit" class="flex items-center gap-2 text-xs text-zinc-500 hover:text-red-600 w-full">
+                        <i data-lucide="log-out" class="w-4 h-4 flex-shrink-0"></i>
+                        <span class="footer-text">Keluar</span>
+                    </button>
+                </form>
+            </div>
+        </aside>
+        {% endblock %}
+        <div class="flex-1 flex flex-col">
+            {% include "_components/topbar.html" %}
+            <main class="flex-1 p-4 md:p-6 max-w-6xl w-full">
+                {% include "_components/flash.html" %}
+                {% include "_components/breadcrumbs.html" %}
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+    {% endblock %}
+</body>
+</html>

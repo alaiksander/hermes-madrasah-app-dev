@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Atur Semester{% endblock %}
+{% block topbar_title %}Modul Absensi · Atur Semester{% endblock %}
+{% block sidebar_menu %}{% include "absensi/_sidebar_menu.html" %}{% endblock %}
+{% block content %}
+<div class="max-w-4xl">
+  <div class="flex items-center justify-between mb-4">
+    <div><h1 class="text-xl font-bold text-zinc-900">Atur Semester</h1><p class="text-sm text-zinc-500">{{ tahun.nama }} · {{ tahun.tanggal_mulai|format_date_id }} s.d. {{ tahun.tanggal_selesai|format_date_id }}</p></div>
+    <a href="/madrasah-app/data/tahun-ajaran" class="btn btn-secondary text-sm"><i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali</a>
+  </div>
+  <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 text-sm text-blue-800"><i data-lucide="info" class="w-4 h-4 inline"></i> Tanggal semester harus berada di dalam rentang tahun ajaran dan tidak boleh saling tumpang tindih.</div>
+  {% if request.query_params.get('msg') %}<div class="bg-{{ 'green' if request.query_params.get('type') != 'error' else 'red' }}-50 border border-{{ 'green' if request.query_params.get('type') != 'error' else 'red' }}-200 rounded-lg p-3 mb-4 text-sm">{{ request.query_params.get('msg') }}</div>{% endif %}
+  <div class="grid md:grid-cols-2 gap-4">
+  {% for item in [('ganjil','Semester Ganjil'),('genap','Semester Genap')] %}
+  {% set p = periode|selectattr('kode','equalto',item[0])|first %}
+  <form method="post" class="bg-white border border-zinc-200 rounded-lg p-4">
+    <input type="hidden" name="kode" value="{{ item[0] }}">
+    <h2 class="font-semibold mb-3">{{ item[1] }}</h2>
+    <label class="block text-xs font-medium text-zinc-600 mb-1">Nama periode</label>
+    <input name="nama" required value="{{ p.nama if p else item[1] }}" class="w-full border border-zinc-300 rounded px-3 py-2 text-sm mb-3">
+    <label class="block text-xs font-medium text-zinc-600 mb-1">Tanggal mulai</label>
+    <input type="date" name="tanggal_mulai" required value="{{ p.tanggal_mulai if p else '' }}" class="w-full border border-zinc-300 rounded px-3 py-2 text-sm mb-3">
+    <label class="block text-xs font-medium text-zinc-600 mb-1">Tanggal selesai</label>
+    <input type="date" name="tanggal_selesai" required value="{{ p.tanggal_selesai if p else '' }}" class="w-full border border-zinc-300 rounded px-3 py-2 text-sm mb-4">
+    <button class="btn btn-primary text-sm"><i data-lucide="save" class="w-4 h-4"></i> Simpan {{ item[1] }}</button>
+  </form>
+  {% endfor %}
+  </div>
+</div>
+{% endblock %}

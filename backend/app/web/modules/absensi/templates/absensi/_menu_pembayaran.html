@@ -1,0 +1,43 @@
+<!-- Grup: Pembayaran — expandable accordion.
+     Hanya tampil kalau user punya permission tagihan.* -->
+{% if has_any_perm(user, "tagihan.view", "tagihan.input", "tagihan.kelola") %}
+<details class="sidebar-group" {% if '/pembayaran' in request.url.path %}open{% endif %}>
+    <summary class="sidebar-group-summary" title="Pembayaran">
+        <i data-lucide="wallet" class="w-4 h-4 flex-shrink-0 menu-icon"></i>
+        <span class="menu-text">Pembayaran</span>
+        <i data-lucide="chevron-right" class="sidebar-group-chevron w-3 h-3 ml-auto"></i>
+    </summary>
+    <div class="sidebar-group-items">
+        <a href="/madrasah-app/pembayaran"
+           class="flex items-center gap-2 px-3 py-2 rounded-lg {% if '/pembayaran' in request.url.path and '/input-cepat' not in request.url.path and '/laporan' not in request.url.path and '/jenis' not in request.url.path %}bg-teal-50 text-teal-700 font-medium{% else %}text-zinc-700 hover:bg-zinc-100{% endif %}"
+           title="Daftar tagihan & pembayaran">
+            <i data-lucide="receipt" class="w-4 h-4 flex-shrink-0 menu-icon"></i>
+            <span class="menu-text">Tagihan</span>
+        </a>
+        {% if has_perm(user, "tagihan.input") %}
+        <a href="/madrasah-app/pembayaran/input-cepat"
+           class="flex items-center gap-2 px-3 py-2 rounded-lg {% if '/input-cepat' in request.url.path %}bg-teal-50 text-teal-700 font-medium{% else %}text-zinc-700 hover:bg-zinc-100{% endif %}"
+           title="Input pembayaran massal per kelas">
+            <i data-lucide="zap" class="w-4 h-4 flex-shrink-0 menu-icon"></i>
+            <span class="menu-text">Input Cepat</span>
+        </a>
+        {% endif %}
+        {% if has_perm(user, "tagihan.view") %}
+        <a href="/madrasah-app/pembayaran/laporan"
+           class="flex items-center gap-2 px-3 py-2 rounded-lg {% if '/laporan' in request.url.path %}bg-teal-50 text-teal-700 font-medium{% else %}text-zinc-700 hover:bg-zinc-100{% endif %}"
+           title="Rekap & export Excel">
+            <i data-lucide="bar-chart-3" class="w-4 h-4 flex-shrink-0 menu-icon"></i>
+            <span class="menu-text">Laporan</span>
+        </a>
+        {% endif %}
+        {% if has_perm(user, "tagihan.kelola") %}
+        <a href="/madrasah-app/pembayaran/jenis"
+           class="flex items-center gap-2 px-3 py-2 rounded-lg {% if '/jenis' in request.url.path %}bg-teal-50 text-teal-700 font-medium{% else %}text-zinc-700 hover:bg-zinc-100{% endif %}"
+           title="Kelola jenis pembayaran & generate tagihan">
+            <i data-lucide="settings-2" class="w-4 h-4 flex-shrink-0 menu-icon"></i>
+            <span class="menu-text">Jenis & Generate</span>
+        </a>
+        {% endif %}
+    </div>
+</details>
+{% endif %}

@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Cetak QR Massal{% endblock %}
+{% block topbar_title %}Modul Absensi · Cetak QR Massal{% endblock %}
+
+{% block sidebar_menu %}{% include "absensi/_sidebar_menu.html" %}{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl">
+    <a href="/madrasah-app/data/murid" class="inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-700 mb-3">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke daftar murid
+    </a>
+
+    <div class="bg-white rounded-lg border border-zinc-200 p-6 mb-4">
+        <h1 class="text-lg font-bold text-zinc-900 mb-2">Cetak QR Card Massal</h1>
+        <p class="text-sm text-zinc-600 mb-4">
+            Generate PDF berisi QR semua murid aktif dalam satu kelas.
+            Layout 2×5 grid di A4 (10 kartu per halaman, page-break otomatis).
+        </p>
+
+        <!-- Info TA aktif -->
+        {% if kelas_list %}
+        <div class="bg-teal-50 border border-teal-200 rounded-lg p-3 mb-4 text-sm text-teal-800">
+            <i data-lucide="info" class="w-4 h-4 inline"></i>
+            Hanya menampilkan kelas dari <strong>tahun ajaran aktif</strong>.
+            Untuk cetak QR tahun ajaran lain, ubah TA aktif dulu di
+            <a href="/madrasah-app/system/pengaturan" class="underline font-medium">Pengaturan → Umum</a>.
+        </div>
+        {% endif %}
+
+        <!-- Pilih kelas -->
+        <form method="get" action="/madrasah-app/absensi/qr-print" class="mb-4">
+            <label class="block text-sm font-medium text-zinc-700 mb-1">Pilih Kelas</label>
+            <div class="flex gap-2">
+                <select name="kelas_id" required
+                        class="flex-1 border border-zinc-300 rounded px-3 py-2 text-sm">
+                    <option value="">— Pilih kelas —</option>
+                    {% for k in kelas_list %}
+                    <option value="{{ k.id }}" {% if k.id == selected_kelas_id %}selected{% endif %}>
+                        {{ k.nama_kelas }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-primary">
+                    <i data-lucide="eye" class="w-4 h-4"></i> Preview PDF
+                </button>
+            </div>
+        </form>
+
+        {% if selected_kelas_id %}
+        <div class="bg-zinc-50 rounded border border-zinc-200 p-4">
+            <div class="flex items-center justify-between mb-2">
+                <div class="text-sm">
+                    <strong>PDF siap</strong> — akan terbuka di tab baru
+                </div>
+                <div class="flex gap-2">
+                    <a href="/madrasah-app/absensi/qr-print?kelas_id={{ selected_kelas_id }}&download=1"
+                       class="btn btn-secondary text-sm" target="_blank">
+                        <i data-lucide="download" class="w-4 h-4"></i> Download
+                    </a>
+                    <a href="/madrasah-app/absensi/qr-print?kelas_id={{ selected_kelas_id }}"
+                       class="btn btn-primary text-sm" target="_blank">
+                        <i data-lucide="external-link" class="w-4 h-4"></i> Buka PDF
+                    </a>
+                </div>
+            </div>
+            <iframe src="/madrasah-app/absensi/qr-print?kelas_id={{ selected_kelas_id }}"
+                    class="w-full h-[600px] border border-zinc-300 rounded"
+                    title="QR Card Preview"></iframe>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Help -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800">
+        <p class="font-medium mb-2">
+            <i data-lucide="info" class="w-4 h-4 inline"></i> Tips Cetak QR Massal
+        </p>
+        <ul class="list-disc list-inside space-y-1 text-xs">
+            <li>Hanya menampilkan kelas dari <strong>tahun ajaran aktif</strong> (dropdown)</li>
+            <li>Pilih kelas → Preview PDF di iframe</li>
+            <li>Klik "Download" atau "Buka PDF" untuk download/print</li>
+            <li>PDF sudah include: QR code, nama, kelas, NISN (10 per halaman A4)</li>
+            <li>Print langsung ke stiker label 4×6 cm atau kertas A4 biasa</li>
+            <li>QR berisi UUID unik — aman di-share, scan pakai HP guru di gerbang</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

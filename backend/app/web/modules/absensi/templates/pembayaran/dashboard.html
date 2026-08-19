@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}Pembayaran{% endblock %}
+{% block topbar_title %}Pembayaran{% endblock %}
+
+{% block sidebar_menu %}{% include "absensi/_sidebar_menu.html" %}{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl">
+    <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+        <h1 class="text-2xl font-bold text-zinc-800">Tagihan Pembayaran</h1>
+        {% if has_perm(user, "tagihan.kelola") %}
+        <a href="/madrasah-app/pembayaran/jenis"
+           class="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white font-medium px-4 py-2 rounded-lg transition-colors text-sm">
+            <i data-lucide="settings2" class="w-4 h-4"></i>
+            Kelola Jenis & Generate
+        </a>
+        {% endif %}
+    </div>
+
+    {# Filter #}
+    <form method="GET" action="/madrasah-app/pembayaran"
+          class="bg-white border border-zinc-200 rounded-xl shadow-sm p-4 mb-6">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+            <div>
+                <label class="block text-xs font-medium text-zinc-600 mb-1">Periode (bulan)</label>
+                <select name="periode" class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                    {% for b in bulan_list %}
+                    <option value="{{ b.value }}" {% if filter_periode == b.value %}selected{% endif %}>
+                        {{ b.label }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-zinc-600 mb-1">Kelas</label>
+                <select name="kelas_id" class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                    <option value="">Semua kelas</option>
+                    {% for k in kelas_list %}
+                    <option value="{{ k.id }}" {% if filter_kelas_id|string == k.id|string %}selected{% endif %}>
+                        {{ k.nama_kelas }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="flex gap-2">
+                <button type="submit"
+                        class="flex-1 bg-teal-600 hover:bg-teal-700 text-white font-medium px-3 py-2 rounded-lg text-sm transition-colors flex items-center justify-center gap-1.5">
+                    <i data-lucide="search" class="w-3.5 h-3.5"></i> Filter
+                </button>
+                <a href="/madrasah-app/pembayaran"
+                   class="px-3 py-2 border border-zinc-300 rounded-lg text-zinc-600 hover:bg-zinc-50 text-sm">Reset</a>
+            </div>
+        </div>
+    </form>
+
+    {# Rekap per kelas #}
+    {% if rekap %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
+        {% for r in rekap %}
+        <div class="bg-white border border-zinc-200 rounded-xl p-4">
+            <div class="flex items-center justify-between mb-1">
+                <span class="text-sm font-semibold text-zinc-800">{{ r.kelas }}</span>
+                <span class="text-xs px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600">{{ r.total }} tagihan</span>
+            </div>
+            <div class="flex gap-3 text-xs mt-2">
+                <span class="text-green-600">● {{ r.lunas }} lunas</span>
+                <span class="text-amber-600">● {{ r.sebagian }} cicil</span>
+                <span class="text-zinc-400">● {{ r.belum }} belum</span>
+            </div>
+            <div class="text-xs text-zinc-500 mt-2">
+                Terbayar <span class="font-mono font-medium">Rp{{ "{:,.0f}".format(r.terbayar) }}</span>
+                dari <span class="font-mono">Rp{{ "{:,.0f}".format(r.nominal) }}</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {# Tabel tagihan #}
+    <div class="bg-white border border-zinc-200 rounded-xl shadow-sm overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead class="bg-zinc-50 text-zinc-500 text-xs uppercase border-b border-zinc-100">
+                <tr>
+                    <th class="text-left px-4 py-3">Murid</th>
+                    <th class="text-left px-4 py-3">Jenis</th>
+                    <th class="text-right px-4 py-3">Nominal</th>
+                    <th class="text-right px-4 py-3">Potongan</th>
+                    <th class="text-right px-4 py-3">Terbayar</th>
+                    <th class="text-right px-4 py-3">Sisa</th>
+                    <th class="text-center px-4 py-3">Status</th>
+                    <th class="text-left px-4 py-3">Aksi</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-zinc-100">
+                {% for t in tagihan %}
+                <tr class="hover:bg-zinc-50/50">
+                    <td class="px-4 py-2.5">
+                        <div class="text-zinc-800 font-medium">{{ t.murid_nama }}</div>
+                        <div class="text-xs text-zinc-400 font-mono">{{ t.murid_nisn or '—' }} · {{ t.murid_kelas }}</div>
+                    </td>
+                    <td class="px-4 py-2.5">
+                        <div class="text-zinc-700">{{ t.jenis_nama }}</div>
+                        <div class="text-xs text-zinc-400">{{ t.periode }}</div>
+                    </td>
+                    <td class="px-4 py-2.5 text-right font-mono text-zinc-700">Rp{{ "{:,.0f}".format(t.nominal) }}</td>
+                    <td class="px-4 py-2.5 text-right font-mono text-zinc-500">{{ t.potongan or '—' }}</td>
+                    <td class="px-4 py-2.5 text-right font-mono text-green-700">Rp{{ "{:,.0f}".format(t.dibayar) }}</td>
+                    <td class="px-4 py-2.5 text-right font-mono {% if t.sisa > 0 %}text-red-600{% else %}text-zinc-500{% endif %}">
+                        Rp{{ "{:,.0f}".format(t.sisa) }}
+                    </td>
+                    <td class="px-4 py-2.5 text-center">
+                        {% if t.status == 'lunas' %}
+                        <span class="px-2 py-0.5 rounded-full bg-green-50 text-green-700 text-xs font-medium">Lunas</span>
+                        {% elif t.status == 'sebagian' %}
+                        <span class="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-xs font-medium">Sebagian</span>
+                        {% elif t.status == 'ditunda' %}
+                        <span class="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-xs font-medium">Ditunda</span>
+                        {% else %}
+                        <span class="px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600 text-xs font-medium">Belum</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-2.5">
+                        <a href="/madrasah-app/pembayaran/{{ t.id }}"
+                           class="text-teal-700 hover:underline whitespace-nowrap">Detail</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" class="px-4 py-10 text-center text-zinc-400 text-sm">
+                        Belum ada tagihan untuk periode ini. Coba generate di menu Kelola Jenis & Generate.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

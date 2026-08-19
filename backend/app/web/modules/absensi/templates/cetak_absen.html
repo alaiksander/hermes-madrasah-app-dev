@@ -1,0 +1,308 @@
+{% extends "base.html" %}
+{% block title %}Cetak Absen{% endblock %}
+{% block topbar_title %}Modul Absensi · Cetak Absen{% endblock %}
+
+{% block sidebar_menu %}{% include "absensi/_sidebar_menu.html" %}{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl">
+    <h1 class="text-xl font-bold text-zinc-900 mb-4">Cetak Absen</h1>
+
+    {% if tahun_aktif_nama %}
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 text-sm text-blue-800">
+        <i data-lucide="info" class="w-4 h-4 inline"></i>
+        Kelas ditampilkan dari tahun ajaran aktif <strong>{{ tahun_aktif_nama }}</strong>.
+    </div>
+    {% endif %}
+
+    {% if err %}
+    <div class="bg-red-50 border border-red-200 rounded-lg p-3 mb-4 text-sm text-red-700">
+        <i data-lucide="alert-triangle" class="w-4 h-4 inline"></i> {{ err }}
+    </div>
+    {% endif %}
+
+    <!-- Form -->
+    <div class="bg-white rounded-lg border border-zinc-200 p-4 mb-4">
+        <form method="get" action="/madrasah-app/absensi/cetak-absen" class="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div>
+                <label class="block text-xs font-medium text-zinc-600 mb-1">Data</label>
+                <select name="mode" onchange="this.form.submit()"
+                        class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                    <option value="kelas" {% if mode == 'kelas' %}selected{% endif %}>Per Kelas</option>
+                    <option value="murid" {% if mode == 'murid' %}selected{% endif %}>Per Murid</option>
+                </select>
+            </div>
+
+            {% if mode == 'kelas' %}
+            <div>
+                <label class="block text-xs font-medium text-zinc-600 mb-1">Kelas</label>
+                <select name="kelas_id" class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                    <option value="">— Pilih kelas —</option>
+                    {% for k in kelas_list %}
+                    <option value="{{ k.id }}" {% if selected_kelas_id == k.id %}selected{% endif %}>{{ k.nama_kelas }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% else %}
+            <div class="md:col-span-2">
+                <label class="block text-xs font-medium text-zinc-600 mb-1">Murid</label>
+                <select name="murid_id" id="murid-select" class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                    <option value="">— Pilih murid —</option>
+                    {% for m in murid_list %}
+                    <option value="{{ m.id }}" {% if murid_id == m.id %}selected{% endif %}>
+                        {{ m.nama }} — {{ m.kelas_nama or '—' }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+
+            <div>
+                <label class="block text-xs font-medium text-zinc-600 mb-1">Periode</label>
+                <select name="periode" onchange="this.form.submit()"
+                        class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                    <option value="semester" {% if periode == 'semester' %}selected{% endif %}>Semester</option>
+                    <option value="bulan" {% if periode == 'bulan' %}selected{% endif %}>Bulan</option>
+                    <option value="rentang" {% if periode == 'rentang' %}selected{% endif %}>Rentang Tanggal</option>
+                </select>
+            </div>
+
+            {% if periode == 'semester' and periode_list %}
+            <div class="md:col-span-2">
+                <label class="block text-xs font-medium text-zinc-600 mb-1">Pilih Semester</label>
+                <select name="periode_id" class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                    {% for p in periode_list %}
+                    <option value="{{ p.id }}" {% if selected_periode_id == p.id %}selected{% endif %}>
+                        {{ p.nama }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+
+            {% if periode == 'bulan' and bulan_list %}
+            <div class="md:col-span-2">
+                <label class="block text-xs font-medium text-zinc-600 mb-1">Pilih Bulan</label>
+                <select name="bulan" class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                    {% for b in bulan_list %}
+                    <option value="{{ b.value }}" {% if bulan == b.value %}selected{% endif %}>{{ b.label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+
+            {% if periode == 'rentang' %}
+            <div class="md:col-span-2 flex gap-2">
+                <div class="flex-1">
+                    <label class="block text-xs font-medium text-zinc-600 mb-1">Dari Tanggal</label>
+                    <input type="date" name="dari" value="{{ dari }}" class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                </div>
+                <div class="flex-1">
+                    <label class="block text-xs font-medium text-zinc-600 mb-1">Sampai Tanggal</label>
+                    <input type="date" name="sampai" value="{{ sampai }}" class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="md:col-span-4 flex items-center gap-2 pt-1">
+                <button type="submit" class="btn btn-primary text-sm">
+                    <i data-lucide="eye" class="w-4 h-4"></i> Tampilkan Preview A4
+                </button>
+            </div>
+        </form>
+
+        {% if mode == 'murid' and murid_list %}
+        <div class="mt-3 text-xs text-zinc-500">
+            <i data-lucide="search" class="w-3.5 h-3.5 inline"></i>
+            Ketik nama atau NISN untuk mencari murid pada dropdown di atas.
+        </div>
+        {% endif %}
+    </div>
+
+    {% if can_preview and preview %}
+    <!-- Preview A4 + aksi -->
+    <div class="bg-white rounded-lg border border-zinc-200 p-4 mb-4">
+        <div class="flex items-center justify-between mb-3 no-print gap-3 flex-wrap">
+            <h2 class="font-semibold text-zinc-800 whitespace-nowrap">
+                Preview A4 —
+                {% if mode == 'kelas' %}Kelas {{ preview.kelas_nama }}{% else %}{{ preview.murid.nama }}{% endif %}
+                {{ dari }} s.d. {{ sampai }}
+            </h2>
+            <div class="flex items-center gap-2 flex-wrap">
+                <button onclick="window.print()" class="btn btn-primary text-sm">
+                    <i data-lucide="printer" class="w-4 h-4"></i> Cetak / Save PDF
+                </button>
+                <a href="/madrasah-app/absensi/cetak-absen/pdf?mode={{ mode }}&{% if mode == 'kelas' %}kelas_id={{ selected_kelas_id }}{% else %}murid_id={{ murid_id }}{% endif %}{% if ringkasan %}&ringkasan=true{% endif %}&dari={{ dari }}&sampai={{ sampai }}"
+                   class="btn btn-secondary text-sm">
+                    <i data-lucide="file-down" class="w-4 h-4"></i> Download PDF
+                </a>
+                <a href="/madrasah-app/absensi/cetak-absen/xlsx?mode={{ mode }}&{% if mode == 'kelas' %}kelas_id={{ selected_kelas_id }}{% else %}murid_id={{ murid_id }}{% endif %}{% if ringkasan %}&ringkasan=true{% endif %}&dari={{ dari }}&sampai={{ sampai }}"
+                   class="btn btn-secondary text-sm">
+                    <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Download Excel
+                </a>
+            </div>
+        </div>
+
+        {# ── Lembar A4 (preview + area print) ── #}
+        <div class="cetak-a4 overflow-x-auto rounded-lg border border-zinc-300 shadow-sm">
+            {% if mode == 'kelas' and ringkasan %}
+            {# RINGKASAN — hemat kertas #}
+            <div class="p-6">
+                <div class="text-lg font-bold text-teal-700">Aplikasi Madrasah</div>
+                <div class="text-sm font-bold text-zinc-800 mt-1">
+                    Ringkasan Absensi Kelas {{ preview.kelas_nama }} — {{ dari }} s.d. {{ sampai }}
+                </div>
+                <table class="w-full mt-4 text-xs border-collapse">
+                    <thead><tr class="bg-teal-700 text-white">
+                        {% for h in preview.header %}<th class="border border-zinc-300 px-2 py-1.5 {% if loop.index0 >= 3 %}text-center{% endif %}">{{ h }}</th>{% endfor %}
+                    </tr></thead>
+                    <tbody>{% for row in preview.rows %}<tr class="{% if loop.index0 % 2 == 0 %}bg-white{% else %}bg-zinc-50{% endif %}">
+                        {% for cell in row %}<td class="border border-zinc-300 px-2 py-1.5 {% if loop.index0 >= 3 %}text-center{% endif %}">{{ cell }}</td>{% endfor %}
+                    </tr>{% endfor %}</tbody>
+                </table>
+                <div class="text-[10px] text-zinc-500 mt-3">Ringkasan angka H/I/S/A untuk rekap rapor · {{ preview.rows | length }} murid</div>
+            </div>
+            {% elif mode == 'kelas' %}
+            {# MATRIX — landscape #}
+            <div class="min-w-[850px] p-6">
+                <div class="text-lg font-bold text-teal-700">Aplikasi Madrasah</div>
+                <div class="text-sm font-bold text-zinc-800 mt-1">
+                    Rekap Absensi Kelas {{ preview.kelas_nama }} — {{ dari }} s.d. {{ sampai }}
+                </div>
+                <table class="w-full mt-4 text-xs border-collapse">
+                    <thead>
+                        <tr class="bg-teal-700 text-white">
+                            {% for h in preview.header %}
+                            <th class="border border-zinc-300 px-2 py-1.5 text-left {% if not loop.first %}text-center{% endif %}">{{ h }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in preview.rows %}
+                        <tr class="{% if loop.index0 % 2 == 0 %}bg-white{% else %}bg-zinc-50{% endif %}">
+                            {% for cell in row %}
+                            <td class="border border-zinc-300 px-2 py-1.5 {% if not loop.first %}text-center{% endif %}">{{ cell }}</td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <div class="text-[10px] text-zinc-500 mt-3">
+                    Dibuat oleh: Aplikasi Madrasah · Dicetak: {{ dicetak_at }} WIB — {{ preview.rows | length }} murid
+                </div>
+            </div>
+            {% else %}
+            {# RINCIAN MURID — portrait #}
+            <div class="p-8 max-w-3xl">
+                <div class="text-lg font-bold text-teal-700">Aplikasi Madrasah</div>
+                <div class="text-sm font-bold text-zinc-800 mt-1">Rekap Absensi Murid</div>
+
+                <table class="w-full mt-5 text-xs">
+                    <tr>
+                        <td class="py-1 text-zinc-500 w-32">Nama</td>
+                        <td class="py-1 font-semibold">: {{ preview.murid.nama }}</td>
+                    </tr>
+                    <tr>
+                        <td class="py-1 text-zinc-500">NISN</td>
+                        <td class="py-1 font-semibold">: {{ preview.murid.nisn }}</td>
+                    </tr>
+                    <tr>
+                        <td class="py-1 text-zinc-500">Kelas</td>
+                        <td class="py-1 font-semibold">: {{ preview.murid.kelas_nama }}</td>
+                    </tr>
+                    <tr>
+                        <td class="py-1 text-zinc-500">Rentang</td>
+                        <td class="py-1 font-semibold">: {{ dari }} s.d. {{ sampai }}</td>
+                    </tr>
+                </table>
+
+                <table class="w-full mt-4 text-xs border-collapse">
+                    <thead>
+                        <tr class="bg-teal-700 text-white">
+                            <th class="border border-zinc-300 px-2 py-1.5 text-left">No</th>
+                            <th class="border border-zinc-300 px-2 py-1.5 text-left">Tanggal</th>
+                            <th class="border border-zinc-300 px-2 py-1.5 text-left">Hari</th>
+                            <th class="border border-zinc-300 px-2 py-1.5 text-center">Jam</th>
+                            <th class="border border-zinc-300 px-2 py-1.5 text-center">Status</th>
+                            <th class="border border-zinc-300 px-2 py-1.5 text-center">Telat</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in preview.rows %}
+                        <tr class="{% if loop.index0 % 2 == 0 %}bg-white{% else %}bg-zinc-50{% endif %}">
+                            <td class="border border-zinc-300 px-2 py-1.5">{{ loop.index }}</td>
+                            <td class="border border-zinc-300 px-2 py-1.5">{{ r.tanggal }}</td>
+                            <td class="border border-zinc-300 px-2 py-1.5">{{ r.hari }}</td>
+                            <td class="border border-zinc-300 px-2 py-1.5 text-center">{{ r.waktu }}</td>
+                            <td class="border border-zinc-300 px-2 py-1.5 text-center">{{ r.status_letter }}</td>
+                            <td class="border border-zinc-300 px-2 py-1.5 text-center">{{ r.telat }}</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="6" class="border border-zinc-300 px-2 py-4 text-center text-zinc-400">Belum ada data absensi</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <div class="mt-3 text-xs">
+                    <span class="font-semibold">Ringkasan:</span>
+                    H: {{ preview.ringkas.hadir }} · I: {{ preview.ringkas.izin }} ·
+                    S: {{ preview.ringkas.sakit }} · A: {{ preview.ringkas.alpa }} —
+                    Kehadiran {{ preview.pct }}
+                </div>
+                <div class="text-[10px] text-zinc-500 mt-3">
+                    Dibuat oleh: Aplikasi Madrasah · Dicetak: {{ dicetak_at }} WIB
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+/* Preview A4 — printable, meniru hasil PDF */
+@media print {
+    body * { visibility: hidden; }
+    .cetak-a4, .cetak-a4 * { visibility: visible; }
+    .cetak-a4 {
+        position: absolute;
+        left: 0;
+        top: 0;
+        border: none !important;
+        box-shadow: none !important;
+        overflow: visible !important;
+    }
+    .no-print { display: none !important; }
+}
+</style>
+
+{% if mode == 'murid' %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const sel = document.querySelector('select[name="murid_id"]');
+    if (sel && window.Choices) {
+        // Simpan daftar murid untuk restore (Choices single-select menghapus options asli)
+        const opts = Array.from(sel.options).map(o => ({value: o.value, text: o.text}));
+        const cho = new Choices(sel, {
+            searchPlaceholderValue: 'Cari nama atau kelas...',
+            noResultsText: 'Murid tidak ditemukan',
+            itemSelectText: 'Tekan Enter untuk pilih',
+            shouldSort: false,
+            searchResultLimit: 50,
+        });
+        // Saat pilih murid → tambah hidden input + submit form
+        sel.addEventListener('change', function() {
+            const v = sel.value;
+            if (!v) return;
+            const form = sel.closest('form');
+            // pastikan ada input murid_id
+            let hid = form.querySelector('input[name="murid_id"]');
+            if (!hid) { hid = document.createElement('input'); hid.type = 'hidden'; hid.name = 'murid_id'; form.appendChild(hid); }
+            hid.value = v;
+            form.submit();
+        });
+    }
+});
+</script>
+{% endif %}
+{% endblock %}

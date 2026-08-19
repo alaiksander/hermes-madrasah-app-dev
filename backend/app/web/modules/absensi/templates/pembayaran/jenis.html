@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}Jenis Pembayaran{% endblock %}
+{% block topbar_title %}Pembayaran · Jenis{% endblock %}
+
+{% block sidebar_menu %}{% include "absensi/_sidebar_menu.html" %}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl">
+    <div class="mb-4 flex items-center justify-between">
+        <div>
+            <a href="/madrasah-app/pembayaran" class="text-sm text-zinc-500 hover:text-zinc-700">
+                <i data-lucide="arrow-left" class="w-4 h-4 inline"></i> Kembali
+            </a>
+            <h1 class="text-2xl font-bold text-zinc-800 mt-2">Jenis Pembayaran</h1>
+            <p class="text-sm text-zinc-500 mt-1">Master jenis + generate tagihan bulanan.</p>
+        </div>
+    </div>
+
+    {% if request.query_params.get('ok') %}
+    <div class="mb-4 px-4 py-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">
+        <i data-lucide="check-circle" class="w-4 h-4 inline"></i>
+        {{ request.query_params.get('ok') }}
+    </div>
+    {% endif %}
+
+    {% if request.query_params.get('err') %}
+    <div class="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+        <i data-lucide="alert-circle" class="w-4 h-4 inline"></i>
+        Gagal — cek kembali inputan.
+    </div>
+    {% endif %}
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        {# Form buat jenis #}
+        {% if has_perm(user, "tagihan.kelola") %}
+        <div class="bg-white border border-zinc-200 rounded-xl shadow-sm p-5 h-fit">
+            <h2 class="font-semibold text-zinc-900 mb-3">Buat Jenis Baru</h2>
+            <form method="POST" action="/madrasah-app/pembayaran/jenis" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-medium text-zinc-600 mb-1">Nama</label>
+                    <input type="text" name="nama" required placeholder="SPP Bulanan"
+                           class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-zinc-600 mb-1">Deskripsi</label>
+                    <input type="text" name="deskripsi" placeholder="Opsional"
+                           class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-zinc-600 mb-1">Nominal (Rp)</label>
+                        <input type="number" name="nominal" min="0" step="500" value="100000" required
+                               class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-zinc-600 mb-1">Jatuh Tempo (tgl)</label>
+                        <input type="number" name="jatuh_tempo" min="1" max="31" value="10"
+                               class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-zinc-600 mb-1">Periode</label>
+                    <select name="periode" class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                        <option value="bulanan">Bulanan (rutin)</option>
+                        <option value="sekali">Sekali bayar</option>
+                        <option value="semester">Per Semester</option>
+                    </select>
+                </div>
+                <div class="flex gap-4 text-sm">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" name="auto_generate" checked
+                               class="w-4 h-4 text-teal-600 border-zinc-300 rounded">
+                        Auto-generate bulanan
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" name="boleh_cicil" checked
+                               class="w-4 h-4 text-teal-600 border-zinc-300 rounded">
+                        Boleh dicicil
+                    </label>
+                </div>
+                <button type="submit"
+                        class="w-full bg-teal-600 hover:bg-teal-700 text-white font-medium px-4 py-2.5 rounded-lg text-sm">
+                    <i data-lucide="plus" class="w-4 h-4 inline"></i> Simpan Jenis
+                </button>
+            </form>
+
+            {# Generate tagihan #}
+            <div class="mt-5 pt-5 border-t border-zinc-100">
+                <h3 class="font-semibold text-zinc-900 text-sm mb-2">Generate Tagihan Bulanan</h3>
+                <form method="POST" action="/madrasah-app/pembayaran/generate" class="flex gap-2">
+                    <select name="periode" class="flex-1 border border-zinc-300 rounded px-3 py-2 text-sm">
+                        {% for b in bulan_list %}
+                        <option value="{{ b.value }}">{{ b.label }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit"
+                            class="bg-zinc-800 hover:bg-zinc-900 text-white font-medium px-4 py-2 rounded-lg text-sm">
+                        <i data-lucide="zap" class="w-4 h-4 inline"></i> Generate
+                    </button>
+                </form>
+                <p class="text-xs text-zinc-400 mt-1.5">
+                    Membuat tagihan untuk semua murid aktif × jenis yang auto-generate, untuk bulan terpilih.
+                </p>
+            </div>
+        </div>
+        {% endif %}
+
+        {# Daftar jenis #}
+        <div class="bg-white border border-zinc-200 rounded-xl shadow-sm overflow-hidden">
+            <h2 class="font-semibold text-zinc-900 px-5 py-3 border-b border-zinc-100">Daftar Jenis</h2>
+            <div class="divide-y divide-zinc-100">
+                {% for j in jenis %}
+                <div class="px-5 py-3 flex items-center justify-between gap-3">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm font-medium text-zinc-800">{{ j.nama }}</span>
+                            {% if not j.is_active %}
+                            <span class="px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-500 text-[10px]">nonaktif</span>
+                            {% endif %}
+                        </div>
+                        <div class="text-xs text-zinc-500 mt-0.5">
+                            Rp{{ "{:,.0f}".format(j.nominal) }} · {{ j.periode }}
+                            · jatuh tempo tgl {{ j.jatuh_tempo }}
+                            {% if j.boleh_cicil %}· bisa cicil{% endif %}
+                        </div>
+                        {% if j.deskripsi %}<div class="text-xs text-zinc-400">{{ j.deskripsi }}</div>{% endif %}
+                    </div>
+                    {% if has_perm(user, "tagihan.kelola") %}
+                    <form method="POST" action="/madrasah-app/pembayaran/jenis/{{ j.id }}/toggle">
+                        <button type="submit"
+                                class="text-xs px-2.5 py-1.5 border border-zinc-300 rounded-lg hover:bg-zinc-50 text-zinc-600 whitespace-nowrap">
+                            {{ 'Nonaktifkan' if j.is_active else 'Aktifkan' }}
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+                {% else %}
+                <div class="px-5 py-10 text-center text-zinc-400 text-sm">
+                    Belum ada jenis pembayaran.
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

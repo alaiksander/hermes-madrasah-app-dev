@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}{{ form_title }}{% endblock %}
+{% block sidebar_menu %}{% include "absensi/_sidebar_menu.html" %}{% endblock %}
+
+{% block content %}
+<div class="max-w-xl">
+    <h1 class="text-xl font-bold text-zinc-900 mb-4">{{ form_title }}</h1>
+
+    {% if error %}
+    <div class="mb-4 rounded-lg px-4 py-3 text-sm bg-red-50 border border-red-200 text-red-700">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <form method="post" action="{{ form_action }}"
+          class="bg-white rounded-lg border border-zinc-200 p-5 space-y-4">
+        <div>
+            <label class="block text-sm font-medium text-zinc-700 mb-1">Nama Mata Pelajaran <span class="text-red-500">*</span></label>
+            <input type="text" name="nama" required value="{{ mapel.nama if mapel else '' }}"
+                   placeholder="cth: Matematika, Bahasa Indonesia, Pendidikan Agama Islam"
+                   class="w-full border border-zinc-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-zinc-700 mb-1">Kode (opsional)</label>
+            <input type="text" name="kode" value="{{ mapel.kode if mapel else '' }}"
+                   placeholder="cth: MTK, BIN, PAI"
+                   class="w-full border border-zinc-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-zinc-700 mb-1">Kelompok</label>
+            <select name="kelompok"
+                    class="w-full border border-zinc-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
+                {% set kelompok = mapel.kelompok if mapel else 'umum' %}
+                <option value="umum" {% if kelompok == 'umum' %}selected{% endif %}>Umum</option>
+                <option value="keagamaan" {% if kelompok == 'keagamaan' %}selected{% endif %}>Keagamaan</option>
+                <option value="muatan_lokal" {% if kelompok == 'muatan_lokal' %}selected{% endif %}>Muatan Lokal</option>
+                <option value="keterampilan" {% if kelompok == 'keterampilan' %}selected{% endif %}>Keterampilan</option>
+            </select>
+        </div>
+        {% if mapel %}
+        <div class="flex items-center gap-2">
+            <input type="checkbox" name="is_active" id="is_active" {% if mapel.is_active %}checked{% endif %}
+                   class="w-4 h-4 text-teal-600 rounded border-zinc-300">
+            <label for="is_active" class="text-sm text-zinc-700">Aktif (bisa dipakai di jurnal)</label>
+        </div>
+        {% endif %}
+        <div class="flex gap-3 pt-2">
+            <button type="submit" class="btn btn-primary">
+                <i data-lucide="save" class="w-4 h-4"></i> Simpan
+            </button>
+            <a href="/madrasah-app/data/mapel" class="btn btn-secondary">Batal</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}Daftar Murid{% endblock %}
+{% block topbar_title %}Modul Absensi · Murid{% endblock %}
+
+{% block sidebar_menu %}{% include "absensi/_sidebar_menu.html" %}{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-4">
+    <h1 class="text-xl font-bold text-zinc-900">Daftar Murid</h1>
+    <div class="flex items-center gap-2">
+        {% if has_perm(user, 'murid.update') %}
+        <a href="/madrasah-app/data/murid/import-emis" class="btn btn-secondary text-sm border-teal-300 text-teal-700 hover:bg-teal-50">
+            <i data-lucide="sparkles" class="w-4 h-4"></i> Import EMIS
+        </a>
+        <a href="/madrasah-app/data/murid/import" class="btn btn-secondary text-sm">
+            <i data-lucide="upload" class="w-4 h-4"></i> Import Excel
+        </a>
+        <a href="/madrasah-app/data/murid/export-xlsx" class="btn btn-secondary text-sm">
+            <i data-lucide="download" class="w-4 h-4"></i> Export
+        </a>
+        <a href="/madrasah-app/data/murid/baru" class="btn btn-primary">
+            <i data-lucide="user-plus" class="w-4 h-4"></i> Tambah Murid
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Filter bar — minimalis: hanya search + tahun ajaran. Default: TA aktif, sembunyikan arsip. -->
+<form class="bg-white rounded-lg border border-zinc-200 p-3 mb-3 flex flex-wrap items-end gap-3"
+      onsubmit="event.preventDefault(); return false;">
+    <div class="flex-1 min-w-[240px]">
+        <label class="block text-xs font-medium text-zinc-600 mb-1">Cari (NISN atau nama)</label>
+        <input type="text" name="q" value="{{ q }}" placeholder="Cari..."
+               oninput="applyAllFilters()"
+               autocomplete="off"
+               class="w-full border border-zinc-300 rounded px-3 py-1.5 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+    </div>
+    <div class="min-w-[200px]">
+        <label class="block text-xs font-medium text-zinc-600 mb-1">Tahun Ajaran</label>
+        <select name="tahun_ajaran_id" onchange="applyAllFilters()"
+                class="w-full border border-zinc-300 rounded px-3 py-1.5 text-sm">
+            {% for ta in tahun_ajaran_list %}
+            <option value="{{ ta.id }}"
+                    {% if ta.id == tahun_aktif_id %}selected{% endif %}>
+                {{ ta.nama }}{% if ta.is_active %} (aktif){% endif %}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="flex items-center gap-2 pb-1.5">
+        <label class="flex items-center gap-1 text-xs text-zinc-600">
+            <input type="checkbox" name="semua" value="true" {% if semua %}checked{% endif %}
+                   onchange="applyAllFilters()"
+                   class="rounded"> Tampilkan arsip
+        </label>
+    </div>
+    <div class="flex gap-2 pb-1.5">
+        <button type="button" onclick="resetFilters()" class="btn btn-secondary text-xs">Reset</button>
+    </div>
+</form>
+
+<!-- Info filter aktif (render dinamis via JS — Fuse filter tidak trigger reload) -->
+<div id="filter-info" class="mb-2 text-xs text-zinc-500 hidden">
+    Filter aktif:
+    <span id="filter-tags"></span>
+    <button type="button" onclick="resetFilters()" class="text-teal-600 hover:underline">Hapus semua filter</button>
+</div>
+
+<!-- Bulk action toolbar (Q2 Mr.) — muncul jika ada row dipilih -->
+<div id="bulk-toolbar"
+     class="hidden mb-3 bg-teal-50 border border-teal-200 rounded-lg p-3 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+        <span class="text-sm text-teal-800"><span id="selected-count">0</span> dipilih</span>
+        <button type="button" onclick="clearSelection()" class="text-xs text-zinc-500 hover:text-zinc-700">
+            <i data-lucide="x" class="w-3 h-3 inline"></i> Batal
+        </button>
+    </div>
+    <form method="post" action="/madrasah-app/data/murid-bulk-archive"
+          onsubmit="return confirm('Arsipkan murid yang dipilih?')">
+        <input type="hidden" name="ids" id="bulk-ids" value="">
+        <button type="submit" class="btn btn-danger text-sm">
+            <i data-lucide="archive" class="w-4 h-4"></i> Arsipkan
+        </button>
+    </form>
+</div>
+
+<!-- Tabel murid -->
+<div id="murid-table-wrap">
+{% include "murid/_table.html" %}
+</div>
+<!-- Pagination ada di dalam _table.html (include di partial supaya tidak duplikat) -->
+
+<script>
+// Mapping kelas_id → tahun_ajaran_id (di-inject server-side)
+// Dipakai oleh app.js untuk filter by tahun ajaran tanpa dropdown kelas.
+const KELAS_TAHUN_MAP = {{ kelas_tahun_map|tojson }};
+const scriptEl = document.createElement('script');
+scriptEl.id = 'kelas-tahun-map';
+scriptEl.type = 'application/json';
+scriptEl.textContent = JSON.stringify(KELAS_TAHUN_MAP);
+document.head.appendChild(scriptEl);
+</script>
+
+<script>
+// Bulk action client-side
+function updateBulkToolbar() {
+    const checked = document.querySelectorAll('.murid-checkbox:checked');
+    const toolbar = document.getElementById('bulk-toolbar');
+    const count = document.getElementById('selected-count');
+    const idsInput = document.getElementById('bulk-ids');
+    if (checked.length > 0) {
+        toolbar.classList.remove('hidden');
+        count.textContent = checked.length;
+        idsInput.value = Array.from(checked).map(c => c.value).join(',');
+    } else {
+        toolbar.classList.add('hidden');
+        idsInput.value = '';
+    }
+}
+function clearSelection() {
+    document.querySelectorAll('.murid-checkbox:checked').forEach(c => c.checked = false);
+    document.getElementById('select-all').checked = false;
+    updateBulkToolbar();
+}
+document.getElementById('select-all')?.addEventListener('change', function() {
+    document.querySelectorAll('.murid-checkbox').forEach(c => c.checked = this.checked);
+    updateBulkToolbar();
+});
+document.querySelectorAll('.murid-checkbox').forEach(c => c.addEventListener('change', updateBulkToolbar));
+</script>
+{% endblock %}

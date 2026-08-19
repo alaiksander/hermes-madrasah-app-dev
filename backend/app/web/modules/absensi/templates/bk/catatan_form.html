@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block title %}{% if catatan and catatan.id %}Edit Catatan{% else %}Catatan Baru{% endif %}{% endblock %}
+{% block topbar_title %}Catatan BK{% endblock %}
+
+{% block sidebar_menu %}{% include "absensi/_sidebar_menu.html" %}{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="/madrasah-app/bk/catatan" class="text-sm text-zinc-500 hover:text-zinc-700">
+        <i data-lucide="arrow-left" class="w-4 h-4 inline"></i> Kembali
+    </a>
+    <h1 class="text-xl font-bold text-zinc-900 mt-2">
+        {% if catatan and catatan.id %}Edit Catatan{% else %}Catatan Baru{% endif %}
+    </h1>
+</div>
+
+{% if err %}
+<div class="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+    <i data-lucide="alert-circle" class="w-4 h-4 inline"></i> {{ err }}
+</div>
+{% endif %}
+
+<div class="bg-white rounded-lg border border-zinc-200 p-6 max-w-2xl">
+    <form method="post" action="{% if catatan and catatan.id %}/madrasah-app/bk/catatan/{{ catatan.id }}/edit{% else %}/madrasah-app/bk/catatan/new{% endif %}"
+          class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-zinc-700 mb-1">Murid *</label>
+                <select name="murid_ids" multiple required
+                        class="w-full">
+                    {% for m in murid %}
+                    <option value="{{ m.id }}" {% if catatan and m.id in (catatan.murid_ids or []) %}selected{% endif %}>
+                        {{ m.nama }} — {{ m.kelas_nama or '—' }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-zinc-700 mb-1">Tanggal</label>
+                <input type="date" name="tanggal" value="{{ catatan.tanggal if catatan and catatan.tanggal else '' }}"
+                       class="w-full px-3 py-2 border border-zinc-300 rounded-lg text-sm focus:border-teal-500">
+            </div>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-zinc-700 mb-1">Kategori *</label>
+            <select name="kategori_id" id="kategoriSel" required
+                    class="w-full px-3 py-2 border border-zinc-300 rounded-lg text-sm focus:border-teal-500">
+                <option value="">— Pilih kategori —</option>
+                {% for k in kategori %}
+                <option value="{{ k.id }}" {% if catatan and catatan.kategori_id == k.id %}selected{% endif %}>
+                    {{ k.nama }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-zinc-700 mb-1">Item Spesifik (opsional)</label>
+            <select name="pelanggaran_id" id="pelanggaranSel"
+                    class="w-full px-3 py-2 border border-zinc-300 rounded-lg text-sm focus:border-teal-500">
+                <option value="">— Pilih item (opsional) —</option>
+                {% for p in pelanggaran %}
+                <option value="{{ p.id }}" {% if catatan and catatan.pelanggaran_id == p.id %}selected{% endif %}>
+                    {{ p.nama }} ({{ p.poin }} poin){% if p.tingkat %} · {{ p.tingkat }}{% endif %}
+                </option>
+                {% endfor %}
+            </select>
+            <p class="text-xs text-zinc-500 mt-1">Pilih item untuk otomatis mengisi poin. Dapat diubah nanti.</p>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-zinc-700 mb-1">Tingkat (untuk pelanggaran)</label>
+            <select name="tingkat" class="w-full px-3 py-2 border border-zinc-300 rounded-lg text-sm">
+                <option value="">— (opsional) —</option>
+                <option value="ringan" {% if catatan and catatan.tingkat == 'ringan' %}selected{% endif %}>Ringan</option>
+                <option value="sedang" {% if catatan and catatan.tingkat == 'sedang' %}selected{% endif %}>Sedang</option>
+                <option value="berat" {% if catatan and catatan.tingkat == 'berat' %}selected{% endif %}>Berat</option>
+            </select>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-zinc-700 mb-1">Judul *</label>
+            <input type="text" name="judul" required
+                   value="{{ catatan.judul if catatan else '' }}"
+                   placeholder="cth: Terlambat 10 menit, Juara kelas, Sesi konseling awal"
+                   class="w-full px-3 py-2 border border-zinc-300 rounded-lg text-sm focus:border-teal-500">
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-zinc-700 mb-1">Isi / Keterangan</label>
+            <textarea name="isi" rows="4"
+                      placeholder="Keterangan detail (kronologi, saksi, dll.)"
+                      class="w-full px-3 py-2 border border-zinc-300 rounded-lg text-sm focus:border-teal-500">{{ catatan.isi if catatan else '' }}</textarea>
+        </div>
+
+        <div class="flex items-center gap-2 pt-2">
+            <button type="submit"
+                    class="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 text-sm">
+                <i data-lucide="save" class="w-4 h-4 inline"></i>
+                {% if catatan and catatan.id %}Simpan{% else %}Buat Catatan{% endif %}
+            </button>
+            <a href="/madrasah-app/bk/catatan"
+               class="px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-100 rounded-lg">
+                Batal
+            </a>
+        </div>
+    </form>
+</div>
+
+<script>
+// Init Choices.js untuk multi-select murid
+document.addEventListener('DOMContentLoaded', function() {
+    const muridSelect = document.querySelector('select[name="murid_ids"]');
+    if (muridSelect && window.Choices) {
+        new Choices(muridSelect, {
+            removeItemButton: true,
+            searchPlaceholderValue: 'Cari NISN atau nama...',
+            noResultsText: 'Tidak ada hasil',
+            itemSelectText: 'Tekan Enter untuk pilih',
+            shouldSort: false,
+            searchResultLimit: 50,
+        });
+    }
+});
+
+// Filter pelanggaran berdasarkan kategori
+const PELANGGARAN_BY_KAT = {};
+{% for p in pelanggaran %}
+{% if p.kategori_id %}
+const _p = PELANGGARAN_BY_KAT[{{ p.kategori_id }}] || [];
+_p.push({id: {{ p.id }}, nama: {{ p.nama|tojson }}, poin: {{ p.poin }}, tingkat: {{ p.tingkat|tojson }}});
+PELANGGARAN_BY_KAT[{{ p.kategori_id }}] = _p;
+{% endif %}
+{% endfor %}
+
+document.getElementById('kategoriSel').addEventListener('change', function() {
+    const sel = document.getElementById('pelanggaranSel');
+    const katId = parseInt(this.value);
+    sel.innerHTML = '<option value="">— Pilih item (opsional) —</option>';
+    if (PELANGGARAN_BY_KAT[katId]) {
+        PELANGGARAN_BY_KAT[katId].forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p.id;
+            opt.textContent = `${p.nama} (${p.poin} poin)${p.tingkat ? ' · ' + p.tingkat : ''}`;
+            sel.appendChild(opt);
+        });
+    }
+});
+</script>
+{% endblock %}

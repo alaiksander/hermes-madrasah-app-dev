@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}Rekap Nilai · {{ data.kelas_nama }}{% endblock %}
+{% block topbar_title %}Penilaian · Rekap{% endblock %}
+
+{% block sidebar_menu %}{% include "absensi/_sidebar_menu.html" %}{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+    <h1 class="text-xl font-bold text-zinc-900">Rekap Nilai {{ data.kelas_nama }}</h1>
+    <div class="flex items-center gap-2">
+        {% if has_perm(user, 'penilaian.export') %}
+        <a href="/madrasah-app/penilaian/export-rdm?kelas_id={{ kelas_id }}"
+           class="btn btn-secondary text-sm">
+            <i data-lucide="download" class="w-4 h-4"></i> Export RDM
+        </a>
+        {% endif %}
+        <a href="/madrasah-app/penilaian" class="btn btn-secondary text-sm">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali
+        </a>
+    </div>
+</div>
+
+<!-- Filter -->
+<form method="get" action="/madrasah-app/penilaian/rekap"
+      class="bg-white rounded-lg border border-zinc-200 p-3 mb-3 flex flex-wrap items-end gap-3">
+    <div class="min-w-[180px]">
+        <label class="block text-xs font-medium text-zinc-600 mb-1">Kelas</label>
+        <select name="kelas_id" onchange="this.form.submit()"
+                class="border border-zinc-300 rounded px-3 py-1.5 text-sm">
+            {% for k in kelas_list %}
+            <option value="{{ k.id }}" {% if k.id == kelas_id %}selected{% endif %}>{{ k.nama_kelas }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="min-w-[180px]">
+        <label class="block text-xs font-medium text-zinc-600 mb-1">Mapel</label>
+        <select name="mapel_id" onchange="this.form.submit()"
+                class="border border-zinc-300 rounded px-3 py-1.5 text-sm">
+            <option value="">Semua Mapel</option>
+            {% for mp in mapel_list %}
+            <option value="{{ mp.id }}" {% if mp.id == mapel_id %}selected{% endif %}>{{ mp.nama }}</option>
+            {% endfor %}
+        </select>
+    </div>
+</form>
+
+{% if data.materi %}
+<div class="bg-white rounded-lg border border-zinc-200 overflow-x-auto">
+    <table class="w-full text-sm whitespace-nowrap">
+        <thead class="bg-zinc-50 text-zinc-600 text-xs uppercase">
+            <tr>
+                <th class="px-3 py-2.5 text-left sticky left-0 bg-zinc-50">No</th>
+                <th class="px-3 py-2.5 text-left sticky left-8 bg-zinc-50">NISN</th>
+                <th class="px-3 py-2.5 text-left sticky left-40 bg-zinc-50">Nama</th>
+                {% for m in data.materi %}
+                <th class="px-3 py-2.5 text-center" title="{{ m.materi }}">
+                    <span class="block text-[10px] text-zinc-400">{{ jenis_label.get(m.jenis, m.jenis) }}</span>
+                    {{ m.nama }}
+                    <span class="block text-[10px] text-zinc-400">KKTP {{ m.kkpt }}</span>
+                </th>
+                {% endfor %}
+                <th class="px-3 py-2.5 text-center">Rata-rata</th>
+                <th class="px-3 py-2.5 text-center">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for m in data.murid %}
+            <tr class="border-t border-zinc-100 hover:bg-zinc-50">
+                <td class="px-3 py-2 text-zinc-500 sticky left-0 bg-white">{{ loop.index }}</td>
+                <td class="px-3 py-2 font-mono text-xs text-zinc-600 sticky left-8 bg-white">{{ m.nisn or '—' }}</td>
+                <td class="px-3 py-2 font-medium text-zinc-900 sticky left-40 bg-white">{{ m.nama }}</td>
+                {% for s in m.skor %}
+                <td class="px-3 py-2 text-center">
+                    {% if s is not none %}
+                    <span class="inline-block w-8 py-0.5 rounded text-xs font-mono
+                                 {% if s >= data.materi[loop.index0].kkpt %}bg-green-100 text-green-700
+                                 {% else %}bg-red-100 text-red-700{% endif %}">
+                        {{ s }}
+                    </span>
+                    {% else %}
+                    <span class="text-zinc-300">—</span>
+                    {% endif %}
+                </td>
+                {% endfor %}
+                <td class="px-3 py-2 text-center font-mono font-medium">
+                    {{ m.rata_rata if m.rata_rata is not none else '—' }}
+                </td>
+                <td class="px-3 py-2 text-center">
+                    {% if m.status == 'Tuntas' %}
+                    <span class="text-green-600 text-xs font-medium">● Tuntas</span>
+                    {% elif m.status == 'Perlu Perbaikan' %}
+                    <span class="text-red-600 text-xs font-medium">● Perlu Perbaikan</span>
+                    {% else %}
+                    <span class="text-zinc-400 text-xs">● Belum Dinilai</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="bg-white rounded-lg border border-zinc-200 p-12 text-center">
+    <i data-lucide="clipboard-list" class="w-12 h-12 mx-auto mb-2 text-zinc-300"></i>
+    <p class="font-medium text-zinc-700">Belum ada materi penilaian untuk kelas ini</p>
+    {% if has_perm(user, 'penilaian.input') %}
+    <a href="/madrasah-app/penilaian/baru" class="inline-block mt-2 text-xs text-teal-600 hover:underline">
+        Buat penilaian pertama
+    </a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

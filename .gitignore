@@ -1,0 +1,114 @@
+# Madrasah-app — Root .gitignore
+# Bertujuan cover BOTH backend (Python/FastAPI) dan app/ (Flutter)
+# Plus exclude semua data sensitif dan artifact build.
+
+# ============================================================
+# SECRETS — WAJIB EXCLUDE (kalau bocor = incident)
+# ============================================================
+.env
+.env.*
+*.env
+backend/.env
+backend/app/.env
+backend/**/.env
+**/secrets/
+**/secrets.yaml
+**/secrets.json
+**/credentials/
+**/credentials.json
+**/*.pem
+**/*.key
+**/*.p12
+
+# ============================================================
+# DATABASE — exclude semua file DB lokal
+# ============================================================
+*.db
+*.sqlite
+*.sqlite3
+backend/data/
+backend/**/data/
+backend/app.db
+backend/global.db
+backend/madrasah.db
+backend/mtsn*.db
+backend/emis-*
+
+# ============================================================
+# PYTHON — backend venv, cache, build
+# ============================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
+ENV/
+backend/venv/
+backend/.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+.pytest_cache/
+htmlcov/
+*.egg-info/
+*.egg
+
+# ============================================================
+# FASTAPI / UVICORN logs
+# ============================================================
+*.log
+logs/
+backend/logs/
+
+# ============================================================
+# FLUTTER / DART — app/ sudah punya .gitignore sendiri, tapi
+# double-guard di root untuk artifact
+# ============================================================
+app/build/
+app/.dart_tool/
+app/.flutter-plugins
+app/.flutter-plugins-dependencies
+app/.packages
+app/.pub-cache/
+app/.pub/
+app/.build/
+app/coverage/
+
+# ============================================================
+# IDE / Editor
+# ============================================================
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+*~
+
+# ============================================================
+# OS / Misc
+# ============================================================
+*.bak
+*.tmp
+*.orig
+*.rej
+.tmp/
+.cache/
+local_settings.py
+
+# ============================================================
+# BACKUP FOLDER
+# ============================================================
+backups/
+tmp/
+*.tar.gz
+*.zip
+*.tar

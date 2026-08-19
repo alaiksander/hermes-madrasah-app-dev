@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}Export Jurnal Mengajar{% endblock %}
+{% block topbar_title %}Jurnal · Export{% endblock %}
+
+{% block sidebar_menu %}{% include "absensi/_sidebar_menu.html" %}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl">
+    <div class="mb-4 flex items-center justify-between">
+        <div>
+            <a href="/madrasah-app/jurnal/riwayat" class="text-sm text-zinc-500 hover:text-zinc-700">
+                <i data-lucide="arrow-left" class="w-4 h-4 inline"></i> Kembali ke Riwayat
+            </a>
+            <h1 class="text-2xl font-bold text-zinc-800 mt-2">Export Jurnal Mengajar</h1>
+            <p class="text-sm text-zinc-500 mt-1">
+                Atur pilihan periode, kelas, status & rekap absensi, lalu pilih format download.
+            </p>
+        </div>
+    </div>
+
+    <form method="GET" class="space-y-4">
+        {# Preview info (jumlah entri sesuai pilihan) — diisi via HTMX jika perlu #}
+
+        <div class="bg-white border border-zinc-200 rounded-xl shadow-sm p-5 space-y-4">
+            {# Periode #}
+            <div>
+                <label class="block text-xs font-medium text-zinc-600 mb-1">Periode</label>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <span class="block text-xs text-zinc-400 mb-1">Dari Tanggal</span>
+                        <input type="date" name="dari" value="{{ filter_dari or '' }}"
+                               class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                    </div>
+                    <div>
+                        <span class="block text-xs text-zinc-400 mb-1">Sampai Tanggal</span>
+                        <input type="date" name="sampai" value="{{ filter_sampai or '' }}"
+                               class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                    </div>
+                </div>
+            </div>
+
+            {# Kelas #}
+            <div>
+                <label class="block text-xs font-medium text-zinc-600 mb-1">Kelas</label>
+                <select name="kelas_id" class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                    <option value="">Semua kelas</option>
+                    {% for k in kelas_list %}
+                    <option value="{{ k.id }}" {% if filter_kelas_id|string == k.id|string %}selected{% endif %}>
+                        {{ k.nama_kelas }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            {# Status #}
+            <div>
+                <label class="block text-xs font-medium text-zinc-600 mb-1">Status Jurnal</label>
+                <select name="status" class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                    <option value="">Semua status</option>
+                    <option value="draft">Draft</option>
+                    <option value="submitted">Disubmit</option>
+                    <option value="verified">Terverifikasi</option>
+                </select>
+            </div>
+
+            {# Rekap absensi #}
+            <div>
+                <label class="flex items-center gap-3 cursor-pointer select-none">
+                    <input type="checkbox" name="rekap_absensi" value="true" checked
+                           class="w-4 h-4 text-teal-600 border-zinc-300 rounded focus:ring-teal-500">
+                    <div>
+                        <div class="text-sm font-medium text-zinc-800">Sertakan rekap absensi (H/I/S/A)</div>
+                        <div class="text-xs text-zinc-500">Kolom Hadir, Izin, Sakit, Alpa per sesi jurnal</div>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        {# Tombol aksi — formaction ke endpoint spesifik #}
+        <div class="flex items-center gap-3">
+            <button type="submit" formaction="/madrasah-app/jurnal/export-xlsx"
+                    class="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white font-medium px-5 py-2.5 rounded-lg transition-colors text-sm">
+                <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+                Download Excel
+            </button>
+            <button type="submit" formaction="/madrasah-app/jurnal/export-pdf"
+                    class="flex items-center gap-2 border border-teal-600 text-teal-700 hover:bg-teal-50 font-medium px-5 py-2.5 rounded-lg transition-colors text-sm">
+                <i data-lucide="file-text" class="w-4 h-4"></i>
+                Download PDF
+            </button>
+            <a href="/madrasah-app/jurnal/export"
+               class="px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-100 rounded-lg">Reset</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

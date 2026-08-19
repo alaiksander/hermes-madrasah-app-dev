@@ -1,0 +1,23 @@
+<!-- Sidebar menu shared untuk semua halaman modul absensi.
+     Class names (`section-label`, `menu-text`) adalah kontrak dengan CSS
+     untuk collapsible sidebar (P-WEB-50) — jangan ganti tanpa update CSS.
+
+     Pattern nested include per-group (P-WEB-51): saat tambah modul baru,
+     taruh di file _menu_<group>.html yang sesuai, lalu tambahkan include di sini.
+     Ini agar file ini tetap pendek dan setiap group mudah ditemukan.
+
+     Urutan menu (keputusan 2026-08-16): Absensi, BK, Data, System.
+     Role ada di bawah System.
+
+     (Dashboard modul Absensi ada di dalam grup Absensi sebagai child menu
+     pertama — lihat _menu_absensi.html. Dashboard platform-level belum
+     dikerjakan — akan dibahas nanti.) -->
+
+{% include "absensi/_menu_absensi.html" %}
+{% include "absensi/_menu_jurnal.html" %}
+{% include "absensi/_menu_penilaian.html" %}
+{% include "absensi/_menu_pembayaran.html" %}
+{% include "absensi/_menu_wali.html" %}
+{% include "absensi/_menu_bk.html" %}
+{% include "absensi/_menu_data.html" %}
+{% include "absensi/_menu_system.html" %}

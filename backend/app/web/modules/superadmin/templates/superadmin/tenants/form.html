@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}{{ form_title }}{% endblock %}
+{% block topbar_title %}Super Admin · {{ form_title }}{% endblock %}
+
+{% block sidebar_menu %}{% include "superadmin/_sidebar_menu.html" %}{% endblock %}
+
+{% block content %}
+<div class="max-w-xl">
+    <a href="/madrasah-app/superadmin/tenants"
+       class="inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-700 mb-3">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke Tenants
+    </a>
+    <h1 class="text-xl font-bold text-zinc-900 mb-4">{{ form_title }}</h1>
+
+    <form method="post"
+          action="{% if tenant %}/madrasah-app/superadmin/tenants/{{ tenant.id }}{% else %}/madrasah-app/superadmin/tenants{% endif %}"
+          class="bg-white rounded-lg border border-zinc-200 p-5 space-y-4">
+        <div>
+            <label class="block text-sm font-medium text-zinc-700 mb-1">Nama Madrasah *</label>
+            <input type="text" name="nama" value="{{ tenant.nama if tenant else '' }}" required
+                   class="w-full border border-zinc-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+        </div>
+        {% if not tenant %}
+        <div>
+            <label class="block text-sm font-medium text-zinc-700 mb-1">Kode *</label>
+            <input type="text" name="kode" value="{{ tenant.kode if tenant else '' }}" required
+                   placeholder="contoh: mtsn2kudus"
+                   class="w-full border border-zinc-300 rounded px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+            <p class="text-xs text-zinc-500 mt-1">Kode unik untuk login (huruf kecil, tanpa spasi)</p>
+        </div>
+        {% endif %}
+        <div class="grid grid-cols-2 gap-3">
+            <div>
+                <label class="block text-sm font-medium text-zinc-700 mb-1">Plan</label>
+                <select name="plan" class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                    <option value="">— Tanpa Plan —</option>
+                    {% for p in plans %}
+                    <option value="{{ p.nama }}" {% if tenant and tenant.plan == p.nama %}selected{% endif %}>
+                        {{ p.nama }} ({{ p.label }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-zinc-700 mb-1">Max Murid</label>
+                <input type="number" name="max_murid" value="{{ tenant.max_murid if tenant and tenant.max_murid else '' }}"
+                       min="0" placeholder="0 = tanpa batas"
+                       class="w-full border border-zinc-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+            </div>
+        </div>
+        {% if tenant %}
+        <div>
+            <label class="block text-sm font-medium text-zinc-700 mb-1">Status</label>
+            <select name="status" class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                <option value="trial" {% if tenant.status == 'trial' %}selected{% endif %}>Trial (masa percobaan)</option>
+                <option value="active" {% if tenant.status == 'active' %}selected{% endif %}>Aktif</option>
+                <option value="suspended" {% if tenant.status == 'suspended' %}selected{% endif %}>Ditangguhkan (tidak bisa login)</option>
+            </select>
+            <p class="text-xs text-zinc-500 mt-1">Status aktif menentukan tenant bisa login atau tidak</p>
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-zinc-700 mb-1">Masa Langganan Hingga</label>
+            <input type="date" name="masa_langganan_hingga"
+                   value="{{ tenant.masa_langganan_hingga if tenant and tenant.masa_langganan_hingga else '' }}"
+                   class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+            <label class="flex items-center gap-2 mt-2 text-sm text-zinc-600">
+                <input type="checkbox" name="hapus_langganan" value="on"
+                       class="w-4 h-4 text-teal-600 rounded">
+                Hapus batas langganan (langganan tanpa batas)
+            </label>
+        </div>
+        {% endif %}
+        <div class="flex gap-2 pt-2">
+            <button type="submit" class="btn btn-primary text-sm">
+                <i data-lucide="save" class="w-4 h-4"></i> Simpan
+            </button>
+            <a href="/madrasah-app/superadmin/tenants" class="btn btn-secondary text-sm">Batal</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

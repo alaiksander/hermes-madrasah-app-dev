@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}{{ form_title }}{% endblock %}
+{% block topbar_title %}Modul Absensi · Murid · {{ form_title }}{% endblock %}
+
+{% block sidebar_menu %}{% include "absensi/_sidebar_menu.html" %}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl">
+    <a href="/madrasah-app/data/murid" class="inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-700 mb-3">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke daftar
+    </a>
+
+    <div class="bg-white rounded-lg border border-zinc-200 p-6">
+        <h1 class="text-lg font-bold text-zinc-900 mb-4">{{ form_title }}</h1>
+
+        {% if error %}
+        <div class="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg p-3 mb-4">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <form method="post" action="{{ form_action }}" class="space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-sm font-medium text-zinc-700 mb-1">NISN</label>
+                    <input type="text" name="nisn"
+                           value="{{ murid.nisn or '' if murid else '' }}"
+                           placeholder="10 digit (opsional)"
+                           class="w-full border border-zinc-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-zinc-700 mb-1">Nama <span class="text-red-600">*</span></label>
+                    <input type="text" name="nama" required
+                           value="{{ murid.nama if murid else '' }}"
+                           class="w-full border border-zinc-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-zinc-700 mb-1">Kelas <span class="text-red-600">*</span></label>
+                <select name="kelas_id" required
+                        class="w-full border border-zinc-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                    <option value="">— Pilih kelas —</option>
+                    {% for k in kelas_list %}
+                    <option value="{{ k.id }}"
+                            {% if murid and murid.kelas_id == k.id %}selected{% endif %}>
+                        {{ k.nama_kelas }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-sm font-medium text-zinc-700 mb-1">NIK</label>
+                    <input type="text" name="nik"
+                           value="{{ murid.nik or '' if murid else '' }}"
+                           placeholder="16 digit (opsional)"
+                           class="w-full border border-zinc-300 rounded px-3 py-2 text-sm font-mono">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-zinc-700 mb-1">Jenis Kelamin</label>
+                    <select name="jenis_kelamin"
+                            class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                        <option value="">— Pilih —</option>
+                        <option value="Laki-laki" {% if murid and murid.jenis_kelamin == 'Laki-laki' %}selected{% endif %}>Laki-laki</option>
+                        <option value="Perempuan" {% if murid and murid.jenis_kelamin == 'Perempuan' %}selected{% endif %}>Perempuan</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-zinc-700 mb-1">Tempat Lahir</label>
+                    <input type="text" name="tempat_lahir"
+                           value="{{ murid.tempat_lahir or '' if murid else '' }}"
+                           class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-zinc-700 mb-1">Tanggal Lahir</label>
+                    <input type="date" name="tanggal_lahir"
+                           value="{{ murid.tanggal_lahir or '' if murid else '' }}"
+                           class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-zinc-700 mb-1">Alamat</label>
+                <textarea name="alamat" rows="2"
+                          class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">{{ murid.alamat or '' if murid else '' }}</textarea>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-sm font-medium text-zinc-700 mb-1">Nama Ayah Kandung</label>
+                    <input type="text" name="nama_ayah_kandung"
+                           value="{{ murid.nama_ayah_kandung or '' if murid else '' }}"
+                           class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-zinc-700 mb-1">Nama Ibu Kandung</label>
+                    <input type="text" name="nama_ibu_kandung"
+                           value="{{ murid.nama_ibu_kandung or '' if murid else '' }}"
+                           class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-zinc-700 mb-1">Nama Orang Tua (kontak)</label>
+                    <input type="text" name="nama_ortu"
+                           value="{{ murid.nama_ortu or '' if murid else '' }}"
+                           class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-zinc-700 mb-1">Telepon</label>
+                    <input type="text" name="telepon"
+                           value="{{ murid.telepon or '' if murid else '' }}"
+                           placeholder="628xxxxxxxxxx (opsional)"
+                           class="w-full border border-zinc-300 rounded px-3 py-2 text-sm font-mono">
+                    <p class="text-xs text-zinc-500 mt-1">Nomor telepon murid, 8-15 digit (opsional)</p>
+                </div>
+            </div>
+            {% if murid and murid.id %}
+            <input type="hidden" name="is_active" value="{{ 'true' if murid.is_active else 'false' }}">
+            {% endif %}
+            <div class="flex items-center justify-end gap-2 pt-3 border-t border-zinc-200">
+                <a href="/madrasah-app/data/murid" class="btn btn-secondary">Batal</a>
+                <button type="submit" class="btn btn-primary">
+                    <i data-lucide="save" class="w-4 h-4"></i> Simpan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

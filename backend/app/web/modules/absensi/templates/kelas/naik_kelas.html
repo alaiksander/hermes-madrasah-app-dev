@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block title %}Naik Kelas{% endblock %}
+{% block topbar_title %}Modul Absensi · Naik Kelas{% endblock %}
+
+{% block sidebar_menu %}{% include "absensi/_sidebar_menu.html" %}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl">
+    <a href="/madrasah-app/data/kelas" class="inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-700 mb-3">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke daftar kelas
+    </a>
+
+    <div class="bg-white rounded-lg border border-zinc-200 p-6 mb-4">
+        <h1 class="text-lg font-bold text-zinc-900 mb-2">Naik Kelas Massal</h1>
+        <p class="text-sm text-zinc-600 mb-4">
+            Pindahkan semua murid aktif dari kelas sumber ke kelas tujuan di tahun ajaran baru.
+            Kelas tujuan otomatis dibuat jika belum ada. Kelas 9XX otomatis diluluskan.
+        </p>
+
+        {% if not preview %}
+        <!-- Step 1: Pilih TA sumber & tujuan -->
+        <form method="post" action="/madrasah-app/absensi/naik-kelas-preview" class="space-y-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-sm font-medium text-zinc-700 mb-1">Tahun Ajaran Sumber</label>
+                    <select name="tahun_ajaran_id_sumber" required
+                            class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                        {% for ta in tahun_ajaran_list %}
+                        <option value="{{ ta.id }}" {% if ta.id == sumber_id %}selected{% endif %}>
+                            {{ ta.nama }}{% if ta.is_active %} (aktif){% endif %}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-zinc-700 mb-1">Tahun Ajaran Tujuan</label>
+                    <select name="tahun_ajaran_id_tujuan" required
+                            class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                        {% for ta in tahun_ajaran_list %}
+                        <option value="{{ ta.id }}" {% if ta.id == tujuan_id %}selected{% endif %}>
+                            {{ ta.nama }}{% if ta.is_active %} (aktif){% endif %}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">
+                <i data-lucide="eye" class="w-4 h-4"></i> Preview Mapping
+            </button>
+        </form>
+        {% endif %}
+
+        {% if preview %}
+        <!-- Step 2: Preview mapping, edit kalau perlu -->
+        <form method="post" action="/madrasah-app/absensi/naik-kelas-commit">
+            <input type="hidden" name="tahun_ajaran_id_tujuan" value="{{ preview.tujuan_ta.id }}">
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 text-sm text-blue-800">
+                <i data-lucide="info" class="w-4 h-4 inline"></i>
+                Preview mapping
+                {% if kelas_sumber %}
+                dari <strong>{{ kelas_sumber[0].tahun_ajaran_nama }}</strong>
+                {% else %}
+                dari <strong>?</strong>
+                {% endif %}
+                ke <strong>{{ preview.tujuan_ta.nama }}</strong>.
+                Edit nama kelas tujuan jika perlu. Centang "Luluskan" untuk kelas akhir.
+            </div>
+
+            <div class="border border-zinc-200 rounded-lg overflow-x-auto">
+                <table class="table-dense w-full text-sm">
+                    <thead class="bg-zinc-50 text-zinc-600 text-xs uppercase">
+                        <tr>
+                            <th>Kelas Sumber</th>
+                            <th>Jumlah Murid</th>
+                            <th>Kelas Tujuan</th>
+                            <th class="w-20">Luluskan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for it in preview["items"] %}
+                        <tr class="{% if it.luluskan %}bg-amber-50{% endif %}">
+                            <td>
+                                <div class="font-medium">{{ it.sumber_nama }}</div>
+                                <div class="text-xs text-zinc-500">{{ it.sumber_jumlah }} murid</div>
+                                <input type="hidden" name="items[{{ loop.index0 }}][dari_kelas_id]" value="{{ it.sumber_id }}">
+                            </td>
+                            <td>
+                                <span class="inline-block px-2 py-0.5 rounded bg-zinc-100 text-xs">{{ it.sumber_jumlah }}</span>
+                            </td>
+                            <td>
+                                {% if it.luluskan %}
+                                <span class="text-zinc-500 italic">— Diluluskan —</span>
+                                <input type="hidden" name="items[{{ loop.index0 }}][luluskan]" value="true">
+                                {% else %}
+                                <input type="text" name="items[{{ loop.index0 }}][ke_nama_kelas]"
+                                       value="{{ it.tujuan_nama }}"
+                                       class="w-full border border-zinc-300 rounded px-2 py-1 text-sm">
+                                <input type="hidden" name="items[{{ loop.index0 }}][tujuan_exists]" value="{{ it.tujuan_exists }}">
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <input type="checkbox" name="items[{{ loop.index0 }}][luluskan]" value="true"
+                                       {% if it.luluskan %}checked{% endif %}
+                                       {% if not it.luluskan %}disabled{% endif %}
+                                       class="rounded">
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="flex items-center justify-between mt-4 pt-3 border-t border-zinc-200">
+                <a href="/madrasah-app/absensi/naik-kelas" class="btn btn-secondary text-sm">
+                    <i data-lucide="arrow-left" class="w-4 h-3 inline"></i> Ubah TA
+                </a>
+                <button type="submit" class="btn btn-primary"
+                        onclick="return confirm('Yakin naik kelas sekarang? Aksi ini akan memindahkan semua murid aktif.')">
+                    <i data-lucide="check" class="w-4 h-4"></i> Konfirmasi Naik Kelas
+                </button>
+            </div>
+        </form>
+        {% endif %}
+    </div>
+
+    <!-- Help -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800">
+        <p class="font-medium mb-2">
+            <i data-lucide="info" class="w-4 h-4 inline"></i> Cara Kerja Naik Kelas
+        </p>
+        <ul class="list-disc list-inside space-y-1 text-xs">
+            <li>Pilih TA sumber (tahun ajaran murid sekarang) dan TA tujuan (tahun ajaran baru)</li>
+            <li>Sistem auto-suggest mapping: 7A → 8A, 8B → 9B, dll</li>
+            <li>Kelas dengan nama "9*" otomatis ditandai lulus (centang "Luluskan")</li>
+            <li>Kelas tujuan yang belum ada di TA tujuan akan otomatis dibuat</li>
+            <li>Hanya murid <strong>aktif</strong> yang dipindahkan/diluluskan — yang sudah lulus/arsip tetap</li>
+            <li>Setelah commit, wali kelas di TA tujuan bisa di-set manual di daftar kelas</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

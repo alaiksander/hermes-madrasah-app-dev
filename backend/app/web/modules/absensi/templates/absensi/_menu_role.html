@@ -1,0 +1,10 @@
+{% if has_perm(user, "role.view") %}
+<div class="sidebar-group-items">
+    <a href="/madrasah-app/system/role"
+       class="flex items-center gap-2 px-3 py-2 rounded-lg {% if '/role' in request.url.path and '/role/' not in request.url.path %}bg-teal-50 text-teal-700 font-medium{% else %}text-zinc-700 hover:bg-zinc-100{% endif %}"
+       title="Role & Permission">
+        <i data-lucide="shield-check" class="w-4 h-4 flex-shrink-0 menu-icon"></i>
+        <span class="menu-text">Role</span>
+    </a>
+</div>
+{% endif %}

@@ -1,0 +1,53 @@
+<!-- Grup: Absensi — expandable accordion (gaya: icon kiri + chevron kanan).
+     Group hanya tampil kalau ada minimal satu submenu yang permission-nya aktif. -->
+{% if has_any_perm(user, "absen.scan", "absen.manual", "absen.rekap", "absen.export", "absen.cetak", "murid.qr") %}
+<details class="sidebar-group" {% if '/absensi' in request.url.path and '/bk' not in request.url.path and '/pengaturan' not in request.url.path %}open{% endif %}>
+    <summary class="sidebar-group-summary" title="Absensi">
+        <i data-lucide="calendar-check" class="w-4 h-4 flex-shrink-0 menu-icon"></i>
+        <span class="menu-text">Absensi</span>
+        <i data-lucide="chevron-right" class="sidebar-group-chevron w-3 h-3 ml-auto"></i>
+    </summary>
+    <div class="sidebar-group-items">
+        {% if has_perm(user, "absen.scan") or has_perm(user, "absen.manual") or has_perm(user, "absen.rekap") %}
+        <a href="/madrasah-app/absensi/dashboard"
+           class="flex items-center gap-2 px-3 py-2 rounded-lg {% if '/absensi/dashboard' in request.url.path %}bg-teal-50 text-teal-700 font-medium{% else %}text-zinc-700 hover:bg-zinc-100{% endif %}"
+           title="Dashboard Absensi">
+            <i data-lucide="layout-dashboard" class="w-4 h-4 flex-shrink-0 menu-icon"></i>
+            <span class="menu-text">Dashboard</span>
+        </a>
+        {% endif %}
+        {% if has_perm(user, "absen.rekap") %}
+        <a href="/madrasah-app/absensi/rekap"
+           class="flex items-center gap-2 px-3 py-2 rounded-lg {% if '/rekap' in request.url.path %}bg-teal-50 text-teal-700 font-medium{% else %}text-zinc-700 hover:bg-zinc-100{% endif %}"
+           title="Rekap Absensi">
+            <i data-lucide="bar-chart-3" class="w-4 h-4 flex-shrink-0 menu-icon"></i>
+            <span class="menu-text">Rekap</span>
+        </a>
+        {% endif %}
+        {% if has_perm(user, "absen.manual") %}
+        <a href="/madrasah-app/absensi/input-manual"
+           class="flex items-center gap-2 px-3 py-2 rounded-lg {% if '/input-manual' in request.url.path %}bg-teal-50 text-teal-700 font-medium{% else %}text-zinc-700 hover:bg-zinc-100{% endif %}"
+           title="Input Manual">
+            <i data-lucide="edit-3" class="w-4 h-4 flex-shrink-0 menu-icon"></i>
+            <span class="menu-text">Input Manual</span>
+        </a>
+        {% endif %}
+        {% if has_perm(user, "murid.qr") %}
+        <a href="/madrasah-app/absensi/kartu-qr"
+           class="flex items-center gap-2 px-3 py-2 rounded-lg {% if '/kartu-qr' in request.url.path %}bg-teal-50 text-teal-700 font-medium{% else %}text-zinc-700 hover:bg-zinc-100{% endif %}"
+           title="Kartu QR Absensi">
+            <i data-lucide="qr-code" class="w-4 h-4 flex-shrink-0 menu-icon"></i>
+            <span class="menu-text">Kartu QR</span>
+        </a>
+        {% endif %}
+        {% if has_perm(user, "absen.cetak") %}
+        <a href="/madrasah-app/absensi/cetak-absen"
+           class="flex items-center gap-2 px-3 py-2 rounded-lg {% if '/cetak-absen' in request.url.path %}bg-teal-50 text-teal-700 font-medium{% else %}text-zinc-700 hover:bg-zinc-100{% endif %}"
+           title="Cetak Absen PDF / Excel">
+            <i data-lucide="printer" class="w-4 h-4 flex-shrink-0 menu-icon"></i>
+            <span class="menu-text">Cetak Absen</span>
+        </a>
+        {% endif %}
+    </div>
+</details>
+{% endif %}

@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Pengaturan Scan Mode{% endblock %}
+{% block topbar_title %}
+
+{% block sidebar_menu %}{% include "absensi/_sidebar_menu.html" %}{% endblock %}Modul Absensi · Pengaturan Scan Mode{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl">
+    <a href="/madrasah-app/system/pengaturan" class="inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-700 mb-3">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke Pengaturan
+    </a>
+
+    <div class="bg-white rounded-lg border border-zinc-200 p-6">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="p-2 bg-amber-50 rounded-lg">
+                <i data-lucide="qr-code" class="w-6 h-6 text-amber-700"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold text-zinc-900">Scan Mode</h1>
+                <p class="text-sm text-zinc-500">Pengaturan hemat baterai untuk scanner mobile.</p>
+            </div>
+        </div>
+
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 text-sm text-blue-800">
+            <i data-lucide="info" class="w-4 h-4 inline"></i>
+            Mode ini mengatur perilaku scanner di aplikasi mobile Flutter. Baterai lebih hemat
+            pada mode ekstrim, tapi pengalaman scan bisa lebih lambat saat scanner "bangun".
+        </div>
+
+        <form method="post" action="/madrasah-app/system/pengaturan/scan-mode" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-zinc-700 mb-2">
+                    Mode
+                </label>
+                <div class="space-y-2">
+                    {% set modes = [("standar", "Standar"), ("hemat", "Hemat"), ("ekstrim", "Ekstrim")] %}
+                    {% for code, nama in modes %}
+                    <label class="flex items-start gap-3 px-3 py-2 rounded-lg border border-zinc-200 cursor-pointer hover:bg-zinc-50 {% if settings.scan_mode == code %}bg-teal-50 border-teal-300{% endif %}">
+                        <input type="radio" name="scan_mode" value="{{ code }}"
+                               {% if settings.scan_mode == code %}checked{% endif %}
+                               class="mt-1 border-zinc-300 text-teal-700 focus:ring-teal-500">
+                        <div>
+                            <div class="font-medium text-sm">{{ nama }}</div>
+                            <div class="text-xs text-zinc-500 mt-0.5">{{ scan_mode_descriptions[code] }}</div>
+                        </div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-sm font-medium text-zinc-700 mb-1">
+                        Idle (menit)
+                    </label>
+                    <input type="number" name="scan_idle_menit" required min="1" max="60"
+                           value="{{ settings.scan_idle_menit }}"
+                           class="w-full border border-zinc-300 rounded px-3 py-2 text-sm font-mono">
+                    <p class="text-xs text-zinc-500 mt-1">Sebelum auto-sleep (1-60)</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-zinc-700 mb-1">
+                        Aktif (detik)
+                    </label>
+                    <input type="number" name="scan_aktif_detik" required min="5" max="300"
+                           value="{{ settings.scan_aktif_detik }}"
+                           class="w-full border border-zinc-300 rounded px-3 py-2 text-sm font-mono">
+                    <p class="text-xs text-zinc-500 mt-1">Window scan setelah wake (5-300)</p>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-2 pt-3 border-t border-zinc-200">
+                <a href="/madrasah-app/system/pengaturan" class="btn btn-secondary">Batal</a>
+                <button type="submit" class="btn btn-primary">
+                    <i data-lucide="save" class="w-4 h-4"></i> Simpan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

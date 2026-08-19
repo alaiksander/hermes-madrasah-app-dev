@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}{% if sesi and sesi.id %}Edit Sesi{% else %}Sesi Baru{% endif %}{% endblock %}
+{% block topbar_title %}Sesi Konseling{% endblock %}
+
+{% block sidebar_menu %}{% include "absensi/_sidebar_menu.html" %}{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="/madrasah-app/bk/sesi" class="text-sm text-zinc-500 hover:text-zinc-700">
+        <i data-lucide="arrow-left" class="w-4 h-4 inline"></i> Kembali
+    </a>
+    <h1 class="text-xl font-bold text-zinc-900 mt-2">
+        {% if sesi and sesi.id %}Edit Sesi{% else %}Sesi Konseling Baru{% endif %}
+    </h1>
+</div>
+
+{% if err %}
+<div class="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+    <i data-lucide="alert-circle" class="w-4 h-4 inline"></i> {{ err }}
+</div>
+{% endif %}
+
+<div class="bg-white rounded-lg border border-zinc-200 p-6 max-w-2xl">
+    <form method="post" action="{% if sesi and sesi.id %}/madrasah-app/bk/sesi/{{ sesi.id }}/edit{% else %}/madrasah-app/bk/sesi/new{% endif %}"
+          class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-zinc-700 mb-1">Peserta</label>
+                <select name="peserta_ids" multiple
+                        class="w-full">
+                    {% for m in murid %}
+                    <option value="{{ m.id }}" {% if sesi and m.id in (sesi.peserta_ids or []) %}selected{% endif %}>
+                        {{ m.nama }} — {{ m.kelas_nama or '—' }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-zinc-700 mb-1">Tanggal</label>
+                <input type="date" name="tanggal" value="{{ sesi.tanggal if sesi and sesi.tanggal else '' }}"
+                       class="w-full px-3 py-2 border border-zinc-300 rounded-lg text-sm focus:border-teal-500">
+            </div>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-zinc-700 mb-1">Tempat</label>
+            <input type="text" name="tempat" value="{{ sesi.tempat if sesi else 'Ruang BK' }}"
+                   placeholder="Ruang BK / Kelas / Online"
+                   class="w-full px-3 py-2 border border-zinc-300 rounded-lg text-sm focus:border-teal-500">
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-zinc-700 mb-1">Topik *</label>
+            <input type="text" name="topik" required
+                   value="{{ sesi.topik if sesi else '' }}"
+                   placeholder="cth: Tindak lanjut keterlambatan, Masalah sosial, Konseling karir"
+                   class="w-full px-3 py-2 border border-zinc-300 rounded-lg text-sm focus:border-teal-500">
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-zinc-700 mb-1">Hasil Konseling</label>
+            <textarea name="hasil" rows="3"
+                      placeholder="Hasil/inti pembicaraan, kondisi siswa, dll."
+                      class="w-full px-3 py-2 border border-zinc-300 rounded-lg text-sm focus:border-teal-500">{{ sesi.hasil if sesi else '' }}</textarea>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-zinc-700 mb-1">Tindak Lanjut</label>
+            <textarea name="tindak_lanjut" rows="2"
+                      placeholder="Komunikasi dengan ortu, koordinir wali kelas, rujukan, dll."
+                      class="w-full px-3 py-2 border border-zinc-300 rounded-lg text-sm focus:border-teal-500">{{ sesi.tindak_lanjut if sesi else '' }}</textarea>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-zinc-700 mb-1">Pertemuan Berikutnya</label>
+            <input type="date" name="berikutnya_tanggal"
+                   value="{{ sesi.berikutnya_tanggal if sesi and sesi.berikutnya_tanggal else '' }}"
+                   class="w-full px-3 py-2 border border-zinc-300 rounded-lg text-sm focus:border-teal-500">
+        </div>
+
+        <div class="flex items-center gap-2 pt-2">
+            <button type="submit"
+                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">
+                <i data-lucide="save" class="w-4 h-4 inline"></i>
+                {% if sesi and sesi.id %}Simpan{% else %}Buat Sesi{% endif %}
+            </button>
+            <a href="/madrasah-app/bk/sesi"
+               class="px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-100 rounded-lg">
+                Batal
+            </a>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const sel = document.querySelector('select[name="peserta_ids"]');
+    if (sel && window.Choices) {
+        new Choices(sel, {
+            removeItemButton: true,
+            searchPlaceholderValue: 'Cari NISN atau nama...',
+            noResultsText: 'Tidak ada hasil',
+            shouldSort: false,
+            searchResultLimit: 50,
+        });
+    }
+});
+</script>
+{% endblock %}

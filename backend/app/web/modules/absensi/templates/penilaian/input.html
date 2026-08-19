@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Input Nilai · {{ data.materi.nama }}{% endblock %}
+{% block topbar_title %}Penilaian · Input Nilai{% endblock %}
+
+{% block sidebar_menu %}{% include "absensi/_sidebar_menu.html" %}{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="/madrasah-app/penilaian" class="inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-700">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke penilaian
+    </a>
+</div>
+
+<!-- Header materi -->
+<div class="bg-white rounded-lg border border-zinc-200 p-5 mb-4">
+    <div class="flex items-start justify-between flex-wrap gap-3">
+        <div>
+            <h1 class="text-xl font-bold text-zinc-900">{{ data.materi.nama }}</h1>
+            <p class="text-sm text-zinc-500 mt-1">
+                {{ jenis_label.get(data.materi.jenis, data.materi.jenis) }} ·
+                {{ data.materi.mapel_nama }} · Kelas {{ data.materi.kelas_nama }}
+                {% if data.materi.materi %} · {{ data.materi.materi }}{% endif %}
+            </p>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="inline-block px-2.5 py-1 rounded text-xs font-bold bg-teal-50 text-teal-700">
+                KKTP {{ data.materi.kkpt }}
+            </span>
+            <span class="text-xs text-zinc-500">{{ data.materi.terisi }}/{{ data.materi.jumlah_murid }} terisi</span>
+        </div>
+    </div>
+</div>
+
+{% if msg %}
+<div class="bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg p-3 mb-3">{{ msg }}</div>
+{% endif %}
+
+<!-- Form input nilai -->
+<form method="post" action="/madrasah-app/penilaian/materi/{{ data.materi.id }}/simpan">
+    <div class="bg-white rounded-lg border border-zinc-200 overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead class="bg-zinc-50 text-zinc-600 text-xs uppercase">
+                <tr>
+                    <th class="px-4 py-2.5 text-left">No</th>
+                    <th class="px-4 py-2.5 text-left">NISN</th>
+                    <th class="px-4 py-2.5 text-left">Nama</th>
+                    <th class="px-4 py-2.5 text-center w-28">Nilai (0-100)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in data.siswa %}
+                <tr class="border-t border-zinc-100 hover:bg-zinc-50">
+                    <td class="px-4 py-2 text-zinc-500">{{ loop.index }}</td>
+                    <td class="px-4 py-2 font-mono text-xs text-zinc-600">{{ s.nisn or '—' }}</td>
+                    <td class="px-4 py-2 font-medium text-zinc-900">{{ s.nama }}</td>
+                    <td class="px-4 py-2 text-center">
+                        <input type="number" name="skor_{{ s.murid_id }}" min="0" max="100"
+                               value="{{ s.skor if s.skor is not none else '' }}"
+                               placeholder="—"
+                               class="w-20 border border-zinc-300 rounded px-2 py-1.5 text-center text-sm font-mono
+                                      {% if s.skor is not none and s.skor >= data.materi.kkpt %}bg-green-50 border-green-300
+                                      {% elif s.skor is not none %}bg-red-50 border-red-300{% endif %}">
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mt-4 flex items-center gap-2">
+        {% if has_perm(user, 'penilaian.input') %}
+        <button type="submit" class="btn btn-primary">
+            <i data-lucide="save" class="w-4 h-4"></i> Simpan Nilai
+        </button>
+        {% endif %}
+        <a href="/madrasah-app/penilaian" class="btn btn-secondary text-sm">Batal</a>
+    </div>
+</form>
+{% endblock %}
