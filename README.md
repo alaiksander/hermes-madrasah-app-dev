@@ -292,7 +292,7 @@ Be kind. This is built by an Indonesian teacher who codes at night after teachin
 
 ## 📜 License
 
-**TBD** — Currently private use, considering MIT or AGPL-3.0 once stable. Contact Mr. Alaik on Telegram if you want to use this commercially.
+**TBD** — Currently private use, considering MIT or AGPL-3.0 once stable. Contact Mr. Alaik on Telegram @alaiksander if you want to use this commercially.
 
 ---
 
@@ -300,7 +300,6 @@ Be kind. This is built by an Indonesian teacher who codes at night after teachin
 
 **Mr. Alaik** (alaiksander)
 - 🏫 Guru MTs N 2 Kudus, Indonesia
-- 💼 NIP 198406262025211007
 - 🌐 [vps.alaiksander.my.id](https://vps.alaiksander.my.id)
 - 🤖 Built with assistance from [Hermes Agent](https://hermes-agent.nousresearch.com/)
 
