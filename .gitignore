@@ -112,3 +112,10 @@ tmp/
 *.tar.gz
 *.zip
 *.tar
+
+# ============================================================
+# MARKETING (intentionally excluded dari GitHub)
+# Marketing materials tetap di lokal untuk Mr. Alaik, tapi tidak
+# di-push ke public repo (belum matang untuk open source)
+# ============================================================
+marketing/
