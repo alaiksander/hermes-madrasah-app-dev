@@ -127,14 +127,27 @@ def require_permission(*kode: str):
 
 
 def get_tenant_db(user: dict = Depends(get_current_user)) -> Session:
-    """Session DB menyang tenant-nya user sing login."""
+    """Session DB menyang tenant-nya user sing login.
+
+    Wajib yield-based supaya FastAPI otomatis menutup session setelah
+    request selesai (commit sukses / rollback gagal). Tanpa ini, session
+    bocor → koneksi 'idle in transaction' menumpuk → pool habis →
+    QueuePool timeout (kejadian 2026-08-19 di prod, 4 koneksi 21 jam).
+    """
     if user["role"] == "super_admin":
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="Super admin tidak memiliki konteks tenant")
     code = user["tenant_kode"]
     db = tenant_session_factory(code)()
-    _ensure_tenant_seeded(db, code)
-    return db
+    try:
+        _ensure_tenant_seeded(db, code)
+        yield db
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
 
 
 _SEEDED_TENANTS: set[str] = set()
@@ -169,6 +182,8 @@ def get_tenant_db_publik(kode: str = Query(...)) -> Session:
 
     Kode madrasah diambil dari query param — dipakai portal orang tua
     yang tidak memerlukan autentikasi. Validasi kode ada.
+    Yield-based supaya session ditutup otomatis (anti bocor, lihat
+    get_tenant_db).
     """
     from .db import GlobalSession
     with GlobalSession() as gs:
@@ -179,7 +194,15 @@ def get_tenant_db_publik(kode: str = Query(...)) -> Session:
         if t.status == "suspended":
             raise HTTPException(status.HTTP_403_FORBIDDEN,
                                 "Madrasah sedang disuspend")
-    return tenant_session_factory(kode.strip())()
+    db = tenant_session_factory(kode.strip())()
+    try:
+        yield db
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
 
 
 def get_tenant_info(user: dict = Depends(get_current_user)) -> Tenant:

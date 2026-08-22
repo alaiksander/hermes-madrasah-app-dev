@@ -49,8 +49,18 @@ def _new_engine(url: str, kode: str | None = None):
         from sqlalchemy.pool import NullPool
         poolclass = NullPool
     elif url.startswith("sqlite"):
-        # SQLite: pool default aman (check_same_thread=False), recycle tiap 5 menit
-        pool_kwargs = {"pool_recycle": 300, "pool_pre_ping": True}
+        # SQLite: WAL mode (via event connect) + pool di-tuning — default
+        # (5+10, timeout 30s) SERING penuh saat login burst/request paralel,
+        # gejalanya QueuePool limit reached + timeout 30s (lihat P-WEB-89).
+        # pool_size lebih tinggi dari jumlah koneksi konkuren yang mungkin;
+        # SQLite WAL mengizinkan baca paralel, tulis serial per DB.
+        pool_kwargs = {
+            "pool_size": 10,
+            "max_overflow": 20,
+            "pool_timeout": 10,     # fail fast, jangan hang 30s
+            "pool_recycle": 300,    # SQLite connection kadaluarsa cepat
+            "pool_pre_ping": True,
+        }
     else:
         # PG global (public schema) — pool dengan ukuran eksplisit.
         # VPS kecil (2 vCPU/3.8GB RAM): pool 5 + overflow 10 default SERING penuh

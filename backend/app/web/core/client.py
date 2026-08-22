@@ -45,19 +45,25 @@ async def api_get_raw(request: Request, path: str, **params) -> bytes:
 
 
 async def api_post(request: Request, path: str, json: dict | None = None,
-                   raw_json: bool = False):
-    """POST ke API existing. raw_json=True → kirim body mentah (list/str)."""
+                   raw_json: bool = False, **params):
+    """POST ke API existing. raw_json=True → kirim body mentah (list/str).
+    **params → query string (PENTING: pass via httpx params= agar tidak
+    di-overwrite kalau path sudah berisi ?x=y).
+    """
     import json as _json
+    qs = {k: v for k, v in params.items() if v not in (None, "")}
     async with httpx.AsyncClient(timeout=10) as c:
         if raw_json:
             return await c.post(
                 f"{API_BASE}{path}",
                 content=_json.dumps(json or []),
+                params=qs,
                 headers={**_headers(request), "Content-Type": "application/json"},
             )
         return await c.post(
             f"{API_BASE}{path}",
             json=json or {},
+            params=qs,
             headers=_headers(request),
         )
 

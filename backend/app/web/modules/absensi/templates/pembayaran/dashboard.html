@@ -17,10 +17,10 @@
         {% endif %}
     </div>
 
-    {# Filter #}
+    {# Filter — pintu masuk utama: pilih periode + kelas #}
     <form method="GET" action="/madrasah-app/pembayaran"
           class="bg-white border border-zinc-200 rounded-xl shadow-sm p-4 mb-6">
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
             <div>
                 <label class="block text-xs font-medium text-zinc-600 mb-1">Periode (bulan)</label>
                 <select name="periode" class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
@@ -32,9 +32,12 @@
                 </select>
             </div>
             <div>
-                <label class="block text-xs font-medium text-zinc-600 mb-1">Kelas</label>
-                <select name="kelas_id" class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
-                    <option value="">Semua kelas</option>
+                <label class="block text-xs font-medium text-zinc-600 mb-1">
+                    Kelas <span class="text-red-500">*</span>
+                </label>
+                <select name="kelas_id" required
+                        class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                    <option value="">— Pilih kelas —</option>
                     {% for k in kelas_list %}
                     <option value="{{ k.id }}" {% if filter_kelas_id|string == k.id|string %}selected{% endif %}>
                         {{ k.nama_kelas }}
@@ -42,97 +45,261 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="flex gap-2">
-                <button type="submit"
-                        class="flex-1 bg-teal-600 hover:bg-teal-700 text-white font-medium px-3 py-2 rounded-lg text-sm transition-colors flex items-center justify-center gap-1.5">
-                    <i data-lucide="search" class="w-3.5 h-3.5"></i> Filter
-                </button>
-                <a href="/madrasah-app/pembayaran"
-                   class="px-3 py-2 border border-zinc-300 rounded-lg text-zinc-600 hover:bg-zinc-50 text-sm">Reset</a>
-            </div>
+        </div>
+        <div class="flex gap-2 mt-3">
+            <button type="submit"
+                    class="bg-teal-600 hover:bg-teal-700 text-white font-medium px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-1.5">
+                <i data-lucide="search" class="w-3.5 h-3.5"></i> Lihat Rekap
+            </button>
+            <a href="/madrasah-app/pembayaran"
+               class="px-4 py-2 border border-zinc-300 rounded-lg text-zinc-600 hover:bg-zinc-50 text-sm">Reset</a>
         </div>
     </form>
 
-    {# Rekap per kelas #}
-    {% if rekap %}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
-        {% for r in rekap %}
-        <div class="bg-white border border-zinc-200 rounded-xl p-4">
+    {% if not filter_kelas_id %}
+    {# ── Empty state: belum pilih kelas ───────────────────────────────── #}
+    <div class="bg-white border border-zinc-200 rounded-xl p-12 text-center">
+        <i data-lucide="mouse-pointer-click" class="w-12 h-12 mx-auto mb-3 text-zinc-300"></i>
+        <h2 class="font-semibold text-zinc-800">Pilih kelas dulu</h2>
+        <p class="text-sm text-zinc-500 mt-1 max-w-md mx-auto">
+            Pilih <strong>Periode</strong> dan <strong>Kelas</strong> di atas, lalu klik
+            <strong>Lihat Rekap</strong> untuk menampilkan rekap kelas & daftar murid.
+        </p>
+    </div>
+    {% else %}
+
+    {# ── Stat cards — rekap kelas terpilih ────────────────────────────── #}
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+        <div class="bg-white rounded-xl border border-zinc-200 p-4 min-w-0">
             <div class="flex items-center justify-between mb-1">
-                <span class="text-sm font-semibold text-zinc-800">{{ r.kelas }}</span>
-                <span class="text-xs px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600">{{ r.total }} tagihan</span>
+                <span class="text-xs uppercase text-zinc-400 tracking-wider">Total Tagihan</span>
+                <i data-lucide="receipt" class="w-4 h-4 text-teal-700"></i>
             </div>
-            <div class="flex gap-3 text-xs mt-2">
-                <span class="text-green-600">● {{ r.lunas }} lunas</span>
-                <span class="text-amber-600">● {{ r.sebagian }} cicil</span>
-                <span class="text-zinc-400">● {{ r.belum }} belum</span>
+            <div class="text-2xl font-bold text-zinc-900 truncate">{{ stat.total_tagihan }}</div>
+            <div class="text-xs text-zinc-500 mt-0.5">{{ stat.pct_lunas }}% lunas</div>
+        </div>
+        <div class="bg-white rounded-xl border border-zinc-200 p-4 min-w-0">
+            <div class="flex items-center justify-between mb-1">
+                <span class="text-xs uppercase text-zinc-400 tracking-wider">Terbayar</span>
+                <i data-lucide="check-circle" class="w-4 h-4 text-green-600"></i>
             </div>
-            <div class="text-xs text-zinc-500 mt-2">
-                Terbayar <span class="font-mono font-medium">Rp{{ "{:,.0f}".format(r.terbayar) }}</span>
-                dari <span class="font-mono">Rp{{ "{:,.0f}".format(r.nominal) }}</span>
+            <div class="text-2xl font-bold text-green-700 font-mono truncate">Rp{{ "{:,.0f}".format(stat.total_terbayar) }}</div>
+            <div class="text-xs text-zinc-500 mt-0.5">{{ stat.total_lunas }} tagihan lunas</div>
+        </div>
+        <div class="bg-white rounded-xl border border-zinc-200 p-4 min-w-0">
+            <div class="flex items-center justify-between mb-1">
+                <span class="text-xs uppercase text-zinc-400 tracking-wider">Sisa</span>
+                <i data-lucide="hourglass" class="w-4 h-4 text-amber-600"></i>
+            </div>
+            <div class="text-2xl font-bold text-amber-700 font-mono truncate">Rp{{ "{:,.0f}".format(stat.total_sisa) }}</div>
+            <div class="text-xs text-zinc-500 mt-0.5">belum dibayar</div>
+        </div>
+        <div class="bg-white rounded-xl border border-zinc-200 p-4 min-w-0">
+            <div class="flex items-center justify-between mb-1">
+                <span class="text-xs uppercase text-zinc-400 tracking-wider">Nominal</span>
+                <i data-lucide="wallet" class="w-4 h-4 text-zinc-600"></i>
+            </div>
+            <div class="text-2xl font-bold text-zinc-900 font-mono truncate">Rp{{ "{:,.0f}".format(stat.total_nominal) }}</div>
+            <div class="text-xs text-zinc-500 mt-0.5">total tagihan kelas ini</div>
+        </div>
+    </div>
+
+    {# ── Rekap kelas terpilih (tunggal) ───────────────────────────────── #}
+    {% if rekap %}
+    <div class="bg-white border border-zinc-200 rounded-xl shadow-sm p-4 mb-4">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+            <div class="flex items-center gap-3">
+                <span class="text-lg font-bold text-zinc-900">{{ rekap[0].kelas }}</span>
+                <span class="text-xs px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600">{{ rekap[0].total }} tagihan</span>
+            </div>
+            <div class="flex gap-3 text-xs">
+                <span class="text-green-600 font-medium">● {{ rekap[0].lunas }} lunas</span>
+                <span class="text-amber-600 font-medium">● {{ rekap[0].sebagian }} cicil</span>
+                <span class="text-zinc-400 font-medium">● {{ rekap[0].belum }} belum</span>
+            </div>
+            <div class="text-xs text-zinc-500 font-mono">
+                Terbayar <span class="font-semibold text-green-700">Rp{{ "{:,.0f}".format(rekap[0].terbayar) }}</span>
+                dari <span class="font-semibold">Rp{{ "{:,.0f}".format(rekap[0].nominal) }}</span>
             </div>
         </div>
-        {% endfor %}
     </div>
     {% endif %}
 
-    {# Tabel tagihan #}
-    <div class="bg-white border border-zinc-200 rounded-xl shadow-sm overflow-x-auto">
-        <table class="w-full text-sm">
-            <thead class="bg-zinc-50 text-zinc-500 text-xs uppercase border-b border-zinc-100">
-                <tr>
-                    <th class="text-left px-4 py-3">Murid</th>
-                    <th class="text-left px-4 py-3">Jenis</th>
-                    <th class="text-right px-4 py-3">Nominal</th>
-                    <th class="text-right px-4 py-3">Potongan</th>
-                    <th class="text-right px-4 py-3">Terbayar</th>
-                    <th class="text-right px-4 py-3">Sisa</th>
-                    <th class="text-center px-4 py-3">Status</th>
-                    <th class="text-left px-4 py-3">Aksi</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-zinc-100">
-                {% for t in tagihan %}
-                <tr class="hover:bg-zinc-50/50">
-                    <td class="px-4 py-2.5">
-                        <div class="text-zinc-800 font-medium">{{ t.murid_nama }}</div>
-                        <div class="text-xs text-zinc-400 font-mono">{{ t.murid_nisn or '—' }} · {{ t.murid_kelas }}</div>
-                    </td>
-                    <td class="px-4 py-2.5">
-                        <div class="text-zinc-700">{{ t.jenis_nama }}</div>
+    {# ── Tabel daftar murid (klik baris → MODAL) ─────────────────────── #}
+    <div class="bg-white border border-zinc-200 rounded-xl shadow-sm overflow-hidden">
+        <div class="px-4 py-3 border-b border-zinc-100 flex items-center justify-between">
+            <h2 class="font-semibold text-zinc-700">Daftar Murid</h2>
+            <span class="text-xs text-zinc-400">{{ murid_rows|length }} murid · klik baris untuk detail</span>
+        </div>
+        {% if murid_rows %}
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm min-w-[640px]">
+                <thead class="bg-zinc-50 text-zinc-500 text-xs uppercase border-b border-zinc-100">
+                    <tr>
+                        <th class="text-left px-4 py-3">Murid</th>
+                        <th class="text-left px-4 py-3">NISN</th>
+                        <th class="text-right px-4 py-3">Total Tagihan</th>
+                        <th class="text-right px-4 py-3">Terbayar</th>
+                        <th class="text-right px-4 py-3">Sisa</th>
+                        <th class="text-center px-4 py-3">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-zinc-100">
+                    {% for m in murid_rows %}
+                    <tr class="murid-row cursor-pointer hover:bg-teal-50/30 transition-colors"
+                        data-murid-id="{{ m.murid_id }}">
+                        <td class="px-4 py-2.5">
+                            <div class="text-zinc-800 font-medium">{{ m.nama }}</div>
+                        </td>
+                        <td class="px-4 py-2.5 text-xs text-zinc-500 font-mono">{{ m.nisn }}</td>
+                        <td class="px-4 py-2.5 text-right font-mono text-zinc-700">
+                            {{ m.tagihan_count }}× · Rp{{ "{:,.0f}".format(m.total_nominal) }}
+                        </td>
+                        <td class="px-4 py-2.5 text-right font-mono text-green-700">Rp{{ "{:,.0f}".format(m.total_terbayar) }}</td>
+                        <td class="px-4 py-2.5 text-right font-mono {% if m.total_nominal - m.total_terbayar > 0 %}text-red-600{% else %}text-zinc-500{% endif %}">
+                            Rp{{ "{:,.0f}".format(m.total_nominal - m.total_terbayar) }}
+                        </td>
+                        <td class="px-4 py-2.5 text-center">
+                            {% set sisa_murid = m.total_nominal - m.total_terbayar %}
+                            {% if sisa_murid <= 0 %}
+                            <span class="px-2 py-0.5 rounded-full bg-green-50 text-green-700 text-xs font-medium">Lunas</span>
+                            {% elif m.lunas_count > 0 %}
+                            <span class="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-xs font-medium">{{ m.lunas_count }}/{{ m.tagihan_count }} lunas</span>
+                            {% else %}
+                            <span class="px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600 text-xs font-medium">Belum</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="p-10 text-center text-zinc-400 text-sm">
+            Belum ada tagihan untuk kelas ini pada periode {{ filter_periode }}.
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+{# ── Modal: daftar tagihan per murid (popover-style) ───────────────── #}
+{% if filter_kelas_id and murid_rows %}
+{% for m in murid_rows %}
+<div id="modal-{{ m.murid_id }}"
+     class="modal fixed inset-0 z-50 hidden items-center justify-center p-4"
+     data-modal-backdrop>
+    {# Backdrop #}
+    <div class="absolute inset-0 bg-black/50"
+         onclick="closeMuridModal({{ m.murid_id }})"></div>
+    {# Dialog #}
+    <div class="relative bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col"
+         onclick="event.stopPropagation()">
+        {# Header #}
+        <div class="px-5 py-4 border-b border-zinc-200 flex items-start justify-between gap-3">
+            <div class="min-w-0">
+                <div class="text-xs uppercase tracking-wider text-zinc-400 mb-1">Daftar Tagihan</div>
+                <h3 class="text-lg font-bold text-zinc-900 truncate">{{ m.nama }}</h3>
+                <p class="text-xs text-zinc-500 mt-0.5 font-mono">NISN {{ m.nisn }}</p>
+            </div>
+            <button type="button"
+                    onclick="closeMuridModal({{ m.murid_id }})"
+                    class="flex-shrink-0 p-2 rounded-lg hover:bg-zinc-100 text-zinc-500"
+                    aria-label="Tutup">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+        {# Ringkasan #}
+        <div class="px-5 py-3 bg-zinc-50 border-b border-zinc-100 flex items-center gap-4 text-xs flex-wrap">
+            <span><strong class="text-zinc-900">{{ m.tagihan_count }}</strong> tagihan</span>
+            <span class="text-zinc-300">|</span>
+            <span>Nominal <strong class="text-zinc-900 font-mono">Rp{{ "{:,.0f}".format(m.total_nominal) }}</strong></span>
+            <span class="text-zinc-300">|</span>
+            <span>Terbayar <strong class="text-green-700 font-mono">Rp{{ "{:,.0f}".format(m.total_terbayar) }}</strong></span>
+            <span class="text-zinc-300">|</span>
+            <span>Sisa <strong class="{% if m.total_nominal - m.total_terbayar > 0 %}text-red-600{% else %}text-zinc-500{% endif %} font-mono">Rp{{ "{:,.0f}".format(m.total_nominal - m.total_terbayar) }}</strong></span>
+        </div>
+        {# Body: daftar tagihan #}
+        <div class="overflow-y-auto p-5">
+            <div class="divide-y divide-zinc-100 border border-zinc-200 rounded-lg overflow-hidden">
+                {% for t in m.tagihan %}
+                <div class="flex items-center justify-between gap-3 px-4 py-3 hover:bg-zinc-50">
+                    <div class="min-w-0 flex-1">
+                        <div class="text-sm font-medium text-zinc-800">{{ t.jenis_nama }}</div>
                         <div class="text-xs text-zinc-400">{{ t.periode }}</div>
-                    </td>
-                    <td class="px-4 py-2.5 text-right font-mono text-zinc-700">Rp{{ "{:,.0f}".format(t.nominal) }}</td>
-                    <td class="px-4 py-2.5 text-right font-mono text-zinc-500">{{ t.potongan or '—' }}</td>
-                    <td class="px-4 py-2.5 text-right font-mono text-green-700">Rp{{ "{:,.0f}".format(t.dibayar) }}</td>
-                    <td class="px-4 py-2.5 text-right font-mono {% if t.sisa > 0 %}text-red-600{% else %}text-zinc-500{% endif %}">
-                        Rp{{ "{:,.0f}".format(t.sisa) }}
-                    </td>
-                    <td class="px-4 py-2.5 text-center">
-                        {% if t.status == 'lunas' %}
-                        <span class="px-2 py-0.5 rounded-full bg-green-50 text-green-700 text-xs font-medium">Lunas</span>
-                        {% elif t.status == 'sebagian' %}
-                        <span class="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-xs font-medium">Sebagian</span>
-                        {% elif t.status == 'ditunda' %}
-                        <span class="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-xs font-medium">Ditunda</span>
-                        {% else %}
-                        <span class="px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600 text-xs font-medium">Belum</span>
-                        {% endif %}
-                    </td>
-                    <td class="px-4 py-2.5">
-                        <a href="/madrasah-app/pembayaran/{{ t.id }}"
-                           class="text-teal-700 hover:underline whitespace-nowrap">Detail</a>
-                    </td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="8" class="px-4 py-10 text-center text-zinc-400 text-sm">
-                        Belum ada tagihan untuk periode ini. Coba generate di menu Kelola Jenis & Generate.
-                    </td>
-                </tr>
+                    </div>
+                    <div class="text-right flex-shrink-0">
+                        <div class="text-sm font-mono text-zinc-800">Rp{{ "{:,.0f}".format(t.nominal) }}</div>
+                        <div class="text-xs mt-0.5">
+                            {% if t.status == 'lunas' %}
+                            <span class="text-green-600 font-medium">● Lunas</span>
+                            {% elif t.status == 'sebagian' %}
+                            <span class="text-amber-600 font-medium">● Cicil · sisa Rp{{ "{:,.0f}".format(t.sisa) }}</span>
+                            {% elif t.status == 'ditunda' %}
+                            <span class="text-blue-600 font-medium">● Ditunda</span>
+                            {% else %}
+                            <span class="text-zinc-400">● Sisa Rp{{ "{:,.0f}".format(t.sisa) }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <a href="/madrasah-app/pembayaran/{{ t.id }}"
+                       class="text-teal-700 hover:underline text-sm whitespace-nowrap flex-shrink-0">
+                        Detail
+                    </a>
+                </div>
                 {% endfor %}
-            </tbody>
-        </table>
+            </div>
+        </div>
+        {# Footer #}
+        <div class="px-5 py-3 border-t border-zinc-200 flex justify-end">
+            <button type="button"
+                    onclick="closeMuridModal({{ m.murid_id }})"
+                    class="px-4 py-2 border border-zinc-300 rounded-lg text-zinc-600 hover:bg-zinc-50 text-sm">
+                Tutup
+            </button>
+        </div>
     </div>
 </div>
+{% endfor %}
+{% endif %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Klik baris murid → buka modal
+    document.querySelectorAll('.murid-row').forEach(function (row) {
+        row.addEventListener('click', function () {
+            const id = row.dataset.muridId;
+            openMuridModal(id);
+        });
+    });
+    // Esc tutup modal
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.modal:not(.hidden)').forEach(function (m) {
+                m.classList.add('hidden');
+            });
+            document.body.classList.remove('overflow-hidden');
+        }
+    });
+});
+
+function openMuridModal(id) {
+    const modal = document.getElementById('modal-' + id);
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    document.body.classList.add('overflow-hidden');
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+function closeMuridModal(id) {
+    const modal = document.getElementById('modal-' + id);
+    if (!modal) return;
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    // Hanya buka body scroll kalau tidak ada modal lain terbuka
+    const adaLain = document.querySelector('.modal:not(.hidden)');
+    if (!adaLain) document.body.classList.remove('overflow-hidden');
+}
+</script>
 {% endblock %}

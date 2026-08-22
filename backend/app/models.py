@@ -240,6 +240,45 @@ class Kelas(TenantBase):
     murid: Mapped[list["Murid"]] = relationship(back_populates="kelas")
 
 
+class GuruPengampu(TenantBase):
+    """Pivot: guru × mapel × kelas — penugasan mengajar per tahun ajaran.
+
+    1 guru bisa mengampu banyak (mapel, kelas) kombinasi. Berlaku per TA
+    sehingga penugasan bisa berubah tiap tahun ajaran.
+
+    is_wali=True → guru ini adalah wali kelas (otomatis dianggap mengampu
+    mapel yang terkait dengan wali_kelas_id; perilaku tergantung jenjang
+    sekolah — lihat Tenant.jenjang).
+    mapel_id NULL → wali kelas mengajar SEMUA mapel (untuk MI).
+    mapel_id != NULL → wali kelas mengajar 1 mapel spesifik (untuk MTs/MA).
+    """
+    __tablename__ = "guru_pengampu"
+    __table_args__ = (
+        UniqueConstraint("guru_id", "mapel_id", "kelas_id", "tahun_ajaran_id",
+                         name="uq_guru_pengampu"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    guru_id: Mapped[int] = mapped_column(
+        ForeignKey("guru.id", ondelete="CASCADE"), index=True)
+    mapel_id: Mapped[int | None] = mapped_column(
+        ForeignKey("mata_pelajaran.id", ondelete="CASCADE"),
+        nullable=True, index=True)
+    kelas_id: Mapped[int] = mapped_column(
+        ForeignKey("kelas.id", ondelete="CASCADE"), index=True)
+    tahun_ajaran_id: Mapped[int] = mapped_column(
+        ForeignKey("tahun_ajaran.id", ondelete="CASCADE"), index=True)
+    is_wali: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow)
+
+    guru: Mapped["Guru"] = relationship()
+    mapel: Mapped["MataPelajaran | None"] = relationship()
+    kelas: Mapped["Kelas"] = relationship()
+    tahun_ajaran: Mapped["TahunAjaran"] = relationship()
+
+
 class Murid(TenantBase):
     __tablename__ = "murid"
 
@@ -443,11 +482,17 @@ class BkCatatan(TenantBase):
     tingkat: Mapped[str | None] = mapped_column(String(20), nullable=True)
     poin_snapshot: Mapped[int] = mapped_column(Integer, default=0)
     dibuat_oleh: Mapped[int] = mapped_column(ForeignKey("guru.id"), index=True)
+    # Mapel terkait (nullable — catatan non-mapel/admin).
+    # Kalau di-set, validasi: guru harus pengampu (mapel_id, kelas_id)
+    # untuk minimal 1 murid di catatan.
+    mapel_id: Mapped[int | None] = mapped_column(
+        ForeignKey("mata_pelajaran.id"), nullable=True, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
     murid: Mapped["Murid"] = relationship()
     kategori: Mapped["BkKategori"] = relationship()
     pelanggaran: Mapped["BkPelanggaran | None"] = relationship()
+    mapel: Mapped["MataPelajaran | None"] = relationship()
     peserta: Mapped[list["BkPeserta"]] = relationship(
         primaryjoin="and_(BkPeserta.entitas=='catatan', foreign(BkPeserta.entitas_id)==BkCatatan.id)",
         viewonly=True, cascade="all, delete-orphan")

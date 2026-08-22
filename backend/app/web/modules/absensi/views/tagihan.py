@@ -47,9 +47,13 @@ async def _kelas_ta_aktif(request: Request) -> list:
 async def pembayaran_dashboard(request: Request,
                                kelas_id: int | None = None,
                                periode: str | None = None,
-                               status: str | None = None,
                                user: dict = Depends(require_login_web)):
-    """Daftar tagihan (filter kelas/periode/status)."""
+    """Daftar tagihan per MURID untuk kelas terpilih.
+
+    Alur: pilih periode + kelas → rekap kelas itu → tabel daftar murid
+    (1 baris = 1 murid) dengan ringkasan tagihan; expand per murid untuk
+    lihat detail tagihan-nya.
+    """
     import datetime
     today = datetime.date.today()
     periode = periode or f"{today.year:04d}-{today.month:02d}"
@@ -57,23 +61,74 @@ async def pembayaran_dashboard(request: Request,
     params = [f"periode={periode}"]
     if kelas_id:
         params.append(f"kelas_id={kelas_id}")
-    if status:
-        params.append(f"status={status}")
-    r = await api_get(request, f"/api/tagihan?{'&'.join(params)}")
-    tagihan = r.json() if r.status_code == 200 else []
-    r_rk = await api_get(request,
-                         f"/api/tagihan/rekap-kelas?periode={periode}"
-                         + (f"&kelas_id={kelas_id}" if kelas_id else ""))
-    rekap = r_rk.json() if r_rk.status_code == 200 else []
+    # PENTING: pass query params via httpx `params=` (bukan ditanam di path)
+    # kalau ditanaman di path lalu params={}, httpx overwrite jadi URL tanpa query
+    r = await api_get(request, "/api/tagihan", periode=periode,
+                      kelas_id=kelas_id if kelas_id else None)
+    tagihan_all = r.json() if r.status_code == 200 else []
+
+    # Rekap — hanya kelas terpilih (kalau tidak ada filter = kosong)
+    rekap = []
+    if kelas_id:
+        r_rk = await api_get(request, "/api/tagihan/rekap-kelas",
+                             periode=periode, kelas_id=kelas_id)
+        rekap = r_rk.json() if r_rk.status_code == 200 else []
+
+    # Stat agregat (dari rekap kelas terpilih)
+    stat = {"total_tagihan": 0, "total_nominal": 0, "total_terbayar": 0,
+            "total_sisa": 0, "total_lunas": 0, "pct_lunas": 0}
+    if rekap:
+        total_tagihan = sum(rk["total"] for rk in rekap)
+        total_nominal = sum(rk["nominal"] for rk in rekap)
+        total_terbayar = sum(rk["terbayar"] for rk in rekap)
+        total_lunas = sum(rk["lunas"] for rk in rekap)
+        stat = {
+            "total_tagihan": total_tagihan,
+            "total_nominal": total_nominal,
+            "total_terbayar": total_terbayar,
+            "total_sisa": max(total_nominal - total_terbayar, 0),
+            "total_lunas": total_lunas,
+            "pct_lunas": round(total_lunas / total_tagihan * 100, 1)
+            if total_tagihan else 0,
+        }
+
+    # Group tagihan per murid → 1 baris = 1 murid (hanya kalau kelas dipilih)
+    murid_rows: list[dict] = []
+    if kelas_id and tagihan_all:
+        by_murid: dict[int, dict] = {}
+        for t in tagihan_all:
+            mid = t["murid_id"]
+            d = by_murid.setdefault(mid, {
+                "murid_id": mid,
+                "nama": t.get("murid_nama", ""),
+                "nisn": t.get("murid_nisn", "") or "—",
+                "tagihan_count": 0, "total_nominal": 0,
+                "total_terbayar": 0, "lunas_count": 0,
+                "tagihan": [],
+            })
+            d["tagihan_count"] += 1
+            d["total_nominal"] += t.get("nominal", 0)
+            dibayar = t.get("dibayar", 0)
+            d["total_terbayar"] += dibayar
+            if t.get("status") == "lunas":
+                d["lunas_count"] += 1
+            d["tagihan"].append({
+                "id": t["id"], "jenis_nama": t.get("jenis_nama", ""),
+                "periode": t.get("periode", ""), "nominal": t.get("nominal", 0),
+                "dibayar": dibayar, "sisa": t.get("sisa", 0),
+                "status": t.get("status", "belum"),
+            })
+        murid_rows = sorted(by_murid.values(), key=lambda x: x["nama"].lower())
+
     kelas_list = await _kelas_ta_aktif(request)
 
     return templates.TemplateResponse(
         "pembayaran/dashboard.html",
         {"request": request, "user": user,
-         "tagihan": tagihan, "rekap": rekap,
+         "tagihan": tagihan_all, "rekap": rekap,
          "kelas_list": kelas_list, "bulan_list": _bulan_list(),
          "filter_kelas_id": kelas_id, "filter_periode": periode,
-         "filter_status": status},
+         "stat": stat, "murid_rows": murid_rows},
     )
 
 
@@ -129,10 +184,9 @@ async def generate(request: Request,
     form = await request.form()
     periode = form.get("periode", "")
     jenis_id = form.get("jenis_id") or None
-    url = f"/api/tagihan/generate?periode={periode}"
-    if jenis_id:
-        url += f"&jenis_id={jenis_id}"
-    r = await api_post(request, url, None)
+    # PENTING: pass query via kwargs (httpx.params=) — bukan ditanaman di path
+    r = await api_post(request, "/api/tagihan/generate", None,
+                       periode=periode, jenis_id=jenis_id)
     if r.status_code == 200:
         d = r.json()
         msg = f"Generate OK: {d.get('total_baru', 0)} tagihan baru "
@@ -161,7 +215,9 @@ async def input_cepat_page(request: Request,
         params.append(f"kelas_id={kelas_id}")
     if status:
         params.append(f"status={status}")
-    r = await api_get(request, f"/api/tagihan?{'&'.join(params)}")
+    r = await api_get(request, "/api/tagihan", periode=periode,
+                      kelas_id=kelas_id if kelas_id else None,
+                      status=status if status else None)
     tagihan = r.json() if r.status_code == 200 else []
     jenis_r = await api_get(request, "/api/tagihan/jenis")
     jenis = jenis_r.json() if jenis_r.status_code == 200 else []
@@ -216,10 +272,13 @@ async def laporan_page(request: Request,
         params.append(f"kelas_id={kelas_id}")
     if status:
         params.append(f"status={status}")
-    r = await api_get(request, f"/api/tagihan?{'&'.join(params)}")
+    r = await api_get(request, "/api/tagihan", periode=periode,
+                      kelas_id=kelas_id if kelas_id else None,
+                      status=status if status else None)
     tagihan = r.json() if r.status_code == 200 else []
-    r_rk = await api_get(request, f"/api/tagihan/rekap-kelas?periode={periode}"
-                         + (f"&kelas_id={kelas_id}" if kelas_id else ""))
+    r_rk = await api_get(request, "/api/tagihan/rekap-kelas",
+                         periode=periode,
+                         kelas_id=kelas_id if kelas_id else None)
     rekap = r_rk.json() if r_rk.status_code == 200 else []
 
     # Ringkasan total
@@ -249,16 +308,13 @@ async def laporan_export(request: Request,
                          user: dict = Depends(require_login_web)):
     """Export rekap tagihan Excel (proxy ke API)."""
     from fastapi.responses import Response
-    params = []
-    if kelas_id:
-        params.append(f"kelas_id={kelas_id}")
-    if periode:
-        params.append(f"periode={periode}")
-    if status:
-        params.append(f"status={status}")
-    q = "&".join(params)
-    url = f"/api/tagihan/export.xlsx?{q}" if q else "/api/tagihan/export.xlsx"
-    content = await api_get_raw(request, url)
+    # PENTING: pass via kwargs (httpx.params=) — bukan ditanaman di path
+    content = await api_get_raw(
+        request, "/api/tagihan/export.xlsx",
+        kelas_id=kelas_id or None,
+        periode=periode or None,
+        status=status or None,
+    )
     return Response(
         content=content,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

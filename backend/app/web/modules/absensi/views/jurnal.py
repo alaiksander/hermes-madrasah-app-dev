@@ -37,7 +37,7 @@ async def jurnal_dashboard(request: Request,
     r_stats = await api_get(request, f"/api/jurnal/stats/bulan-ini")
     stats = r_stats.json() if r_stats.status_code == 200 else {}
 
-    r_list = await api_get(request, f"/api/jurnal?dari={dari}&sampai={sampai}")
+    r_list = await api_get(request, "/api/jurnal", dari=dari, sampai=sampai)
     jurnal_list = r_list.json() if r_list.status_code == 200 else []
 
     return templates.TemplateResponse(
@@ -89,19 +89,15 @@ async def jurnal_export_xlsx(request: Request,
                              user: dict = Depends(require_login_web)):
     """Export jurnal Excel (proxy ke API)."""
     from fastapi.responses import Response
-    params = []
-    if dari:
-        params.append(f"dari={dari}")
-    if sampai:
-        params.append(f"sampai={sampai}")
-    if kelas_id and kelas_id.strip().isdigit():
-        params.append(f"kelas_id={kelas_id.strip()}")
-    if status:
-        params.append(f"status={status}")
-    params.append(f"rekap_absensi={rekap_absensi or 'true'}")
-    q = "&".join(params)
-    url = f"/api/jurnal/export.xlsx?{q}" if q else "/api/jurnal/export.xlsx"
-    content = await api_get_raw(request, url)
+    # PENTING: pass via kwargs (httpx.params=) — bukan ditanaman di path
+    # kalau ditanaman, httpx.params={} akan override query string
+    content = await api_get_raw(
+        request, "/api/jurnal/export.xlsx",
+        dari=dari or None, sampai=sampai or None,
+        kelas_id=int(kelas_id) if kelas_id and kelas_id.strip().isdigit() else None,
+        status=status or None,
+        rekap_absensi=rekap_absensi or "true",
+    )
     return Response(
         content=content,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -119,19 +115,14 @@ async def jurnal_export_pdf(request: Request,
                             user: dict = Depends(require_login_web)):
     """Export jurnal PDF (proxy ke API)."""
     from fastapi.responses import Response
-    params = []
-    if dari:
-        params.append(f"dari={dari}")
-    if sampai:
-        params.append(f"sampai={sampai}")
-    if kelas_id and kelas_id.strip().isdigit():
-        params.append(f"kelas_id={kelas_id.strip()}")
-    if status:
-        params.append(f"status={status}")
-    params.append(f"rekap_absensi={rekap_absensi or 'true'}")
-    q = "&".join(params)
-    url = f"/api/jurnal/export.pdf?{q}" if q else "/api/jurnal/export.pdf"
-    content = await api_get_raw(request, url)
+    # PENTING: pass via kwargs (httpx.params=) — bukan ditanaman di path
+    content = await api_get_raw(
+        request, "/api/jurnal/export.pdf",
+        dari=dari or None, sampai=sampai or None,
+        kelas_id=int(kelas_id) if kelas_id and kelas_id.strip().isdigit() else None,
+        status=status or None,
+        rekap_absensi=rekap_absensi or "true",
+    )
     return Response(
         content=content,
         media_type="application/pdf",
@@ -146,16 +137,10 @@ async def jurnal_riwayat(request: Request,
                           kelas_id: int | None = None,
                           user: dict = Depends(require_login_web)):
     """Daftar riwayat jurnal dengan filter."""
-    params = []
-    if dari:
-        params.append(f"dari={dari}")
-    if sampai:
-        params.append(f"sampai={sampai}")
-    if kelas_id:
-        params.append(f"kelas_id={kelas_id}")
-    q = "&".join(params)
-    url = f"/api/jurnal?{q}" if q else "/api/jurnal"
-    r_list = await api_get(request, url)
+    # PENTING: pass via kwargs (httpx.params=) — bukan ditanaman di path
+    r_list = await api_get(request, "/api/jurnal",
+                           dari=dari or None, sampai=sampai or None,
+                           kelas_id=kelas_id or None)
     jurnal_list = r_list.json() if r_list.status_code == 200 else []
     r_kelas = await api_get(request, "/api/kelas")
     kelas_list = r_kelas.json() if r_kelas.status_code == 200 else []

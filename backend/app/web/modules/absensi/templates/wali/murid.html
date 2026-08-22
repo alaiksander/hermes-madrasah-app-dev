@@ -232,6 +232,21 @@
     <!-- Tab Tagihan -->
     <div id="panel-tagihan" class="p-4 hidden">
         {% if data.tagihan and data.tagihan.total > 0 %}
+        {# Ringkasan kewajiban + kekurangan pembayaran — info esensial wali kelas #}
+        <div class="mb-4 p-4 border-l-4 {% if data.tagihan.sisa > 0 %}border-amber-500 bg-amber-50{% else %}border-green-500 bg-green-50{% endif %} rounded-r-lg">
+            <div class="flex items-center justify-between flex-wrap gap-2">
+                <div>
+                    <div class="text-xs uppercase tracking-wider text-zinc-500">Kewajiban Pembayaran</div>
+                    <div class="text-lg font-bold font-mono text-zinc-900">Rp{{ "{:,.0f}".format(data.tagihan.nominal) }}</div>
+                </div>
+                <div class="text-right">
+                    <div class="text-xs uppercase tracking-wider text-zinc-500">Kekurangan ({{ data.bulan_label }})</div>
+                    <div class="text-lg font-bold font-mono {% if data.tagihan.sisa > 0 %}text-red-700{% else %}text-green-700{% endif %}">
+                        Rp{{ "{:,.0f}".format(data.tagihan.sisa) }}
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
             <div class="bg-white border border-zinc-200 rounded-xl p-4">
                 <div class="text-xs uppercase text-zinc-400 tracking-wider">Tagihan</div>
@@ -255,7 +270,7 @@
                 <thead class="bg-zinc-50 text-zinc-500 text-xs uppercase border-b border-zinc-100">
                     <tr>
                         <th class="text-left px-4 py-3">Jenis</th>
-                        <th class="text-right px-4 py-3">Nominal</th>
+                        <th class="text-right px-4 py-3">Kewajiban</th>
                         <th class="text-right px-4 py-3">Terbayar</th>
                         <th class="text-right px-4 py-3">Sisa</th>
                         <th class="text-center px-4 py-3">Status</th>
@@ -265,9 +280,9 @@
                     {% for t in data.tagihan.rincian %}
                     <tr class="hover:bg-zinc-50/50">
                         <td class="px-4 py-2.5 text-zinc-800">{{ t.jenis }}</td>
-                        <td class="px-4 py-2.5 text-right font-mono">Rp{{ "{:,.0f}".format(t.nominal) }}</td>
+                        <td class="px-4 py-2.5 text-right font-mono">Rp{{ "{:,.0f}".format(t.kewajiban) }}</td>
                         <td class="px-4 py-2.5 text-right font-mono text-green-700">Rp{{ "{:,.0f}".format(t.dibayar) }}</td>
-                        <td class="px-4 py-2.5 text-right font-mono {% if t.sisa > 0 %}text-red-600{% else %}text-zinc-400{% endif %}">
+                        <td class="px-4 py-2.5 text-right font-mono {% if t.sisa > 0 %}text-red-600 font-semibold{% else %}text-zinc-400{% endif %}">
                             Rp{{ "{:,.0f}".format(t.sisa) }}
                         </td>
                         <td class="px-4 py-2.5 text-center">
@@ -297,21 +312,79 @@
         {% endif %}
     </div>
 
-    <!-- Tab Nilai (placeholder) -->
+    <!-- Tab Nilai (modul Penilaian) -->
     <div id="panel-nilai" class="p-4 hidden">
+        {% if data.nilai and data.nilai.total > 0 %}
+        {# Ringkasan nilai — info esensial wali kelas #}
+        <div class="mb-4 p-4 border-l-4 {% if data.nilai.tuntas == data.nilai.total %}border-green-500 bg-green-50{% else %}border-amber-500 bg-amber-50{% endif %} rounded-r-lg">
+            <div class="flex items-center gap-6 flex-wrap text-sm">
+                <div>
+                    <span class="text-zinc-500">Total materi:</span>
+                    <span class="font-bold text-zinc-900 ml-1">{{ data.nilai.total }}</span>
+                </div>
+                <div>
+                    <span class="text-zinc-500">Terisi:</span>
+                    <span class="font-bold text-zinc-900 ml-1">{{ data.nilai.terisi }} ({{ data.nilai.pct_terisi }})</span>
+                </div>
+                <div>
+                    <span class="text-zinc-500">Tuntas:</span>
+                    <span class="font-bold {% if data.nilai.tuntas == data.nilai.total %}text-green-700{% else %}text-amber-700{% endif %} ml-1">
+                        {{ data.nilai.tuntas }} ({{ data.nilai.pct_tuntas }})
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white border border-zinc-200 rounded-xl overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="bg-zinc-50 text-zinc-500 text-xs uppercase border-b border-zinc-100">
+                    <tr>
+                        <th class="text-left px-4 py-3">Mata Pelajaran</th>
+                        <th class="text-left px-4 py-3">Materi</th>
+                        <th class="text-left px-4 py-3">Jenis</th>
+                        <th class="text-right px-4 py-3">Skor</th>
+                        <th class="text-right px-4 py-3">KKTP</th>
+                        <th class="text-center px-4 py-3">Tuntas</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-zinc-100">
+                    {% for n in data.nilai.rincian %}
+                    <tr class="hover:bg-zinc-50/50">
+                        <td class="px-4 py-2.5 text-zinc-800">{{ n.mapel }}</td>
+                        <td class="px-4 py-2.5 text-zinc-700">{{ n.materi }}</td>
+                        <td class="px-4 py-2.5 text-xs text-zinc-500">
+                            <span class="inline-block px-1.5 py-0.5 rounded bg-zinc-100">{{ n.jenis }}</span>
+                        </td>
+                        <td class="px-4 py-2.5 text-right font-mono text-lg font-bold {% if n.tuntas %}text-green-700{% else %}text-red-600{% endif %}">
+                            {{ n.skor }}
+                        </td>
+                        <td class="px-4 py-2.5 text-right font-mono text-zinc-500">{{ n.kkpt }}</td>
+                        <td class="px-4 py-2.5 text-center">
+                            {% if n.tuntas %}
+                            <span class="inline-block px-2 py-0.5 rounded-full bg-green-50 text-green-700 text-xs font-medium">Tuntas</span>
+                            {% else %}
+                            <span class="inline-block px-2 py-0.5 rounded-full bg-red-50 text-red-700 text-xs font-medium">Belum</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
         <div class="text-center py-10">
             <i data-lucide="graduation-cap" class="w-10 h-10 mx-auto mb-3 text-zinc-300"></i>
-            <h3 class="font-semibold text-zinc-700">Modul Nilai & Rapor Segera Hadir</h3>
+            <h3 class="font-semibold text-zinc-700">Belum Ada Nilai</h3>
             <p class="text-sm text-zinc-500 mt-1 max-w-sm mx-auto">
-                Nilai tugas, UTS/PTS, UAS/PAS, dan rapor digital akan tampil di sini setelah modul akademik dikembangkan.
+                Belum ada nilai yang diinput untuk murid ini. Nilai akan tampil setelah guru mapel menginput melalui modul Penilaian.
             </p>
         </div>
+        {% endif %}
     </div>
 </div>
 
 <script>
 function switchTab(name) {
-    const tabs = ['absensi', 'bk', 'data', 'tagihan', 'nilai'];
+    const tabs = ['absensi', 'bk', 'tagihan', 'nilai'];
     tabs.forEach(t => {
         document.getElementById('panel-' + t).classList.toggle('hidden', t !== name);
         const btn = document.getElementById('tab-' + t);

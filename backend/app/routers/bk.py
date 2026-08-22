@@ -12,7 +12,8 @@ from sqlalchemy.orm import Session
 
 from ..deps import get_tenant_db, require_permission
 from ..models import (BkCatatan, BkKategori, BkKonfigurasi, BkPelanggaran,
-                      BkPeserta, BkSesi, Guru, Kelas, Murid, TahunAjaran)
+                      BkPeserta, BkSesi, Guru, Kelas, MataPelajaran, Murid,
+                      TahunAjaran)
 
 router = APIRouter(prefix="/api/bk", tags=["bk"])
 
@@ -51,6 +52,9 @@ class CatatanIn(BaseModel):
     isi: str = ""
     tanggal: Optional[date] = None
     tingkat: Optional[str] = None
+    # Mapel terkait (nullable). Kalau di-set oleh guru mapel → scope
+    # pengampu. Kalau NULL → catatan non-mapel (admin only).
+    mapel_id: Optional[int] = None
 
 
 class CatatanUpdate(BaseModel):
@@ -325,8 +329,14 @@ def list_catatan(
 @router.post("/catatan", status_code=status.HTTP_201_CREATED)
 def create_catatan(data: CatatanIn,
                    db: Session = Depends(get_tenant_db),
-                   user: dict = Depends(require_permission("bk.catatan"))):
-    """Buat catatan untuk 1+ murid. 1 catatan = 1 kejadian = N murid (mis. kelas ramai)."""
+                   user: dict = Depends(require_permission("bk.catatan", "bk.catatan_mapel"))):
+    """Buat catatan untuk 1+ murid. 1 catatan = 1 kejadian = N murid (mis. kelas ramai).
+
+    Scope:
+    - Admin (bk.catatan) → catatan tanpa mapel (mapel_id NULL), tanpa scope pengampu
+    - Guru mapel (bk.catatan_mapel) → catatan WAJIB ada mapel_id, guru HARUS pengampu
+      (mapel_id, kelas_id) untuk SEMUA murid yang dipilih
+    """
     if not data.murid_ids:
         raise HTTPException(400, "Pilih minimal 1 murid")
     k = db.get(BkKategori, data.kategori_id)
@@ -343,18 +353,55 @@ def create_catatan(data: CatatanIn,
     tgl = data.tanggal or datetime.now().date()
     # Validasi semua murid exist
     valid_ids = []
+    murid_kelas_map = {}
     for mid in data.murid_ids:
         m = db.get(Murid, mid)
         if m and m.is_active:
             valid_ids.append(mid)
+            murid_kelas_map[mid] = m.kelas_id
     if not valid_ids:
         raise HTTPException(400, "Tidak ada murid valid")
+    # Scope pengampu untuk guru mapel.
+    # Strategi: kalau user.role == "guru", anggap scope terbatas.
+    # Admin/super_admin bisa input catatan tanpa mapel_id (catatan non-mapel).
+    is_admin = user.get("role") in ("admin", "super_admin")
+    if not is_admin:
+        # Non-admin (guru) wajib pilih mapel & scope via pengampu
+        if not data.mapel_id:
+            raise HTTPException(400, "Wajib memilih mapel insiden (khusus catatan mapel)")
+        if not db.get(MataPelajaran, data.mapel_id):
+            raise HTTPException(404, "Mata pelajaran tidak ditemukan")
+        # Ambil TA aktif
+        ta_aktif = db.query(TahunAjaran).filter(
+            TahunAjaran.is_active.is_(True)).first()
+        if not ta_aktif:
+            raise HTTPException(400, "Tidak ada tahun ajaran aktif")
+        # Cek pengampu untuk semua (mapel_id, kelas_id) murid
+        from ..models import GuruPengampu
+        kelas_ids_unik = set(murid_kelas_map.values())
+        pengampu_pairs = db.query(GuruPengampu.kelas_id).filter(
+            GuruPengampu.guru_id == int(user.get("id") or user.get("sub") or 0),
+            GuruPengampu.mapel_id == data.mapel_id,
+            GuruPengampu.tahun_ajaran_id == ta_aktif.id,
+            GuruPengampu.is_active.is_(True),
+            GuruPengampu.kelas_id.in_(kelas_ids_unik),
+        ).all()
+        found_kelas = {k for (k,) in pengampu_pairs}
+        missing = kelas_ids_unik - found_kelas
+        if missing:
+            missing_names = [db.get(Kelas, k).nama_kelas if db.get(Kelas, k) else str(k)
+                             for k in missing]
+            raise HTTPException(
+                403,
+                f"Anda tidak mengampu mapel ini untuk kelas: {', '.join(missing_names)}",
+            )
     # 1 catatan + N peserta (via BkPeserta)
     c = BkCatatan(
         kategori_id=data.kategori_id,
         pelanggaran_id=data.pelanggaran_id, judul=data.judul,
         isi=data.isi, tanggal=tgl, tingkat=data.tingkat,
         poin_snapshot=poin, dibuat_oleh=user["id"],
+        mapel_id=data.mapel_id,
     )
     db.add(c)
     db.flush()

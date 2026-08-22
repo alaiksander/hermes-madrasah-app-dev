@@ -20,6 +20,11 @@ router.include_router(cetak_absen.router)
 # NB: `pengaturan`, `role` (akan pindah ke /madrasah-app/system/ di task System)
 # `bk`, `murid`, `kelas`, `guru`, `tahun-ajaran` sudah dipisah ke router sendiri.
 
+# ── Router Pengampu terpisah (modul sendiri di /madrasah-app/pengampu/)
+from .views import pengampu as pengampu_views
+pengampu_web_router = APIRouter(tags=["web-pengampu"])
+pengampu_web_router.include_router(pengampu_views.router)
+
 # ── Router BK terpisah (modul sendiri di /madrasah-app/bk/)
 from .views import bk as bk_views
 bk_web_router = APIRouter(tags=["web-bk"])

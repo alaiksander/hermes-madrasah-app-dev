@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+{% block title %}Set Pengampu · {{ guru.nama }}{% endblock %}
+{% block topbar_title %}Modul Absensi · Penugasan Mengajar{% endblock %}
+
+{% block sidebar_menu %}{% include "absensi/_sidebar_menu.html" %}{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl">
+    <div class="mb-4">
+        <a href="/madrasah-app/pengampu" class="inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-700">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke daftar
+        </a>
+    </div>
+
+    {% if request.query_params.get('msg') %}
+    <div class="mb-4 px-4 py-3 rounded-lg text-sm
+                {% if request.query_params.get('type') == 'error' %}bg-red-50 border border-red-200 text-red-700
+                {% else %}bg-green-50 border border-green-200 text-green-700{% endif %}">
+        {{ request.query_params.get('msg').replace('+', ' ') }}
+    </div>
+    {% endif %}
+
+    <div class="bg-white border border-zinc-200 rounded-xl p-5 mb-4">
+        <h1 class="text-xl font-bold text-zinc-900">Set Pengampu: {{ guru.nama }}</h1>
+        <p class="text-sm text-zinc-500 mt-1">
+            Username <span class="font-mono">{{ guru.username }}</span> ·
+            Role <span class="px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-700">{{ guru.role }}</span>
+        </p>
+        <div class="mt-3 text-sm text-zinc-600">
+            <i data-lucide="info" class="w-4 h-4 inline text-zinc-400"></i>
+            Tahun ajaran aktif: <strong>{{ tahun_aktif.nama }}</strong>.
+            Pilih mapel & kelas, lalu klik "Tambah Kombinasi".
+        </div>
+    </div>
+
+    <form method="post" action="/madrasah-app/pengampu/{{ guru.id }}" id="form-pengampu">
+        <input type="hidden" name="tahun_ajaran_id" value="{{ tahun_aktif.id }}">
+
+        {# Form tambah kombinasi #}
+        <div class="bg-white border border-zinc-200 rounded-xl p-5 mb-4">
+            <h2 class="text-sm font-semibold text-zinc-700 mb-3">Tambah Penugasan Baru</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                <div>
+                    <label class="block text-xs font-medium text-zinc-600 mb-1">Mata Pelajaran</label>
+                    <select id="select-mapel" multiple size="6"
+                            class="w-full border border-zinc-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                        {% for mp in mapel_list %}
+                        <option value="{{ mp.id }}" data-nama="{{ mp.nama }}">{{ mp.nama }}</option>
+                        {% endfor %}
+                    </select>
+                    <p class="text-xs text-zinc-400 mt-1">Tahan Ctrl/Cmd untuk pilih banyak</p>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-zinc-600 mb-1">Kelas</label>
+                    <select id="select-kelas" multiple size="6"
+                            class="w-full border border-zinc-300 rounded-lg text-sm p-2 focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                        {% for k in kelas_list %}
+                        <option value="{{ k.id }}" data-nama="{{ k.nama_kelas }}">{{ k.nama_kelas }}</option>
+                        {% endfor %}
+                    </select>
+                    <p class="text-xs text-zinc-400 mt-1">Tahan Ctrl/Cmd untuk pilih banyak</p>
+                </div>
+            </div>
+            <div class="flex items-center justify-between">
+                <p class="text-xs text-zinc-500">
+                    <i data-lucide="info" class="w-3 h-3 inline"></i>
+                    Akan dibuat <strong id="combo-count">0</strong> kombinasi (mapel × kelas).
+                </p>
+                <button type="button" id="btn-add"
+                        class="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white font-medium px-4 py-2 rounded-lg text-sm">
+                    <i data-lucide="plus" class="w-4 h-4"></i> Tambah Kombinasi
+                </button>
+            </div>
+        </div>
+
+        {# Tabel daftar penugasan #}
+        <div class="bg-white border border-zinc-200 rounded-xl shadow-sm overflow-x-auto">
+            <div class="px-4 py-3 border-b border-zinc-100 flex items-center justify-between">
+                <h2 class="text-sm font-semibold text-zinc-700">
+                    Daftar Penugasan (<span id="row-count">{{ pengampu_list|length }}</span> item)
+                </h2>
+                <button type="button" id="btn-clear"
+                        class="text-xs text-red-500 hover:text-red-700 hidden">
+                    Hapus semua pilihan baru
+                </button>
+            </div>
+            <table class="w-full text-sm">
+                <thead class="bg-zinc-50 text-zinc-500 text-xs uppercase border-b border-zinc-100">
+                    <tr>
+                        <th class="text-left px-4 py-3">Tipe</th>
+                        <th class="text-left px-4 py-3">Mapel</th>
+                        <th class="text-left px-4 py-3">Kelas</th>
+                        <th class="text-center px-4 py-3">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-zinc-100" id="pengampu-tbody">
+                    {% for p in pengampu_list %}
+                    <tr data-existing="1" data-mapel-id="{{ p.mapel_id or 0 }}" data-kelas-id="{{ p.kelas_id }}">
+                        <td class="px-4 py-2.5">
+                            {% if p.is_wali %}
+                            <span class="text-xs px-2 py-0.5 rounded bg-amber-100 text-amber-700">Wali</span>
+                            {% else %}
+                            <span class="text-xs px-2 py-0.5 rounded bg-teal-100 text-teal-700">Mapel</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-2.5 text-zinc-800">
+                            {% if p.mapel_id %}{{ p.mapel_nama }}{% else %}—{% endif %}
+                        </td>
+                        <td class="px-4 py-2.5 font-mono text-zinc-700">{{ p.kelas_nama }}</td>
+                        <td class="px-4 py-2.5 text-center">
+                            <button type="button" class="btn-remove text-red-500 hover:text-red-700 text-xs">
+                                <i data-lucide="trash-2" class="w-3 h-3 inline"></i> Hapus
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% if not pengampu_list %}
+            <div id="empty-state" class="text-center py-10">
+                <i data-lucide="inbox" class="w-10 h-10 mx-auto mb-3 text-zinc-300"></i>
+                <p class="text-sm text-zinc-400">Belum ada penugasan. Tambah kombinasi di atas.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        {# Hidden input untuk items_json #}
+        <input type="hidden" name="items_json" id="items_json" value="[]">
+
+        <div class="mt-4 flex items-center justify-between flex-wrap gap-3">
+            <p class="text-xs text-zinc-500">
+                <i data-lucide="alert-circle" class="w-3 h-3 inline"></i>
+                Klik "Simpan" akan <strong>mengganti</strong> semua penugasan guru ini untuk TA aktif.
+            </p>
+            <div class="flex gap-2">
+                <a href="/madrasah-app/pengampu"
+                   class="px-4 py-2 border border-zinc-300 rounded-lg text-zinc-600 hover:bg-zinc-50 text-sm">Batal</a>
+                <button type="submit"
+                        class="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white font-medium px-6 py-2 rounded-lg text-sm">
+                    <i data-lucide="save" class="w-4 h-4"></i> Simpan Penugasan
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+// Data existing items (passed from server)
+const existingItems = [
+    {% for p in pengampu_list %}
+    { mapel_id: {{ p.mapel_id or 'null' }}, kelas_id: {{ p.kelas_id }}, is_wali: {{ 'true' if p.is_wali else 'false' }} },
+    {% endfor %}
+];
+
+// In-memory list of items (existing + new)
+let items = existingItems.map(it => ({ ...it, is_new: false }));
+
+function refreshTable() {
+    const tbody = document.getElementById('pengampu-tbody');
+    tbody.innerHTML = '';
+    items.forEach((it, idx) => {
+        const tr = document.createElement('tr');
+        tr.dataset.mapelId = it.mapel_id || 0;
+        tr.dataset.kelasId = it.kelas_id;
+        tr.className = it.is_new ? 'bg-teal-50/30' : '';
+        tr.innerHTML = `
+            <td class="px-4 py-2.5">
+                ${it.is_wali
+                    ? '<span class="text-xs px-2 py-0.5 rounded bg-amber-100 text-amber-700">Wali</span>'
+                    : '<span class="text-xs px-2 py-0.5 rounded bg-teal-100 text-teal-700">Mapel</span>'}
+            </td>
+            <td class="px-4 py-2.5 text-zinc-800">${it.mapel_nama || '—'}</td>
+            <td class="px-4 py-2.5 font-mono text-zinc-700">${it.kelas_nama || ''}</td>
+            <td class="px-4 py-2.5 text-center">
+                <button type="button" class="btn-remove text-red-500 hover:text-red-700 text-xs">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    Hapus
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+    document.getElementById('row-count').textContent = items.length;
+    document.getElementById('items_json').value = JSON.stringify(
+        items.map(it => ({
+            guru_id: {{ guru.id }},
+            mapel_id: it.is_wali ? null : it.mapel_id,
+            kelas_id: it.kelas_id,
+            tahun_ajaran_id: {{ tahun_aktif.id }},
+            is_wali: it.is_wali || false,
+        }))
+    );
+    document.getElementById('btn-clear').classList.toggle('hidden', !items.some(it => it.is_new));
+}
+
+function updateComboCount() {
+    const mapels = [...document.getElementById('select-mapel').selectedOptions];
+    const kelas = [...document.getElementById('select-kelas').selectedOptions];
+    document.getElementById('combo-count').textContent = mapels.length * kelas.length;
+}
+
+document.getElementById('select-mapel').addEventListener('change', updateComboCount);
+document.getElementById('select-kelas').addEventListener('change', updateComboCount);
+
+document.getElementById('btn-add').addEventListener('click', () => {
+    const mapels = [...document.getElementById('select-mapel').selectedOptions];
+    const kelas = [...document.getElementById('select-kelas').selectedOptions];
+    if (mapels.length === 0 || kelas.length === 0) {
+        alert('Pilih minimal 1 mapel dan 1 kelas');
+        return;
+    }
+    // Cek duplikat
+    const existing = new Set(items.map(it => `${it.mapel_id || 0}_${it.kelas_id}`));
+    let added = 0;
+    let skipped = 0;
+    mapels.forEach(mp => {
+        kelas.forEach(k => {
+            const key = `${mp.value}_${k.value}`;
+            if (existing.has(key)) {
+                skipped++;
+                return;
+            }
+            existing.add(key);
+            items.push({
+                mapel_id: parseInt(mp.value),
+                mapel_nama: mp.dataset.nama,
+                kelas_id: parseInt(k.value),
+                kelas_nama: k.dataset.nama,
+                is_wali: false,
+                is_new: true,
+            });
+            added++;
+        });
+    });
+    refreshTable();
+    if (added > 0 || skipped > 0) {
+        let msg = `Ditambahkan ${added} kombinasi`;
+        if (skipped > 0) msg += `, ${skipped} duplikat dilewati`;
+        alert(msg);
+    }
+});
+
+document.getElementById('btn-clear').addEventListener('click', () => {
+    if (!confirm('Hapus semua kombinasi baru (yang belum disimpan)?')) return;
+    items = items.filter(it => !it.is_new);
+    refreshTable();
+});
+
+// Event delegation untuk hapus row
+document.getElementById('pengampu-tbody').addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-remove');
+    if (!btn) return;
+    const tr = btn.closest('tr');
+    const idx = [...tr.parentElement.children].indexOf(tr);
+    if (!confirm('Hapus penugasan ini dari tabel?')) return;
+    items.splice(idx, 1);
+    refreshTable();
+});
+
+// Inisialisasi hidden input dengan existing items
+refreshTable();
+</script>
+{% endblock %}

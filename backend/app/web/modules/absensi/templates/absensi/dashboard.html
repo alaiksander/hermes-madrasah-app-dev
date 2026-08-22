@@ -43,6 +43,45 @@
     </div>
 </div>
 
+<!-- ════════════════════ SECTION 1.5: Penugasan Mengajar (guru only) ════════════════════ -->
+{% if user.role == 'guru' %}
+<div class="mb-6">
+    <div class="flex items-center justify-between mb-2 flex-wrap gap-2">
+        <h2 class="text-sm font-semibold text-zinc-700">
+            <i data-lucide="book-check" class="w-4 h-4 inline text-teal-700"></i>
+            Penugasan Mengajar
+        </h2>
+        <div class="flex items-center gap-3">
+            {% if pengampu_list %}
+            <a href="/madrasah-app/bk/catatan/new"
+               class="inline-flex items-center gap-1 text-xs text-teal-700 hover:underline">
+                <i data-lucide="plus-circle" class="w-3 h-3"></i> Catat Insiden
+            </a>
+            {% endif %}
+            <a href="/madrasah-app/pengampu/me"
+               class="text-xs text-teal-700 hover:underline">Lihat detail</a>
+        </div>
+    </div>
+    <div class="bg-white border border-zinc-200 rounded-xl p-4">
+        {% if pengampu_list %}
+        <p class="text-sm text-zinc-600 mb-2">
+            Anda mengampu <strong class="text-zinc-900">{{ pengampu_count }}</strong> mapel × kelas tahun ini.
+        </p>
+        <div class="flex flex-wrap gap-2">
+            {% for p in pengampu_list %}
+            <span class="inline-flex items-center gap-1 px-2 py-1 bg-teal-50 text-teal-700 text-xs rounded">
+                {% if p.mapel_id %}{{ p.mapel_nama }}{% else %}<strong>Wali Kelas</strong>{% endif %}
+                · {{ p.kelas_nama }}
+            </span>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-sm text-zinc-500">Belum ada penugasan mengajar. Hubungi admin untuk set penugasan.</p>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
 <!-- ════════════════════ SECTION 2: Rekap per Kelas 7 hari (Top 3 + Bottom 3) ════════════════════ -->
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
     <!-- TOP 3 -->

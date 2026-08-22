@@ -50,6 +50,7 @@ async def bk_dashboard(request: Request,
 
 async def _catatan_form_context(request, user, data, err=None, edit_id=None):
     """Helper: build context for catatan form (with optional error)."""
+    from ....core.client import api_get
     kr = await api_get(request, "/api/bk/kategori")
     kategori = kr.json() if kr.status_code == 200 else []
     mr = await api_get(request, "/api/murid", per_page=200)
@@ -63,10 +64,30 @@ async def _catatan_form_context(request, user, data, err=None, edit_id=None):
             pr = type("R", (), {"status_code": 500})()
         if pr.status_code == 200:
             pelanggaran = pr.json()
+    # Mapel options: untuk admin semua mapel; untuk guru cuma yang dia ampu.
+    is_admin = user.get("role") in ("admin", "super_admin")
+    mapel_options = []
+    if is_admin:
+        mpr = await api_get(request, "/api/mapel")
+        for mp in (mpr.json() if mpr.status_code == 200 else []):
+            mapel_options.append({"id": mp["id"], "nama": mp["nama"]})
+    else:
+        # Guru: cuma mapel yang dia ampu di TA aktif
+        pr = await api_get(request, f"/api/guru-pengampu/guru/{user.get('id')}")
+        if pr.status_code == 200:
+            seen = set()
+            for p in pr.json():
+                if p.get("mapel_id") and p["mapel_id"] not in seen:
+                    seen.add(p["mapel_id"])
+                    mapel_options.append({
+                        "id": p["mapel_id"],
+                        "nama": p.get("mapel_nama") or f"Mapel {p['mapel_id']}",
+                    })
     catatan = dict(data) if not edit_id else {"id": edit_id, **data}
     return {
         "user": user, "kategori": kategori, "murid": murid,
         "pelanggaran": pelanggaran, "catatan": catatan, "err": err,
+        "mapel_options": mapel_options, "is_admin": is_admin,
     }
 
 
@@ -120,6 +141,9 @@ async def catatan_create(request: Request,
         "isi": (form.get("isi") or "").strip(),
         "tingkat": form.get("tingkat") or None,
     }
+    # Mapel insiden (optional untuk admin, required untuk guru — divalidasi di backend)
+    if form.get("mapel_id"):
+        payload["mapel_id"] = int(form.get("mapel_id"))
     if not payload["murid_ids"] or not payload["kategori_id"] or not payload["judul"]:
         ctx = await _catatan_form_context(
             request, user, payload,
@@ -421,12 +445,13 @@ async def master_pelanggaran_new(request: Request,
                                  user: dict = Depends(require_permission_web("bk.master", "bk.view", "bk.catatan", "bk.sesi", "bk.export", "bk.monitor"))):
     form = await request.form()
     kat = int(form.get("kategori_id") or 0)
-    # API butuh kategori_id sebagai query param
-    await api_post(request, f"/api/bk/pelanggaran?kategori_id={kat}",
+    # API butuh kategori_id sebagai query param (bukan di body JSON)
+    await api_post(request, "/api/bk/pelanggaran",
                    {"nama": form.get("nama", "").strip(),
                     "poin": int(form.get("poin") or 0),
                     "tingkat": form.get("tingkat") or None,
-                    "urutan": int(form.get("urutan") or 0)})
+                    "urutan": int(form.get("urutan") or 0)},
+                   kategori_id=kat)
     return RedirectResponse(
         "/madrasah-app/bk/master", status_code=303)
 

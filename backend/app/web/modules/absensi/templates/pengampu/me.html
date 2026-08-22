@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Penugasan Mengajar{% endblock %}
+{% block topbar_title %}Modul Absensi · Penugasan Mengajar{% endblock %}
+
+{% block sidebar_menu %}{% include "absensi/_sidebar_menu.html" %}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl">
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-zinc-800">Penugasan Mengajar</h1>
+        <p class="text-sm text-zinc-500 mt-1">
+            Daftar mapel & kelas yang Anda ampu tahun ajaran ini.
+        </p>
+    </div>
+
+    {% if pengampu %}
+    <div class="bg-white border border-zinc-200 rounded-xl shadow-sm overflow-hidden">
+        <table class="w-full text-sm">
+            <thead class="bg-zinc-50 text-zinc-500 text-xs uppercase border-b border-zinc-100">
+                <tr>
+                    <th class="text-left px-4 py-3">Mata Pelajaran</th>
+                    <th class="text-left px-4 py-3">Kelas</th>
+                    <th class="text-center px-4 py-3">Tipe</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-zinc-100">
+                {% for p in pengampu %}
+                <tr class="hover:bg-zinc-50/50">
+                    <td class="px-4 py-2.5 text-zinc-800 font-medium">
+                        {% if p.mapel_id %}
+                        {{ p.mapel_nama }}
+                        {% else %}
+                        <span class="text-amber-600">Wali Kelas (semua mapel)</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-2.5">
+                        <span class="inline-block px-2 py-0.5 rounded bg-teal-50 text-teal-700 text-xs font-medium">
+                            {{ p.kelas_nama }}
+                        </span>
+                    </td>
+                    <td class="px-4 py-2.5 text-center">
+                        {% if p.is_wali %}
+                        <span class="text-xs px-2 py-0.5 rounded bg-amber-50 text-amber-700">Wali</span>
+                        {% else %}
+                        <span class="text-xs px-2 py-0.5 rounded bg-zinc-100 text-zinc-600">Mapel</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="bg-white border border-zinc-200 rounded-xl p-12 text-center">
+        <i data-lucide="clipboard-list" class="w-12 h-12 mx-auto mb-3 text-zinc-300"></i>
+        <h2 class="font-semibold text-zinc-700">Belum Ada Penugasan</h2>
+        <p class="text-sm text-zinc-500 mt-1 max-w-md mx-auto">
+            Anda belum ditugaskan mengajar di kelas manapun. Hubungi admin untuk set penugasan mengajar Anda.
+        </p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -22,8 +22,9 @@ from .config import settings
 from .backup import run_backup
 from .db import GlobalSession, init_global_db, provision_tenant_db
 from .models import BackupLog, BackupSetting
-from .routers import (absensi, auth, bk, guru, jurnal, kelas, mapel, murid,
-                      pengaturan, qr, roles, superadmin, tahun_ajaran)
+from .routers import (absensi, auth, bk, guru, guru_pengampu, jurnal, kelas,
+                      mapel, murid, pengaturan, qr, roles, superadmin,
+                      tahun_ajaran)
 
 WIB = ZoneInfo("Asia/Jakarta")
 
@@ -55,6 +56,18 @@ def _migrate_tenant_dbs() -> None:
                     con.execute("ALTER TABLE absensi ADD COLUMN telat_menit INTEGER")
                     con.commit()
                     print(f"[migrasi] +telat_menit -> {kode}")
+
+                # Kolom mapel_id di bk_catatan (2026-08-20): tag mapel untuk
+                # insiden yang terkait mapel tertentu (guru mapel scope).
+                bkcols = {r[1] for r in con.execute("PRAGMA table_info(bk_catatan)")}
+                if "mapel_id" not in bkcols:
+                    con.execute("ALTER TABLE bk_catatan ADD COLUMN mapel_id INTEGER")
+                    con.commit()
+                    print(f"[migrasi] +mapel_id (bk_catatan) -> {kode}")
+                    # Index untuk query by mapel
+                    con.execute("CREATE INDEX IF NOT EXISTS ix_bk_catatan_mapel_id ON bk_catatan(mapel_id)")
+                    con.commit()
+                    print(f"[migrasi] +ix_bk_catatan_mapel_id -> {kode}")
 
                 # NIS → NISN (2026-08-17): rename kolom murid.nis → murid.nisn,
                 # isi ulang dummy 10 digit utk data lama (NISN opsional, NULL
@@ -268,8 +281,10 @@ app.mount("/madrasah-app/static", StaticFiles(directory=str(WEB_STATIC_DIR)), na
 from .web.shared_routes import router as web_shared_router
 app.include_router(web_shared_router, prefix="/madrasah-app")
 
-from .web.modules.absensi import router as absensi_web_router
+from .web.modules.absensi import (pengampu_web_router, router as
+                                       absensi_web_router)
 app.include_router(absensi_web_router, prefix="/madrasah-app")
+app.include_router(pengampu_web_router, prefix="/madrasah-app")
 
 from .web.modules.absensi import bk_web_router, jurnal_web_router
 app.include_router(bk_web_router, prefix="/madrasah-app")
@@ -425,8 +440,9 @@ async def web_panel_http_exception_handler(request: Request, exc: StarletteHTTPE
 
 # Urutan penting: qr (path spesifik /qr-pdf.pdf, /{id}/qr.png) SADURUNGE murid (/{murid_id})
 for r in (auth.router, superadmin.router, kelas.router, tahun_ajaran.router,
-          guru.router, roles.router, qr.router, murid.router, absensi.router,
-          bk.router, jurnal.router, mapel.router, pengaturan.router):
+          guru.router, guru_pengampu.router, roles.router, qr.router,
+          murid.router, absensi.router, bk.router, jurnal.router, mapel.router,
+          pengaturan.router):
     app.include_router(r)
 
 

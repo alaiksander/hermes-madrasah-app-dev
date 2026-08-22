@@ -67,6 +67,15 @@ async def dashboard_page(
     # Top alpha
     top_alpha = (_safe_json(top_alpha_r) or {}).get("items") or []
 
+    # Pengampu (khusus role guru) — untuk tampil di dashboard ringkas
+    pengampu_count = 0
+    pengampu_list = []
+    if user.get("role") == "guru":
+        pengampu_r = await api_get(request, f"/api/guru-pengampu/guru/{user['id']}")
+        if pengampu_r.status_code == 200:
+            pengampu_list = pengampu_r.json()
+            pengampu_count = len(pengampu_list)
+
     # Tanggal hari ini untuk header
     t = date.today()
     today = f"{_DAY_NAMES[t.weekday()]}, {t.day} {_MONTH_NAMES[t.month]} {t.year}"
@@ -83,5 +92,7 @@ async def dashboard_page(
         "bottom3": bottom3,
         "rekap_bulan": rekap_bulan,
         "top_alpha": top_alpha,
+        "pengampu_count": pengampu_count,
+        "pengampu_list": pengampu_list,
     }
     return templates.TemplateResponse(request, "absensi/dashboard.html", ctx)

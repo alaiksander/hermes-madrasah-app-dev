@@ -9,7 +9,8 @@ from sqlalchemy.orm import Session, joinedload
 
 from ..deps import get_tenant_db, require_permission
 from ..models import (
-    Guru, Kelas, Murid, JurnalMengajar, JurnalAbsensi,
+    Guru, GuruPengampu, Kelas, Murid, JurnalMengajar, JurnalAbsensi,
+    TahunAjaran,
 )
 from ..schemas import (
     JurnalMengajarCreate, JurnalAbsensiUpdate, JurnalAbsensiBulkUpdate,
@@ -17,6 +18,20 @@ from ..schemas import (
 )
 
 router = APIRouter(prefix="/api/jurnal", tags=["Jurnal Mengajar"])
+
+
+def _guru_pengampu_kelas_ids(db: Session, guru_id: int) -> set[int]:
+    """Kelas_id yang diampu guru tsb di TA aktif (untuk filter jurnal)."""
+    ta_aktif = db.query(TahunAjaran).filter(
+        TahunAjaran.is_active.is_(True)).first()
+    if not ta_aktif:
+        return set()
+    rows = db.query(GuruPengampu.kelas_id).filter(
+        GuruPengampu.guru_id == guru_id,
+        GuruPengampuan.tahun_ajaran_id == ta_aktif.id,
+        GuruPengampu.is_active.is_(True),
+    ).all()
+    return {k for (k,) in rows}
 
 
 # ─── helpers ────────────────────────────────────────────────────────────────
@@ -69,6 +84,12 @@ def list_jurnal(
     # Akses: guru hanya lihat miliknya sendiri
     if user.get("role") == "guru":
         q = q.where(JurnalMengajar.guru_id == user["id"])
+        # Filter by pengampu (guru cuma lihat jurnal untuk kelas yang dia ampu)
+        pengampu_kelas = _guru_pengampu_kelas_ids(db, user["id"])
+        if pengampu_kelas and kelas_id is None:
+            q = q.where(JurnalMengajar.kelas_id.in_(pengampu_kelas))
+        elif pengampu_kelas and kelas_id and kelas_id not in pengampu_kelas:
+            q = q.where(False)  # kelas di luar scope
     elif guru_id:
         q = q.where(JurnalMengajar.guru_id == guru_id)
 
@@ -119,6 +140,12 @@ def create_jurnal(
     guru_id = user["id"]  # fallback
     if user.get("role") == "guru":
         guru_id = user["id"]
+
+    # Validasi: guru hanya boleh create jurnal di kelas yang dia ampu
+    if user.get("role") == "guru":
+        pengampu_kelas = _guru_pengampu_kelas_ids(db, user["id"])
+        if pengampu_kelas and data.kelas_id not in pengampu_kelas:
+            raise HTTPException(403, "Anda tidak mengampu kelas ini — minta admin set penugasan")
 
     # Buat jurnal
     jurnal = JurnalMengajar(

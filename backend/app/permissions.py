@@ -61,9 +61,10 @@ PERMISSIONS = [
     ("role.view", "role", "Lihat daftar role"),
     ("role.update", "role", "Edit role & permission matrix"),
 
-    # ── Bimbingan Konseling (BK)
+    # ── Bimbingan Konseling
     ("bk.view", "bk", "Lihat data BK"),
-    ("bk.catatan", "bk", "Catat perkembangan"),
+    ("bk.catatan", "bk", "Catat perkembangan (admin/BK — tanpa scope)"),
+    ("bk.catatan_mapel", "bk", "Catat insiden mapel (guru mapel — scope pengampu)"),
     ("bk.sesi", "bk", "Catat sesi konseling"),
     ("bk.export", "bk", "Export laporan BK"),
     ("bk.monitor", "bk", "Monitor absensi + catatan"),
@@ -86,6 +87,10 @@ PERMISSIONS = [
     ("tagihan.view", "pembayaran", "Lihat tagihan & pembayaran"),
     ("tagihan.input", "pembayaran", "Input pembayaran (lunas/cicil), keringanan, penundaan"),
     ("tagihan.kelola", "pembayaran", "Kelola jenis pembayaran & generate tagihan"),
+
+    # ── Pengampu (guru × mapel × kelas)
+    ("pengampu.view", "sistem", "Lihat penugasan mengajar"),
+    ("pengampu.kelola", "sistem", "Set penugasan mengajar (admin)"),
 ]
 
 # Default permission per role legacy (backfill awal)
@@ -100,6 +105,8 @@ ROLE_DEFAULT_PERMISSIONS = {
         "wali.view",
         "penilaian.view", "penilaian.input",
         "tagihan.view",
+        "pengampu.view",  # guru bisa lihat penugasan sendiri
+        "bk.view", "bk.catatan_mapel",  # lihat BK + catat insiden mapel (scope pengampu)
     ],
 }
 

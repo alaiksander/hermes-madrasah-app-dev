@@ -485,7 +485,8 @@ def riwayat_murid(murid_id: int,
     from sqlalchemy import func
     from ..models import (Absensi, BkCatatan, BkKategori, BkKonfigurasi,
                           BkPeserta, BkSesi, Guru, JenisPembayaran,
-                          Kelas as KelasModel, Pembayaran, Tagihan)
+                          Kelas as KelasModel, MataPelajaran, MateriPenilaian,
+                          Nilai as NilaiModel, Pembayaran, Tagihan)
 
     m = db.get(Murid, murid_id)
     if not m:
@@ -613,12 +614,52 @@ def riwayat_murid(murid_id: int,
             tagihan_belum += 1
         tagihan_nominal += t.nominal
         tagihan_terbayar += dibayar
+        # Kewajiban = nominal efektif setelah potongan (bukan sisa) — info kewajiban pembayaran
+        kewajiban = max(t.nominal - (t.potongan or 0), 0)
+        kurang = max(kewajiban - dibayar, 0)
         tagihan_list.append({
             "id": t.id, "jenis": j.nama if j else "-",
-            "nominal": t.nominal, "potongan": t.potongan,
-            "dibayar": dibayar, "sisa": max(t.nominal - t.potongan - dibayar, 0),
+            "nominal": t.nominal, "potongan": t.potongan or 0,
+            "dibayar": dibayar, "sisa": kurang,
+            "kewajiban": kewajiban,  # total yang harus dibayar (setelah potongan)
             "status": status,
         })
+
+    # ── Nilai (modul Penilaian) — semester ini ──
+    # Filter materi_penilaian sesuai kelas murid (kalau ada), semua jenis.
+    # Tampilkan sebagai list grouped by mapel dengan summary tuntas/belum.
+    nilai_q = (db.query(NilaiModel, MateriPenilaian, MataPelajaran)
+               .join(MateriPenilaian, NilaiModel.materi_penilaian_id == MateriPenilaian.id)
+               .join(MataPelajaran, MateriPenilaian.mapel_id == MataPelajaran.id)
+               .filter(NilaiModel.murid_id == murid_id)
+               .order_by(MataPelajaran.nama, MateriPenilaian.created_at.desc())
+               .all())
+    nilai_list = []
+    nilai_total = 0
+    nilai_terisi = 0
+    nilai_tuntas = 0
+    for n_val, m_val, mp in nilai_q:
+        kkpt = m_val.kkpt or 70
+        skor = n_val.skor
+        nilai_list.append({
+            "id": n_val.id,
+            "materi": m_val.nama,
+            "jenis": m_val.jenis,
+            "mapel": mp.nama,
+            "mapel_id": mp.id,
+            "skor": skor,
+            "kkpt": kkpt,
+            "tuntas": (skor is not None and skor >= kkpt),
+            "catatan": n_val.catatan or "",
+            "tanggal": m_val.created_at.strftime("%d/%m/%Y") if m_val.created_at else "",
+        })
+        nilai_total += 1
+        if skor is not None:
+            nilai_terisi += 1
+            if skor >= kkpt:
+                nilai_tuntas += 1
+    pct_terisi = f"{nilai_terisi / nilai_total * 100:.0f}%" if nilai_total else "0%"
+    pct_tuntas = f"{nilai_tuntas / nilai_total * 100:.0f}%" if nilai_total else "0%"
 
     return {
         "murid": {"id": m.id, "nama": m.nama, "nisn": m.nisn,
@@ -656,9 +697,17 @@ def riwayat_murid(murid_id: int,
             "belum": tagihan_belum,
             "nominal": tagihan_nominal,
             "terbayar": tagihan_terbayar,
+            "sisa": max(tagihan_nominal - tagihan_terbayar, 0),  # total kewajiban kurang
             "rincian": tagihan_list,
-        },  # ringkas — detail transaksi di menu Pembayaran
-        "nilai": None,    # placeholder — modul rapor nanti
+        },
+        "nilai": {
+            "total": nilai_total,
+            "terisi": nilai_terisi,
+            "tuntas": nilai_tuntas,
+            "pct_terisi": pct_terisi,
+            "pct_tuntas": pct_tuntas,
+            "rincian": nilai_list,  # grouped: by mapel, sorted by date desc
+        },
     }
 
 

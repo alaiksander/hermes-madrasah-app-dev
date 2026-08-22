@@ -114,6 +114,12 @@ tmp/
 *.tar
 
 # ============================================================
+# HERMES PLANS (folder kerja Hermes di dalam repo — bukan kode)
+# Plan tersimpan juga di ~/.hermes/plans/ global
+# ============================================================
+.hermes/
+
+# ============================================================
 # MARKETING (intentionally excluded dari GitHub)
 # Marketing materials tetap di lokal untuk Mr. Alaik, tapi tidak
 # di-push ke public repo (belum matang untuk open source)

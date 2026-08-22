@@ -12,8 +12,8 @@ from sqlalchemy.orm import Session
 
 from ..audit import log_action
 from ..deps import get_tenant_db, require_permission
-from ..models import (Guru, Kelas, MateriPenilaian, MataPelajaran, Murid,
-                      Nilai, PeriodeAkademik)
+from ..models import (Guru, GuruPengampu, Kelas, MateriPenilaian, MataPelajaran,
+                      Murid, Nilai, PeriodeAkademik, TahunAjaran)
 from ..schemas import (JENIS_PENILAIAN, MateriPenilaianCreate,
                        MateriPenilaianOut, MateriPenilaianUpdate,
                        NilaiBulkCreate, NilaiOut, NilaiUpdate)
@@ -26,6 +26,58 @@ def _periode_aktif(db: Session) -> PeriodeAkademik | None:
             .join(Kelas, Kelas.tahun_ajaran_id == PeriodeAkademik.tahun_ajaran_id)
             .filter(Kelas.tahun_ajaran_id.isnot(None))
             .first())
+
+
+def _guru_pengampu_pairs(db: Session, guru_id: int) -> set[tuple[int | None, int]]:
+    """Return set of (mapel_id, kelas_id) yang diampu guru tsb di TA aktif.
+
+    mapel_id=None artinya wali kelas (semua mapel di kelas tsb).
+    """
+    ta_aktif = db.query(TahunAjaran).filter(
+        TahunAjaran.is_active.is_(True)).first()
+    if not ta_aktif:
+        return set()
+    rows = db.query(GuruPengampu.mapel_id, GuruPengampu.kelas_id).filter(
+        GuruPengampu.guru_id == guru_id,
+        GuruPengampu.tahun_ajaran_id == ta_aktif.id,
+        GuruPengampu.is_active.is_(True),
+    ).all()
+    return {(m, k) for m, k in rows}
+
+
+def _filter_materi_for_guru(q, db: Session, user: dict):
+    """Filter query MateriPenilaian by guru pengampu.
+
+    Admin/super_admin → tidak ada filter.
+    Guru → hanya materi yang dia ampu (atau wali kelas otomatis).
+    """
+    if user.get("role") in ("admin", "super_admin"):
+        return q
+    guru_id = user.get("id")
+    if not guru_id:
+        return q.filter(False)  # safety: jangan expose data kalau user.id missing
+    pairs = _guru_pengampu_pairs(db, guru_id)
+    if not pairs:
+        return q.filter(False)  # tidak ada penugasan = kosong
+    # Build OR: (mapel_id, kelas_id) di pairs ATAU (mapel_id=None → wali kelas)
+    wali_kelas_ids = {k for m, k in pairs if m is None}
+    mapel_kelas = [(m, k) for m, k in pairs if m is not None]
+    from sqlalchemy import or_
+    filters = []
+    if wali_kelas_ids:
+        filters.append(MateriPenilaian.kelas_id.in_(wali_kelas_ids))
+    if mapel_kelas:
+        mapel_ids = {m for m, _ in mapel_kelas}
+        kelas_ids = {k for _, k in mapel_kelas}
+        # OR sederhana: (mapel_id IN mapel_ids AND kelas_id IN kelas_ids)
+        # (kalau lebih prescient, bisa pakai tuple IN, tapi SQLite tidak support)
+        filters.append(or_(
+            MateriPenilaian.mapel_id.in_(mapel_ids),
+            MateriPenilaian.kelas_id.in_(kelas_ids),
+        ))
+    if filters:
+        return q.filter(or_(*filters))
+    return q.filter(False)
 
 
 def _materi_out(db: Session, m: MateriPenilaian) -> dict:
@@ -62,7 +114,7 @@ def list_materi(kelas_id: int | None = None,
                 mapel_id: int | None = None,
                 jenis: str | None = None,
                 db: Session = Depends(get_tenant_db),
-                _: dict = Depends(require_permission("penilaian.view", "penilaian.input", "penilaian.export"))):
+                user: dict = Depends(require_permission("penilaian.view", "penilaian.input", "penilaian.export"))):
     q = db.query(MateriPenilaian)
     if kelas_id:
         q = q.filter(MateriPenilaian.kelas_id == kelas_id)
@@ -70,6 +122,8 @@ def list_materi(kelas_id: int | None = None,
         q = q.filter(MateriPenilaian.mapel_id == mapel_id)
     if jenis:
         q = q.filter(MateriPenilaian.jenis == jenis)
+    # Filter by pengampu (guru cuma lihat materi yang dia ampu)
+    q = _filter_materi_for_guru(q, db, user)
     return [_materi_out(db, m) for m in q.order_by(MateriPenilaian.created_at.desc()).all()]
 
 
@@ -227,11 +281,23 @@ def update_nilai(nilai_id: int, data: NilaiUpdate,
 def rekap_nilai(kelas_id: int = Query(...),
                 mapel_id: int | None = None,
                 db: Session = Depends(get_tenant_db),
-                _: dict = Depends(require_permission("penilaian.view", "penilaian.input", "penilaian.export"))):
+                user: dict = Depends(require_permission("penilaian.view", "penilaian.input", "penilaian.export"))):
     """Rekap nilai per kelas: per murid → semua materi + rata-rata + status KKTP."""
     kls = db.get(Kelas, kelas_id)
     if not kls:
         raise HTTPException(404, "Kelas tidak ditemukan")
+    # Filter by pengampu (guru cuma lihat kelas & mapel yang dia ampu)
+    pairs = _guru_pengampu_pairs(db, user["id"]) if user.get("role") not in ("admin", "super_admin") else None
+    if pairs is not None:
+        wali_kelas_ids = {k for m, k in pairs if m is None}
+        mapel_kelas = [(m, k) for m, k in pairs if m is not None]
+        allowed = False
+        if kls.id in wali_kelas_ids:
+            allowed = True
+        elif mapel_kelas and any(k == kls.id for m, k in mapel_kelas):
+            allowed = True
+        if not allowed and mapel_id is None:
+            raise HTTPException(403, "Anda tidak mengampu kelas ini")
     q = db.query(MateriPenilaian).filter(MateriPenilaian.kelas_id == kelas_id)
     if mapel_id:
         q = q.filter(MateriPenilaian.mapel_id == mapel_id)

@@ -109,9 +109,9 @@
             </div>
         </aside>
         {% endblock %}
-        <div class="flex-1 flex flex-col">
+        <div class="flex-1 flex flex-col min-w-0">
             {% include "_components/topbar.html" %}
-            <main class="flex-1 p-4 md:p-6 max-w-6xl w-full">
+            <main class="flex-1 p-4 md:p-6 max-w-6xl w-full min-w-0">
                 {% include "_components/flash.html" %}
                 {% include "_components/breadcrumbs.html" %}
                 {% block content %}{% endblock %}

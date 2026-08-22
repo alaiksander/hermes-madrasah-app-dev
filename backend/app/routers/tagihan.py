@@ -364,12 +364,14 @@ def rekap_kelas(
 ):
     """Rekap ringkas per kelas + per murid untuk periode tertentu."""
     rows = _query_tagihan(db, kelas_id=kelas_id, periode=periode)
-    by_kelas: dict[str, dict] = {}
+    by_kelas: dict[int, dict] = {}
     for t in rows:
-        k_nama = t.murid.kelas.nama_kelas if t.murid and t.murid.kelas else "?"
-        d = by_kelas.setdefault(k_nama, {
-            "kelas": k_nama, "total": 0, "lunas": 0, "sebagian": 0,
-            "belum": 0, "nominal": 0, "terbayar": 0})
+        k = t.murid.kelas if t.murid and t.murid.kelas else None
+        k_id = k.id if k else 0
+        k_nama = k.nama_kelas if k else "?"
+        d = by_kelas.setdefault(k_id, {
+            "kelas_id": k_id, "kelas": k_nama, "total": 0, "lunas": 0,
+            "sebagian": 0, "belum": 0, "nominal": 0, "terbayar": 0})
         d["total"] += 1
         d["nominal"] += t.nominal
         dibayar = sum(p.nominal for p in t.pembayaran)
