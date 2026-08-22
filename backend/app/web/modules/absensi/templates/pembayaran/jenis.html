@@ -87,7 +87,13 @@
             {# Generate tagihan #}
             <div class="mt-5 pt-5 border-t border-zinc-100">
                 <h3 class="font-semibold text-zinc-900 text-sm mb-2">Generate Tagihan Bulanan</h3>
-                <form method="POST" action="/apps/pembayaran/generate" class="flex gap-2">
+                <form method="POST" action="/apps/pembayaran/generate" class="flex flex-wrap gap-2">
+                    <select name="tingkat" class="flex-1 border border-zinc-300 rounded px-3 py-2 text-sm">
+                        <option value="">Semua Tingkat</option>
+                        <option value="7">Kelas 7</option>
+                        <option value="8">Kelas 8</option>
+                        <option value="9">Kelas 9</option>
+                    </select>
                     <select name="periode" class="flex-1 border border-zinc-300 rounded px-3 py-2 text-sm">
                         {% for b in bulan_list %}
                         <option value="{{ b.value }}">{{ b.label }}</option>
@@ -99,7 +105,7 @@
                     </button>
                 </form>
                 <p class="text-xs text-zinc-400 mt-1.5">
-                    Membuat tagihan untuk semua murid aktif × jenis yang auto-generate, untuk bulan terpilih.
+                    Membuat tagihan untuk murid aktif pada tingkat terpilih × jenis auto-generate, untuk bulan terpilih.
                 </p>
             </div>
         </div>

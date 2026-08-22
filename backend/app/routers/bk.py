@@ -65,6 +65,8 @@ class CatatanUpdate(BaseModel):
     # kategori_id & pelanggaran_id biasanya tidak diubah (auditing)
     # tapi boleh via field berikut:
     pelanggaran_id: Optional[int] = None
+    # Update peserta (multi-murid via BkPeserta)
+    murid_ids: Optional[list[int]] = None
 
 
 class SesiIn(BaseModel):
@@ -314,7 +316,13 @@ def list_catatan(
 ):
     q = db.query(BkCatatan)
     if murid_id:
-        q = q.filter(BkCatatan.murid_id == murid_id)
+        # Multi-murid: filter via tabel peserta (BkPeserta), backward-compat
+        # untuk catatan single lama yang masih pakai BkCatatan.murid_id.
+        q = q.outerjoin(BkPeserta,
+                        (BkPeserta.entitas == "catatan") &
+                        (BkPeserta.entitas_id == BkCatatan.id))
+        q = q.filter((BkPeserta.murid_id == murid_id) |
+                     (BkCatatan.murid_id == murid_id))
     if kategori_id:
         q = q.filter(BkCatatan.kategori_id == kategori_id)
     if dari:
@@ -470,7 +478,13 @@ def list_sesi(murid_id: Optional[int] = None,
              user: dict = Depends(require_permission("bk.sesi"))):
     q = db.query(BkSesi)
     if murid_id:
-        q = q.filter(BkSesi.murid_id == murid_id)
+        # Multi-murid: filter via tabel peserta (BkPeserta), backward-compat
+        # untuk sesi single lama yang masih pakai BkSesi.murid_id.
+        q = q.outerjoin(BkPeserta,
+                        (BkPeserta.entitas == "sesi") &
+                        (BkPeserta.entitas_id == BkSesi.id))
+        q = q.filter((BkPeserta.murid_id == murid_id) |
+                     (BkSesi.murid_id == murid_id))
     if dari:
         q = q.filter(BkSesi.tanggal >= dari)
     if sampai:

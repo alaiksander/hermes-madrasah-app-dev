@@ -5,18 +5,15 @@
 {% block sidebar_menu %}{% include "absensi/_sidebar_menu.html" %}{% endblock %}
 
 {% block content %}
-<div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+<div class="flex items-center justify-between mb-4">
     <h1 class="text-xl font-bold text-zinc-900">Rekap Nilai {{ data.kelas_nama }}</h1>
     <div class="flex items-center gap-2">
         {% if has_perm(user, 'penilaian.export') %}
         <a href="/apps/penilaian/export-rdm?kelas_id={{ kelas_id }}"
-           class="btn btn-secondary text-sm">
+           class="btn btn-primary">
             <i data-lucide="download" class="w-4 h-4"></i> Export RDM
         </a>
         {% endif %}
-        <a href="/apps/penilaian" class="btn btn-secondary text-sm">
-            <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali
-        </a>
     </div>
 </div>
 
@@ -49,9 +46,9 @@
     <table class="w-full text-sm whitespace-nowrap">
         <thead class="bg-zinc-50 text-zinc-600 text-xs uppercase">
             <tr>
-                <th class="px-3 py-2.5 text-left sticky left-0 bg-zinc-50">No</th>
-                <th class="px-3 py-2.5 text-left sticky left-8 bg-zinc-50">NISN</th>
-                <th class="px-3 py-2.5 text-left sticky left-40 bg-zinc-50">Nama</th>
+                <th class="px-3 py-2.5 text-left">No</th>
+                <th class="px-3 py-2.5 text-left">NISN</th>
+                <th class="px-3 py-2.5 text-left">Nama</th>
                 {% for m in data.materi %}
                 <th class="px-3 py-2.5 text-center" title="{{ m.materi }}">
                     <span class="block text-[10px] text-zinc-400">{{ jenis_label.get(m.jenis, m.jenis) }}</span>
@@ -66,9 +63,9 @@
         <tbody>
             {% for m in data.murid %}
             <tr class="border-t border-zinc-100 hover:bg-zinc-50">
-                <td class="px-3 py-2 text-zinc-500 sticky left-0 bg-white">{{ loop.index }}</td>
-                <td class="px-3 py-2 font-mono text-xs text-zinc-600 sticky left-8 bg-white">{{ m.nisn or '—' }}</td>
-                <td class="px-3 py-2 font-medium text-zinc-900 sticky left-40 bg-white">{{ m.nama }}</td>
+                <td class="px-3 py-2 text-zinc-500">{{ loop.index }}</td>
+                <td class="px-3 py-2 font-mono text-xs text-zinc-600">{{ m.nisn or '—' }}</td>
+                <td class="px-3 py-2 font-medium text-zinc-900">{{ m.nama }}</td>
                 {% for s in m.skor %}
                 <td class="px-3 py-2 text-center">
                     {% if s is not none %}

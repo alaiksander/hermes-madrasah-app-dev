@@ -488,7 +488,7 @@ class RekapOut(BaseModel):
 
 # ── Jurnal Mengajar ──────────────────────────────────────────────────────────
 
-from datetime import time as Time
+from datetime import time as Time, time
 
 
 class JurnalMengajarBase(BaseModel):

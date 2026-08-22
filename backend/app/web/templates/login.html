@@ -4,7 +4,7 @@
 <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-zinc-50 to-zinc-100 p-4">
     <div class="w-full max-w-md">
         <div class="text-center mb-6">
-            <h1 class="text-2xl font-bold text-zinc-900">Aplikasi Madrasah</h1>
+            <h1 class="text-2xl font-bold text-zinc-900">{{ nama_aplikasi or "Aplikasi Madrasah" }}</h1>
             <p class="text-sm text-zinc-500 mt-1">Panel administrasi madrasah</p>
         </div>
         <div class="bg-white rounded-2xl shadow-lg p-6 sm:p-8">
@@ -38,10 +38,6 @@
                     <i data-lucide="log-in" class="w-4 h-4"></i> Masuk
                 </button>
             </form>
-            <p class="text-xs text-zinc-500 mt-4 text-center">
-                Untuk pengguna HP, gunakan
-                <a href="/madrasah/" class="text-teal-600 hover:underline">aplikasi mobile</a>.
-            </p>
         </div>
     </div>
 </div>

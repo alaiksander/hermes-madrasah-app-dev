@@ -7,7 +7,7 @@ import json
 import time
 import urllib.request
 
-BASE = "http://127.0.0.1:8010"
+BASE = "http://127.0.0.1:8013"
 
 TEST_TENANT_KODE = f"mtstest{int(time.time()) % 100000}"
 

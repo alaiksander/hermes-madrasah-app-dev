@@ -184,9 +184,10 @@ async def generate(request: Request,
     form = await request.form()
     periode = form.get("periode", "")
     jenis_id = form.get("jenis_id") or None
+    tingkat = form.get("tingkat") or None
     # PENTING: pass query via kwargs (httpx.params=) — bukan ditanaman di path
     r = await api_post(request, "/api/tagihan/generate", None,
-                       periode=periode, jenis_id=jenis_id)
+                       periode=periode, jenis_id=jenis_id, tingkat=tingkat)
     if r.status_code == 200:
         d = r.json()
         msg = f"Generate OK: {d.get('total_baru', 0)} tagihan baru "

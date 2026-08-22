@@ -17,6 +17,20 @@ router = APIRouter(tags=["web-shared"])
 API_BASE = "http://127.0.0.1:8013"
 
 
+def _nama_aplikasi_display() -> str:
+    """Baca nama aplikasi dari GlobalSetting.id=1 (DB global), fallback default."""
+    try:
+        from app.db import GlobalSession
+        from app.models import GlobalSetting
+        with GlobalSession() as s:
+            g = s.get(GlobalSetting, 1)
+            if g and g.nama_aplikasi:
+                return g.nama_aplikasi
+    except Exception:
+        pass
+    return "Aplikasi Madrasah"
+
+
 @router.get("/")
 async def root(request: Request):
     """Redirect ke default modul — role-aware:
@@ -42,7 +56,8 @@ async def login_page(request: Request):
         pass
     next_path = request.query_params.get("next", "")
     return templates.TemplateResponse(
-        request, "login.html", {"error": None, "next": next_path}
+        request, "login.html",
+        {"error": None, "next": next_path, "nama_aplikasi": _nama_aplikasi_display()},
     )
 
 
@@ -76,7 +91,8 @@ async def login_submit(
         return templates.TemplateResponse(
             request,
             "login.html",
-            {"error": error_msg, "kode": kode, "username": username, "next": next},
+            {"error": error_msg, "kode": kode, "username": username,
+             "next": next, "nama_aplikasi": _nama_aplikasi_display()},
             status_code=r.status_code,
         )
 

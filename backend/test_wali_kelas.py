@@ -8,7 +8,7 @@ import time
 import urllib.request
 import urllib.error
 
-BASE = "http://127.0.0.1:8010"
+BASE = "http://127.0.0.1:8013"
 KODE = f"walitest{int(time.time()) % 100000}"
 
 
