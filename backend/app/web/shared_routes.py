@@ -1,8 +1,8 @@
 """Shared router untuk web panel: login, logout, root, static.
 
-Prefix: /madrasah-app (lihat main.py untuk include).
+Prefix: /apps (lihat main.py untuk include).
 Modul-modul (absensi, jurnal, dll) include router masing-masing
-di bawah prefix /madrasah-app/<modul>.
+di bawah prefix /apps/<modul>.
 """
 import httpx
 from fastapi import APIRouter, Form, Request
@@ -24,10 +24,10 @@ async def root(request: Request):
     try:
         user = get_current_user_web(request)
         if user.get("role") == "super_admin":
-            return RedirectResponse("/madrasah-app/superadmin/dashboard", status_code=303)
+            return RedirectResponse("/apps/superadmin/dashboard", status_code=303)
     except Exception:
         pass
-    return RedirectResponse("/madrasah-app/absensi/dashboard", status_code=303)
+    return RedirectResponse("/apps/absensi/dashboard", status_code=303)
 
 
 @router.get("/login")
@@ -36,8 +36,8 @@ async def login_page(request: Request):
     try:
         user = get_current_user_web(request)
         if user.get("role") == "super_admin":
-            return RedirectResponse("/madrasah-app/superadmin/dashboard", status_code=303)
-        return RedirectResponse("/madrasah-app/absensi/dashboard", status_code=303)
+            return RedirectResponse("/apps/superadmin/dashboard", status_code=303)
+        return RedirectResponse("/apps/absensi/dashboard", status_code=303)
     except Exception:
         pass
     next_path = request.query_params.get("next", "")
@@ -84,12 +84,12 @@ async def login_submit(
     token = data["access_token"]
     expire_hours = 12  # sinkron dengan config.py jwt_expire_hours default
 
-    # Redirect ke next kalau valid (path internal /madrasah-app/* saja)
+    # Redirect ke next kalau valid (path internal /apps/* saja)
     safe_next = ""
-    if next.startswith("/madrasah-app/") and "//" not in next and "\\" not in next:
+    if next.startswith("/apps/") and "//" not in next and "\\" not in next:
         safe_next = next
     response = RedirectResponse(
-        safe_next or "/madrasah-app/absensi/dashboard", status_code=303
+        safe_next or "/apps/absensi/dashboard", status_code=303
     )
     set_token_cookie(response, token, max_age_seconds=expire_hours * 3600,
                      secure=request.url.scheme == "https")
@@ -102,7 +102,7 @@ async def login_super_page(request: Request):
     try:
         u = get_current_user_web(request)
         if u.get("role") == "super_admin":
-            return RedirectResponse("/madrasah-app/superadmin/dashboard", status_code=303)
+            return RedirectResponse("/apps/superadmin/dashboard", status_code=303)
     except Exception:
         pass
     return templates.TemplateResponse(
@@ -147,10 +147,10 @@ async def login_super_submit(
     expire_hours = 12
 
     safe_next = ""
-    if next.startswith("/madrasah-app/") and "//" not in next and "\\" not in next:
+    if next.startswith("/apps/") and "//" not in next and "\\" not in next:
         safe_next = next
     response = RedirectResponse(
-        safe_next or "/madrasah-app/superadmin/dashboard", status_code=303
+        safe_next or "/apps/superadmin/dashboard", status_code=303
     )
     set_token_cookie(response, token, max_age_seconds=expire_hours * 3600,
                      secure=request.url.scheme == "https")
@@ -160,7 +160,7 @@ async def login_super_submit(
 @router.post("/logout")
 async def logout():
     """Hapus cookie → redirect ke login."""
-    response = RedirectResponse("/madrasah-app/login", status_code=303)
+    response = RedirectResponse("/apps/login", status_code=303)
     clear_token_cookie(response)
     return response
 
@@ -171,5 +171,5 @@ async def logout():
 
 @router.get("/static-htmx-check")
 async def static_check():
-    """Sanity endpoint: cek apakah static served di /madrasah-app/static/."""
+    """Sanity endpoint: cek apakah static served di /apps/static/."""
     return Response(content="ok", media_type="text/plain")

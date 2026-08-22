@@ -124,7 +124,7 @@ async def kartu_qr_pdf_kelas(
     except httpx.HTTPStatusError as e:
         if e.response.status_code == 404:
             return RedirectResponse(
-                "/madrasah-app/absensi/kartu-qr?tab=kelas&msg=Kelas+tidak+ditemukan&type=error",
+                "/apps/absensi/kartu-qr?tab=kelas&msg=Kelas+tidak+ditemukan&type=error",
                 status_code=303,
             )
         raise
@@ -147,7 +147,7 @@ async def kartu_qr_pdf_anak(
     except httpx.HTTPStatusError as e:
         if e.response.status_code == 404:
             return RedirectResponse(
-                f"/madrasah-app/absensi/kartu-qr?tab=anak&murid_id={mid}&msg=Murid+tidak+ditemukan&type=error",
+                f"/apps/absensi/kartu-qr?tab=anak&murid_id={mid}&msg=Murid+tidak+ditemukan&type=error",
                 status_code=303,
             )
         raise
@@ -164,7 +164,7 @@ async def kartu_qr_pdf_anak(
 async def qr_print_redirect():
     """Route lama — redirect ke Kartu QR tab Per Kelas."""
     return RedirectResponse(
-        "/madrasah-app/absensi/kartu-qr?tab=kelas", status_code=301
+        "/apps/absensi/kartu-qr?tab=kelas", status_code=301
     )
 
 
@@ -172,5 +172,5 @@ async def qr_print_redirect():
 async def qr_card_redirect(mid: int):
     """Route lama — redirect ke Kartu QR tab Per Anak."""
     return RedirectResponse(
-        f"/madrasah-app/absensi/kartu-qr?tab=anak&murid_id={mid}", status_code=301
+        f"/apps/absensi/kartu-qr?tab=anak&murid_id={mid}", status_code=301
     )

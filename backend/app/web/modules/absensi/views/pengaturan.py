@@ -1,7 +1,7 @@
 """Pengaturan view: hub + 3 sub-halaman (umum, jam-hari, scan-mode).
 
 Path sudah di-strip dari prefix '/pengaturan' — di-include dengan prefix
-'/madrasah-app/system/pengaturan' di main.py (lihat modul System).
+'/apps/system/pengaturan' di main.py (lihat modul System).
 """
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import RedirectResponse
@@ -13,7 +13,7 @@ from ....core.templates import templates
 router = APIRouter(tags=["web-system-pengaturan"])
 
 
-def _redirect(msg: str, type_: str = "success", path: str = "/madrasah-app/system/pengaturan"):
+def _redirect(msg: str, type_: str = "success", path: str = "/apps/system/pengaturan"):
     return RedirectResponse(
         url=f"{path}?msg={msg.replace(' ', '+')}&type={type_}",
         status_code=303,

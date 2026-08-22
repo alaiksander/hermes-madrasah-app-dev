@@ -11,7 +11,7 @@ from ....core.templates import templates
 router = APIRouter(tags=["web-data-tahun-ajaran"])
 
 
-def _redirect(msg: str, type_: str = "success", path: str = "/madrasah-app/data/tahun-ajaran"):
+def _redirect(msg: str, type_: str = "success", path: str = "/apps/data/tahun-ajaran"):
     return RedirectResponse(
         url=f"{path}?msg={msg.replace(' ', '+')}&type={type_}",
         status_code=303,
@@ -49,7 +49,7 @@ async def tahun_ajaran_baru(
             "user": user,
             "tahun": None,
             "form_title": "Tambah Tahun Ajaran",
-            "form_action": "/madrasah-app/data/tahun-ajaran",
+            "form_action": "/apps/data/tahun-ajaran",
             "default_mulai": None,
             "default_selesai": None,
         },
@@ -85,7 +85,7 @@ async def tahun_ajaran_create(
             "user": user,
             "tahun": payload,
             "form_title": "Tambah Tahun Ajaran",
-            "form_action": "/madrasah-app/data/tahun-ajaran",
+            "form_action": "/apps/data/tahun-ajaran",
             "default_mulai": tanggal_mulai,
             "default_selesai": tanggal_selesai,
             "error": detail,
@@ -115,7 +115,7 @@ async def tahun_ajaran_edit(
             "user": user,
             "tahun": tahun,
             "form_title": "Edit Tahun Ajaran",
-            "form_action": f"/madrasah-app/data/tahun-ajaran/{ta_id}",
+            "form_action": f"/apps/data/tahun-ajaran/{ta_id}",
             "default_mulai": tahun.get("tanggal_mulai"),
             "default_selesai": tahun.get("tanggal_selesai"),
         },
@@ -191,12 +191,12 @@ async def tahun_ajaran_periode_save(request: Request, ta_id: int,
         "tanggal_mulai": tanggal_mulai, "tanggal_selesai": tanggal_selesai,
     })
     if r.status_code == 200:
-        return _redirect("Periode semester berhasil disimpan", path=f"/madrasah-app/data/tahun-ajaran/{ta_id}/periode")
+        return _redirect("Periode semester berhasil disimpan", path=f"/apps/data/tahun-ajaran/{ta_id}/periode")
     try:
         detail = r.json().get("detail", "Gagal menyimpan periode semester")
     except Exception:
         detail = "Gagal menyimpan periode semester"
-    return _redirect(detail, "error", f"/madrasah-app/data/tahun-ajaran/{ta_id}/periode")
+    return _redirect(detail, "error", f"/apps/data/tahun-ajaran/{ta_id}/periode")
 
 
 @router.post("/{ta_id}/hapus")

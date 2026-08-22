@@ -255,7 +255,7 @@ async def cetak_absen_pdf(
         path = "/api/absensi/cetak-pdf.pdf"
         params["kelas_id"] = kelas_id
     else:
-        return RedirectResponse("/madrasah-app/absensi/cetak-absen", status_code=303)
+        return RedirectResponse("/apps/absensi/cetak-absen", status_code=303)
 
     content = await api_get_raw(request, path, **params)
     return Response(
@@ -299,7 +299,7 @@ async def cetak_absen_xlsx(
     elif mode == "murid" and murid_id:
         params["murid_id"] = murid_id
     else:
-        return RedirectResponse("/madrasah-app/absensi/cetak-absen", status_code=303)
+        return RedirectResponse("/apps/absensi/cetak-absen", status_code=303)
 
     r = await api_get_raw(request, "/api/absensi/cetak.xlsx", **params)
     return Response(

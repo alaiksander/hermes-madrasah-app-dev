@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Madrasah{% endblock %} · {{ get_nama_aplikasi(user) }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="/madrasah-app/static/app.css">
-    <script src="/madrasah-app/static/htmx.min.js"></script>
-    <script src="/madrasah-app/static/fuse.min.js"></script>
-    <script src="/madrasah-app/static/app.js"></script>
-    <script src="/madrasah-app/static/lucide.min.js"></script>
-<link rel="stylesheet" href="/madrasah-app/static/choices.min.css">
-<script src="/madrasah-app/static/choices.min.js"></script>
+    <link rel="stylesheet" href="/apps/static/app.css">
+    <script src="/apps/static/htmx.min.js"></script>
+    <script src="/apps/static/fuse.min.js"></script>
+    <script src="/apps/static/app.js"></script>
+    <script src="/apps/static/lucide.min.js"></script>
+<link rel="stylesheet" href="/apps/static/choices.min.css">
+<script src="/apps/static/choices.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -69,7 +69,7 @@
                       fixed inset-y-0 left-0 z-40 -translate-x-full
                       lg:static lg:translate-x-0">
             <div class="p-4 border-b border-zinc-200 flex items-center justify-between flex-shrink-0">
-                <a href="/madrasah-app/" class="flex items-center gap-2 text-zinc-900 brand-link">
+                <a href="/apps/" class="flex items-center gap-2 text-zinc-900 brand-link">
                     <i data-lucide="graduation-cap" class="w-5 h-5 text-teal-700 flex-shrink-0"></i>
                     <span class="font-semibold brand-text">{{ get_nama_aplikasi(user) }}</span>
                 </a>
@@ -100,7 +100,7 @@
                     <i data-lucide="smartphone" class="w-4 h-4 flex-shrink-0"></i>
                     <span class="footer-text">Buka di HP</span>
                 </a>
-                <form method="post" action="/madrasah-app/logout">
+                <form method="post" action="/apps/logout">
                     <button type="submit" class="flex items-center gap-2 text-xs text-zinc-500 hover:text-red-600 w-full">
                         <i data-lucide="log-out" class="w-4 h-4 flex-shrink-0"></i>
                         <span class="footer-text">Keluar</span>

@@ -22,7 +22,7 @@ JENIS_LABEL = {
 }
 
 
-def _redirect(msg: str, type_: str = "success", path: str = "/madrasah-app/penilaian"):
+def _redirect(msg: str, type_: str = "success", path: str = "/apps/penilaian"):
     return RedirectResponse(
         url=f"{path}?msg={msg.replace(' ', '+')}&type={type_}",
         status_code=303,
@@ -122,7 +122,7 @@ async def penilaian_create(
         return _redirect(f"Gagal: {r.text[:120]}", "error")
     data = r.json()
     return _redirect(f"Materi penilaian '{data.get('nama')}' dibuat",
-                     "success", f"/madrasah-app/penilaian/materi/{data.get('id')}")
+                     "success", f"/apps/penilaian/materi/{data.get('id')}")
 
 
 @router.get("/materi/{materi_id}")
@@ -162,19 +162,19 @@ async def penilaian_materi_simpan(
             skor = int(v) if v else None
             if skor is not None and not (0 <= skor <= 100):
                 return _redirect(f"Nilai murid id={mid} harus 0-100", "error",
-                                 f"/madrasah-app/penilaian/materi/{materi_id}")
+                                 f"/apps/penilaian/materi/{materi_id}")
             entries.append({"murid_id": mid, "skor": skor})
     if not entries:
         return _redirect("Tidak ada nilai diisi", "error",
-                         f"/madrasah-app/penilaian/materi/{materi_id}")
+                         f"/apps/penilaian/materi/{materi_id}")
     r = await api_post(request, "/api/nilai/bulk", json={
         "materi_penilaian_id": materi_id, "entries": entries})
     if r.status_code != 200:
         return _redirect(f"Gagal simpan: {r.text[:120]}", "error",
-                         f"/madrasah-app/penilaian/materi/{materi_id}")
+                         f"/apps/penilaian/materi/{materi_id}")
     data = r.json()
     return _redirect(f"{data.get('disimpan')} nilai tersimpan", "success",
-                     f"/madrasah-app/penilaian/materi/{materi_id}")
+                     f"/apps/penilaian/materi/{materi_id}")
 
 
 @router.post("/materi/{materi_id}/hapus")

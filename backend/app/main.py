@@ -276,43 +276,43 @@ from starlette.requests import Request
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from .web.core.templates import STATIC_DIR as WEB_STATIC_DIR, templates
-app.mount("/madrasah-app/static", StaticFiles(directory=str(WEB_STATIC_DIR)), name="web-static")
+app.mount("/apps/static", StaticFiles(directory=str(WEB_STATIC_DIR)), name="web-static")
 
 from .web.shared_routes import router as web_shared_router
-app.include_router(web_shared_router, prefix="/madrasah-app")
+app.include_router(web_shared_router, prefix="/apps")
 
 from .web.modules.absensi import (pengampu_web_router, router as
                                        absensi_web_router)
-app.include_router(absensi_web_router, prefix="/madrasah-app")
-app.include_router(pengampu_web_router, prefix="/madrasah-app")
+app.include_router(absensi_web_router, prefix="/apps")
+app.include_router(pengampu_web_router, prefix="/apps")
 
 from .web.modules.absensi import bk_web_router, jurnal_web_router
-app.include_router(bk_web_router, prefix="/madrasah-app")
-app.include_router(jurnal_web_router, prefix="/madrasah-app")
+app.include_router(bk_web_router, prefix="/apps")
+app.include_router(jurnal_web_router, prefix="/apps")
 
 from .web.modules.absensi.views.murid import router as murid_router
 from .web.modules.absensi.views.kelas import router as kelas_router
 from .web.modules.absensi.views.guru import router as guru_router
 from .web.modules.absensi.views.tahun_ajaran import router as ta_router
 from .web.modules.absensi.views.mapel import router as mapel_router
-app.include_router(murid_router, prefix="/madrasah-app/data/murid")
-app.include_router(kelas_router, prefix="/madrasah-app/data/kelas")
-app.include_router(guru_router, prefix="/madrasah-app/data/guru")
-app.include_router(ta_router, prefix="/madrasah-app/data/tahun-ajaran")
-app.include_router(mapel_router, prefix="/madrasah-app/data/mapel")
+app.include_router(murid_router, prefix="/apps/data/murid")
+app.include_router(kelas_router, prefix="/apps/data/kelas")
+app.include_router(guru_router, prefix="/apps/data/guru")
+app.include_router(ta_router, prefix="/apps/data/tahun-ajaran")
+app.include_router(mapel_router, prefix="/apps/data/mapel")
 
-# ── Router System (sub-modul) — di-include dengan prefix /madrasah-app/system/<x>
+# ── Router System (sub-modul) — di-include dengan prefix /apps/system/<x>
 from .web.modules.absensi.views.pengaturan import router as pengaturan_router
 from .web.modules.absensi.views.role import router as role_router
-app.include_router(pengaturan_router, prefix="/madrasah-app/system/pengaturan")
-app.include_router(role_router, prefix="/madrasah-app/system/role")
+app.include_router(pengaturan_router, prefix="/apps/system/pengaturan")
+app.include_router(role_router, prefix="/apps/system/role")
 
 from .web.modules.absensi.views.ortu import router as ortu_web_router
-app.include_router(ortu_web_router, prefix="/madrasah-app")
+app.include_router(ortu_web_router, prefix="/apps")
 
-# ── Router Wali Kelas (menu perwalian) — /madrasah-app/wali-kelas
+# ── Router Wali Kelas (menu perwalian) — /apps/wali-kelas
 from .web.modules.absensi.views.wali import router as wali_web_router
-app.include_router(wali_web_router, prefix="/madrasah-app/wali-kelas")
+app.include_router(wali_web_router, prefix="/apps/wali-kelas")
 
 # ── Router Penilaian (API) — /api/nilai/*
 from .routers.nilai import router as nilai_api_router
@@ -322,72 +322,72 @@ app.include_router(nilai_api_router)
 from .routers.tagihan import router as tagihan_api_router
 app.include_router(tagihan_api_router)
 
-# ── Router Penilaian (web) — /madrasah-app/penilaian
+# ── Router Penilaian (web) — /apps/penilaian
 from .web.modules.absensi.views.nilai import router as nilai_web_router
-app.include_router(nilai_web_router, prefix="/madrasah-app/penilaian")
+app.include_router(nilai_web_router, prefix="/apps/penilaian")
 
-# ── Router Pembayaran (web) — /madrasah-app/pembayaran
+# ── Router Pembayaran (web) — /apps/pembayaran
 from .web.modules.absensi.views.tagihan import router as tagihan_web_router
-app.include_router(tagihan_web_router, prefix="/madrasah-app")
+app.include_router(tagihan_web_router, prefix="/apps")
 
-# ── 301 redirect legacy: /madrasah-app/absensi/bk/* → /madrasah-app/bk/*
+# ── 301 redirect legacy: /apps/absensi/bk/* → /apps/bk/*
 # Pakai path '{suffix:path}' agar catch semua sub-path (catatan, sesi, dll.).
 # Setelah MR yakin semua link internal sudah ke URL baru, redirect bisa dihapus.
-@app.get("/madrasah-app/absensi/bk", include_in_schema=False)
-@app.get("/madrasah-app/absensi/bk/{suffix:path}", include_in_schema=False)
+@app.get("/apps/absensi/bk", include_in_schema=False)
+@app.get("/apps/absensi/bk/{suffix:path}", include_in_schema=False)
 async def legacy_bk_redirect(suffix: str = ""):
-    target = f"/madrasah-app/bk/{suffix}" if suffix else "/madrasah-app/bk"
+    target = f"/apps/bk/{suffix}" if suffix else "/apps/bk"
     from fastapi.responses import RedirectResponse
     return RedirectResponse(target, status_code=301)
 
-# ── 301 redirect legacy: /madrasah-app/absensi/{murid,kelas,guru,tahun-ajaran}/* → /madrasah-app/data/<x>/*
-@app.get("/madrasah-app/absensi/murid", include_in_schema=False)
-@app.get("/madrasah-app/absensi/murid/{suffix:path}", include_in_schema=False)
+# ── 301 redirect legacy: /apps/absensi/{murid,kelas,guru,tahun-ajaran}/* → /apps/data/<x>/*
+@app.get("/apps/absensi/murid", include_in_schema=False)
+@app.get("/apps/absensi/murid/{suffix:path}", include_in_schema=False)
 async def legacy_murid_redirect(suffix: str = ""):
-    target = f"/madrasah-app/data/murid/{suffix}" if suffix else "/madrasah-app/data/murid"
+    target = f"/apps/data/murid/{suffix}" if suffix else "/apps/data/murid"
     from fastapi.responses import RedirectResponse
     return RedirectResponse(target, status_code=301)
 
-@app.get("/madrasah-app/absensi/kelas", include_in_schema=False)
-@app.get("/madrasah-app/absensi/kelas/{suffix:path}", include_in_schema=False)
+@app.get("/apps/absensi/kelas", include_in_schema=False)
+@app.get("/apps/absensi/kelas/{suffix:path}", include_in_schema=False)
 async def legacy_kelas_redirect(suffix: str = ""):
-    target = f"/madrasah-app/data/kelas/{suffix}" if suffix else "/madrasah-app/data/kelas"
+    target = f"/apps/data/kelas/{suffix}" if suffix else "/apps/data/kelas"
     from fastapi.responses import RedirectResponse
     return RedirectResponse(target, status_code=301)
 
-@app.get("/madrasah-app/absensi/guru", include_in_schema=False)
-@app.get("/madrasah-app/absensi/guru/{suffix:path}", include_in_schema=False)
+@app.get("/apps/absensi/guru", include_in_schema=False)
+@app.get("/apps/absensi/guru/{suffix:path}", include_in_schema=False)
 async def legacy_guru_redirect(suffix: str = ""):
-    target = f"/madrasah-app/data/guru/{suffix}" if suffix else "/madrasah-app/data/guru"
+    target = f"/apps/data/guru/{suffix}" if suffix else "/apps/data/guru"
     from fastapi.responses import RedirectResponse
     return RedirectResponse(target, status_code=301)
 
-@app.get("/madrasah-app/absensi/tahun-ajaran", include_in_schema=False)
-@app.get("/madrasah-app/absensi/tahun-ajaran/{suffix:path}", include_in_schema=False)
+@app.get("/apps/absensi/tahun-ajaran", include_in_schema=False)
+@app.get("/apps/absensi/tahun-ajaran/{suffix:path}", include_in_schema=False)
 async def legacy_ta_redirect(suffix: str = ""):
-    target = f"/madrasah-app/data/tahun-ajaran/{suffix}" if suffix else "/madrasah-app/data/tahun-ajaran"
+    target = f"/apps/data/tahun-ajaran/{suffix}" if suffix else "/apps/data/tahun-ajaran"
     from fastapi.responses import RedirectResponse
     return RedirectResponse(target, status_code=301)
 
-# ── 301 redirect legacy: /madrasah-app/absensi/{pengaturan,role}/* → /madrasah-app/system/<x>/*
-@app.get("/madrasah-app/absensi/pengaturan", include_in_schema=False)
-@app.get("/madrasah-app/absensi/pengaturan/{suffix:path}", include_in_schema=False)
+# ── 301 redirect legacy: /apps/absensi/{pengaturan,role}/* → /apps/system/<x>/*
+@app.get("/apps/absensi/pengaturan", include_in_schema=False)
+@app.get("/apps/absensi/pengaturan/{suffix:path}", include_in_schema=False)
 async def legacy_pengaturan_redirect(suffix: str = ""):
-    target = f"/madrasah-app/system/pengaturan/{suffix}" if suffix else "/madrasah-app/system/pengaturan"
+    target = f"/apps/system/pengaturan/{suffix}" if suffix else "/apps/system/pengaturan"
     from fastapi.responses import RedirectResponse
     return RedirectResponse(target, status_code=301)
 
-@app.get("/madrasah-app/absensi/role", include_in_schema=False)
-@app.get("/madrasah-app/absensi/role/{suffix:path}", include_in_schema=False)
+@app.get("/apps/absensi/role", include_in_schema=False)
+@app.get("/apps/absensi/role/{suffix:path}", include_in_schema=False)
 async def legacy_role_redirect(suffix: str = ""):
-    target = f"/madrasah-app/system/role/{suffix}" if suffix else "/madrasah-app/system/role"
+    target = f"/apps/system/role/{suffix}" if suffix else "/apps/system/role"
     from fastapi.responses import RedirectResponse
     return RedirectResponse(target, status_code=301)
 
 from .web.modules.superadmin import router as superadmin_web_router
-app.include_router(superadmin_web_router, prefix="/madrasah-app")
+app.include_router(superadmin_web_router, prefix="/apps")
 
-# ── CSRF protection (Origin/Referer check untuk POST /madrasah-app/*) ──
+# ── CSRF protection (Origin/Referer check untuk POST /apps/*) ──
 from .web.core.csrf import csrf_middleware
 app.middleware("http")(csrf_middleware)
 
@@ -395,15 +395,15 @@ app.middleware("http")(csrf_middleware)
 from .web.core.deps import _RedirectToLogin, handle_login_redirect
 app.add_exception_handler(_RedirectToLogin, handle_login_redirect)
 
-# ── Custom 404/405/500 untuk path /madrasah-app/* ────────────────────
+# ── Custom 404/405/500 untuk path /apps/* ────────────────────
 @app.exception_handler(StarletteHTTPException)
 async def web_panel_http_exception_handler(request: Request, exc: StarletteHTTPException):
-    """Render halaman error friendly untuk semua error HTTP di /madrasah-app/*.
+    """Render halaman error friendly untuk semua error HTTP di /apps/*.
 
-    PENTING: Kalau path BUKAN /madrasah-app/*, return default JSON error
+    PENTING: Kalau path BUKAN /apps/*, return default JSON error
     supaya tidak break API JSON existing (Flutter).
     """
-    if not request.url.path.startswith("/madrasah-app"):
+    if not request.url.path.startswith("/apps"):
         # Default behavior untuk path lain — return JSON
         from fastapi.responses import JSONResponse
         return JSONResponse(
@@ -417,7 +417,7 @@ async def web_panel_http_exception_handler(request: Request, exc: StarletteHTTPE
         from fastapi.responses import RedirectResponse
         next_path = quote(request.url.path, safe="")
         return RedirectResponse(
-            f"/madrasah-app/login?next={next_path}",
+            f"/apps/login?next={next_path}",
             status_code=303,
         )
 

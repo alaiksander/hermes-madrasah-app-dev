@@ -12,17 +12,17 @@
         <p class="text-sm text-zinc-500">{{ tgl | format_date_id }}</p>
     </div>
     <div class="flex items-center gap-2">
-        <a href="/madrasah-app/absensi/rekap?tanggal={{ yesterday }}{% if kelas_id %}&kelas_id={{ kelas_id }}{% endif %}"
+        <a href="/apps/absensi/rekap?tanggal={{ yesterday }}{% if kelas_id %}&kelas_id={{ kelas_id }}{% endif %}"
            class="btn btn-secondary text-sm">
             <i data-lucide="chevron-left" class="w-4 h-4"></i> {{ yesterday }}
         </a>
         {% if not is_today %}
-        <a href="/madrasah-app/absensi/rekap?tanggal={{ tomorrow }}{% if kelas_id %}&kelas_id={{ kelas_id }}{% endif %}"
+        <a href="/apps/absensi/rekap?tanggal={{ tomorrow }}{% if kelas_id %}&kelas_id={{ kelas_id }}{% endif %}"
            class="btn btn-secondary text-sm">
             {{ tomorrow }} <i data-lucide="chevron-right" class="w-4 h-4"></i>
         </a>
         {% endif %}
-        <a href="/madrasah-app/absensi/rekap{% if kelas_id %}?kelas_id={{ kelas_id }}{% endif %}"
+        <a href="/apps/absensi/rekap{% if kelas_id %}?kelas_id={{ kelas_id }}{% endif %}"
            class="btn btn-secondary text-sm {% if is_today %}bg-teal-50 border-teal-300 text-teal-700{% endif %}">
             <i data-lucide="calendar-today" class="w-4 h-4"></i> Hari Ini
         </a>
@@ -30,7 +30,7 @@
 </div>
 
 <!-- Filter tanggal -->
-<form method="get" action="/madrasah-app/absensi/rekap"
+<form method="get" action="/apps/absensi/rekap"
       class="bg-white rounded-lg border border-zinc-200 p-3 mb-3 flex items-end gap-3">
     <div>
         <label class="block text-xs font-medium text-zinc-600 mb-1">Tanggal</label>
@@ -100,11 +100,11 @@
                     {% endif %}
                 </td>
                 <td class="text-right space-x-2 text-xs">
-                    <a href="/madrasah-app/absensi/rekap-detail?kelas_id={{ k.id }}&tanggal={{ tgl_str }}"
+                    <a href="/apps/absensi/rekap-detail?kelas_id={{ k.id }}&tanggal={{ tgl_str }}"
                        class="text-teal-700 hover:underline">
                         Detail
                     </a>
-                    <a href="/madrasah-app/absensi/input-manual?tab=bulk&kelas_id={{ k.id }}&tanggal={{ tgl_str }}"
+                    <a href="/apps/absensi/input-manual?tab=bulk&kelas_id={{ k.id }}&tanggal={{ tgl_str }}"
                        class="text-amber-700 hover:underline">
                         Koreksi
                     </a>

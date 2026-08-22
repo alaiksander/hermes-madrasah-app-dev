@@ -8,7 +8,7 @@
 <div class="max-w-6xl">
     <div class="mb-4 flex items-center justify-between">
         <div>
-            <a href="/madrasah-app/pembayaran" class="text-sm text-zinc-500 hover:text-zinc-700">
+            <a href="/apps/pembayaran" class="text-sm text-zinc-500 hover:text-zinc-700">
                 <i data-lucide="arrow-left" class="w-4 h-4 inline"></i> Kembali
             </a>
             <h1 class="text-2xl font-bold text-zinc-800 mt-2">Laporan Pembayaran</h1>
@@ -37,7 +37,7 @@
     </div>
 
     {# Filter + export #}
-    <form method="GET" action="/madrasah-app/pembayaran/laporan"
+    <form method="GET" action="/apps/pembayaran/laporan"
           class="bg-white border border-zinc-200 rounded-xl shadow-sm p-4 mb-5">
         <div class="flex flex-wrap gap-3 items-end">
             <div>
@@ -70,7 +70,7 @@
             <button type="submit" class="bg-teal-600 hover:bg-teal-700 text-white font-medium px-4 py-2 rounded-lg text-sm">
                 <i data-lucide="filter" class="w-3.5 h-3.5 inline"></i> Filter
             </button>
-            <a href="/madrasah-app/pembayaran/laporan/export?periode={{ filter_periode }}{% if filter_kelas_id %}&kelas_id={{ filter_kelas_id }}{% endif %}{% if filter_status %}&status={{ filter_status }}{% endif %}"
+            <a href="/apps/pembayaran/laporan/export?periode={{ filter_periode }}{% if filter_kelas_id %}&kelas_id={{ filter_kelas_id }}{% endif %}{% if filter_status %}&status={{ filter_status }}{% endif %}"
                class="ml-auto flex items-center gap-2 border border-teal-600 text-teal-700 hover:bg-teal-50 font-medium px-4 py-2 rounded-lg text-sm">
                 <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
                 Export Excel

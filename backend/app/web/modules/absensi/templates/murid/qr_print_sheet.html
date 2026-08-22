@@ -6,7 +6,7 @@
 
 {% block content %}
 <div class="max-w-3xl">
-    <a href="/madrasah-app/data/murid" class="inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-700 mb-3">
+    <a href="/apps/data/murid" class="inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-700 mb-3">
         <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke daftar murid
     </a>
 
@@ -23,12 +23,12 @@
             <i data-lucide="info" class="w-4 h-4 inline"></i>
             Hanya menampilkan kelas dari <strong>tahun ajaran aktif</strong>.
             Untuk cetak QR tahun ajaran lain, ubah TA aktif dulu di
-            <a href="/madrasah-app/system/pengaturan" class="underline font-medium">Pengaturan → Umum</a>.
+            <a href="/apps/system/pengaturan" class="underline font-medium">Pengaturan → Umum</a>.
         </div>
         {% endif %}
 
         <!-- Pilih kelas -->
-        <form method="get" action="/madrasah-app/absensi/qr-print" class="mb-4">
+        <form method="get" action="/apps/absensi/qr-print" class="mb-4">
             <label class="block text-sm font-medium text-zinc-700 mb-1">Pilih Kelas</label>
             <div class="flex gap-2">
                 <select name="kelas_id" required
@@ -53,17 +53,17 @@
                     <strong>PDF siap</strong> — akan terbuka di tab baru
                 </div>
                 <div class="flex gap-2">
-                    <a href="/madrasah-app/absensi/qr-print?kelas_id={{ selected_kelas_id }}&download=1"
+                    <a href="/apps/absensi/qr-print?kelas_id={{ selected_kelas_id }}&download=1"
                        class="btn btn-secondary text-sm" target="_blank">
                         <i data-lucide="download" class="w-4 h-4"></i> Download
                     </a>
-                    <a href="/madrasah-app/absensi/qr-print?kelas_id={{ selected_kelas_id }}"
+                    <a href="/apps/absensi/qr-print?kelas_id={{ selected_kelas_id }}"
                        class="btn btn-primary text-sm" target="_blank">
                         <i data-lucide="external-link" class="w-4 h-4"></i> Buka PDF
                     </a>
                 </div>
             </div>
-            <iframe src="/madrasah-app/absensi/qr-print?kelas_id={{ selected_kelas_id }}"
+            <iframe src="/apps/absensi/qr-print?kelas_id={{ selected_kelas_id }}"
                     class="w-full h-[600px] border border-zinc-300 rounded"
                     title="QR Card Preview"></iframe>
         </div>

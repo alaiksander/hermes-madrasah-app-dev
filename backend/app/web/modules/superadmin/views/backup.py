@@ -64,14 +64,14 @@ async def backup_config_update(
     if r.status_code == 200:
         _audit(user, "ubah_backup_config_web",
                f"enabled={enabled == 'on'}, jam={jam}, retensi={retensi}")
-        return _redirect("/madrasah-app/superadmin/backup",
+        return _redirect("/apps/superadmin/backup",
                          "Jadwal backup disimpan")
     detail = "Gagal menyimpan jadwal"
     try:
         detail = r.json().get("detail", detail)
     except Exception:
         pass
-    return _redirect("/madrasah-app/superadmin/backup", detail, "error")
+    return _redirect("/apps/superadmin/backup", detail, "error")
 
 
 @router.post("/backup/run")
@@ -85,14 +85,14 @@ async def backup_run_now(
         data = r.json()
         nama = data.get("nama", "")
         _audit(user, "backup_manual_web", f"Backup manual: {nama}")
-        return _redirect("/madrasah-app/superadmin/backup",
+        return _redirect("/apps/superadmin/backup",
                          f"Backup selesai: {nama}")
     detail = "Gagal backup"
     try:
         detail = r.json().get("detail", detail)
     except Exception:
         pass
-    return _redirect("/madrasah-app/superadmin/backup", detail, "error")
+    return _redirect("/apps/superadmin/backup", detail, "error")
 
 
 @router.get("/backup/download/{nama}")
@@ -111,7 +111,7 @@ async def backup_download(
             detail = r.json().get("detail", detail)
         except Exception:
             pass
-        return _redirect("/madrasah-app/superadmin/backup", detail, "error")
+        return _redirect("/apps/superadmin/backup", detail, "error")
     return Response(
         content=r.content,
         media_type="application/gzip",
@@ -130,20 +130,20 @@ async def backup_file_delete(
     from urllib.parse import quote
 
     if konfirmasi.strip() != nama:
-        return _redirect("/madrasah-app/superadmin/backup",
+        return _redirect("/apps/superadmin/backup",
                          "Nama file tidak cocok — backup tidak dihapus", "error")
 
     r = await api_delete(request, f"/api/super/backup/files/{quote(nama)}", json={})
     if r.status_code == 200:
         _audit(user, "hapus_backup_web", f"Arsip {nama} dihapus")
-        return _redirect("/madrasah-app/superadmin/backup",
+        return _redirect("/apps/superadmin/backup",
                          f"Backup {nama} dihapus")
     detail = "Gagal menghapus backup"
     try:
         detail = r.json().get("detail", detail)
     except Exception:
         pass
-    return _redirect("/madrasah-app/superadmin/backup", detail, "error")
+    return _redirect("/apps/superadmin/backup", detail, "error")
 
 
 @router.post("/backup/restore-upload")
@@ -158,7 +158,7 @@ async def backup_restore_upload(
     """
     content = await file.read()
     if not content:
-        return _redirect("/madrasah-app/superadmin/backup",
+        return _redirect("/apps/superadmin/backup",
                          "File kosong — pilih file backup", "error")
 
     # 1. Upload ke backend (validasi + simpan ke BACKUP_DIR)
@@ -174,7 +174,7 @@ async def backup_restore_upload(
             detail = r.json().get("detail", detail)
         except Exception:
             pass
-        return _redirect("/madrasah-app/superadmin/backup", detail, "error")
+        return _redirect("/apps/superadmin/backup", detail, "error")
 
     data = r.json()
     nama = data.get("nama_file", "")
@@ -191,7 +191,7 @@ async def backup_restore_upload(
         _audit(user, "restore_backup_upload_web",
                f"Restore dari upload {file.filename or nama}: {restored} file")
         return _redirect(
-            "/madrasah-app/superadmin/backup",
+            "/apps/superadmin/backup",
             f"Upload + restore selesai ({nama}, {restored} file) — "
             "service restart otomatis (±5 detik)",
         )
@@ -200,7 +200,7 @@ async def backup_restore_upload(
         detail = rr.json().get("detail", detail)
     except Exception:
         pass
-    return _redirect("/madrasah-app/superadmin/backup", detail, "error")
+    return _redirect("/apps/superadmin/backup", detail, "error")
 
 
 @router.post("/backup/restore")
@@ -215,7 +215,7 @@ async def backup_restore(
     PENTING: operasi DESTRUKTIF — service restart otomatis setelah restore.
     """
     if konfirmasi.strip() != nama_file.strip():
-        return _redirect("/madrasah-app/superadmin/backup",
+        return _redirect("/apps/superadmin/backup",
                          "Nama file tidak cocok — restore dibatalkan", "error")
 
     r = await api_post(
@@ -228,7 +228,7 @@ async def backup_restore(
         _audit(user, "restore_backup_web",
                f"Restore dari {nama_file}: {len(data.get('restored', []))} file")
         return _redirect(
-            "/madrasah-app/superadmin/backup",
+            "/apps/superadmin/backup",
             f"Restore dari {nama_file} — service restart otomatis (±5 detik)",
         )
     detail = "Gagal restore"
@@ -236,4 +236,4 @@ async def backup_restore(
         detail = r.json().get("detail", detail)
     except Exception:
         pass
-    return _redirect("/madrasah-app/superadmin/backup", detail, "error")
+    return _redirect("/apps/superadmin/backup", detail, "error")

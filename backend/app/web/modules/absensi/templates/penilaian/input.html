@@ -6,7 +6,7 @@
 
 {% block content %}
 <div class="mb-4">
-    <a href="/madrasah-app/penilaian" class="inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-700">
+    <a href="/apps/penilaian" class="inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-700">
         <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke penilaian
     </a>
 </div>
@@ -36,7 +36,7 @@
 {% endif %}
 
 <!-- Form input nilai -->
-<form method="post" action="/madrasah-app/penilaian/materi/{{ data.materi.id }}/simpan">
+<form method="post" action="/apps/penilaian/materi/{{ data.materi.id }}/simpan">
     <div class="bg-white rounded-lg border border-zinc-200 overflow-x-auto">
         <table class="w-full text-sm">
             <thead class="bg-zinc-50 text-zinc-600 text-xs uppercase">
@@ -73,7 +73,7 @@
             <i data-lucide="save" class="w-4 h-4"></i> Simpan Nilai
         </button>
         {% endif %}
-        <a href="/madrasah-app/penilaian" class="btn btn-secondary text-sm">Batal</a>
+        <a href="/apps/penilaian" class="btn btn-secondary text-sm">Batal</a>
     </div>
 </form>
 {% endblock %}

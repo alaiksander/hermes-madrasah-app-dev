@@ -7,7 +7,7 @@
     <h1 class="text-xl font-bold text-zinc-900">Mata Pelajaran</h1>
     <div class="flex items-center gap-2">
         {% if has_perm(user, 'mapel.create') %}
-        <a href="/madrasah-app/data/mapel/baru" class="btn btn-primary">
+        <a href="/apps/data/mapel/baru" class="btn btn-primary">
             <i data-lucide="plus" class="w-4 h-4"></i> Tambah Mapel
         </a>
         {% endif %}
@@ -45,12 +45,12 @@
                 </td>
                 <td class="text-right">
                     {% if has_perm(user, 'mapel.update') %}
-                    <a href="/madrasah-app/data/mapel/{{ m.id }}/edit" class="text-teal-700 hover:underline text-xs">
+                    <a href="/apps/data/mapel/{{ m.id }}/edit" class="text-teal-700 hover:underline text-xs">
                         Edit
                     </a>
                     {% endif %}
                     {% if has_perm(user, 'mapel.delete') %}
-                    <form method="post" action="/madrasah-app/data/mapel/{{ m.id }}/hapus"
+                    <form method="post" action="/apps/data/mapel/{{ m.id }}/hapus"
                           class="inline" onsubmit="return confirm('Hapus mata pelajaran {{ m.nama }}?')">
                         <button type="submit" class="text-red-600 hover:underline text-xs ml-2">Hapus</button>
                     </form>

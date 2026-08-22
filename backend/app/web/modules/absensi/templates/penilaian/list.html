@@ -9,7 +9,7 @@
     <h1 class="text-xl font-bold text-zinc-900">Penilaian</h1>
     <div class="flex items-center gap-2">
         {% if has_perm(user, 'penilaian.input') %}
-        <a href="/madrasah-app/penilaian/baru" class="btn btn-primary">
+        <a href="/apps/penilaian/baru" class="btn btn-primary">
             <i data-lucide="plus" class="w-4 h-4"></i> Buat Penilaian
         </a>
         {% endif %}
@@ -17,7 +17,7 @@
 </div>
 
 <!-- Filter -->
-<form method="get" action="/madrasah-app/penilaian"
+<form method="get" action="/apps/penilaian"
       class="bg-white rounded-lg border border-zinc-200 p-3 mb-3 flex flex-wrap items-end gap-3">
     <div class="min-w-[180px]">
         <label class="block text-xs font-medium text-zinc-600 mb-1">Kelas</label>
@@ -50,7 +50,7 @@
         </select>
     </div>
     {% if kelas_id or mapel_id or jenis %}
-    <a href="/madrasah-app/penilaian" class="text-xs text-zinc-500 hover:text-zinc-700 py-2">
+    <a href="/apps/penilaian" class="text-xs text-zinc-500 hover:text-zinc-700 py-2">
         <i data-lucide="x" class="w-3 h-3 inline"></i> Reset
     </a>
     {% endif %}
@@ -104,10 +104,10 @@
                     {% endif %}
                 </td>
                 <td class="px-4 py-2.5 text-right whitespace-nowrap">
-                    <a href="/madrasah-app/penilaian/materi/{{ m.id }}"
+                    <a href="/apps/penilaian/materi/{{ m.id }}"
                        class="text-teal-700 hover:underline text-xs">Input</a>
                     {% if has_perm(user, 'penilaian.input') %}
-                    <form method="post" action="/madrasah-app/penilaian/materi/{{ m.id }}/hapus"
+                    <form method="post" action="/apps/penilaian/materi/{{ m.id }}/hapus"
                           class="inline" onsubmit="return confirm('Hapus penilaian {{ m.nama }}? Semua nilainya ikut terhapus.')">
                         <button type="submit" class="text-red-600 hover:underline text-xs ml-2">Hapus</button>
                     </form>

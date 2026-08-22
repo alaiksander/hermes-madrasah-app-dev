@@ -46,7 +46,7 @@
 
     <!-- Form verifikasi -->
     <div class="bg-white rounded-xl border border-zinc-200 p-6 mb-6">
-        <form method="get" action="/madrasah-app/ortu" class="space-y-4">
+        <form method="get" action="/apps/ortu" class="space-y-4">
             <div>
                 <label class="block text-sm font-medium text-zinc-700 mb-1">Kode Madrasah</label>
                 <input type="text" name="kode" value="{{ kode or 'mtsn2kudus' }}" required
@@ -85,7 +85,7 @@
                 </p>
             </div>
             <!-- Dropdown bulan -->
-            <form method="get" action="/madrasah-app/ortu" class="flex items-center gap-2">
+            <form method="get" action="/apps/ortu" class="flex items-center gap-2">
                 <input type="hidden" name="kode" value="{{ kode }}">
                 <input type="hidden" name="nisn" value="{{ nisn }}">
                 <input type="hidden" name="nama_ortu" value="{{ nama_ortu }}">

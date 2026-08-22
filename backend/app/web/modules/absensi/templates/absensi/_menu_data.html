@@ -9,7 +9,7 @@
     </summary>
     <div class="sidebar-group-items">
         {% if has_any_perm(user, "murid.view", "murid.create", "murid.update", "murid.delete", "murid.import", "murid.qr") %}
-        <a href="/madrasah-app/data/murid"
+        <a href="/apps/data/murid"
            class="flex items-center gap-2 px-3 py-2 rounded-lg {% if '/murid' in request.url.path and '/murid-import' not in request.url.path and '/murid-template' not in request.url.path and '/murid-export' not in request.url.path %}bg-teal-50 text-teal-700 font-medium{% else %}text-zinc-700 hover:bg-zinc-100{% endif %}"
            title="Daftar Murid">
             <i data-lucide="users" class="w-4 h-4 flex-shrink-0 menu-icon"></i>
@@ -17,7 +17,7 @@
         </a>
         {% endif %}
         {% if has_any_perm(user, "kelas.view", "kelas.create", "kelas.update", "kelas.delete", "kelas.naik") %}
-        <a href="/madrasah-app/data/kelas"
+        <a href="/apps/data/kelas"
            class="flex items-center gap-2 px-3 py-2 rounded-lg {% if '/kelas' in request.url.path and '/naik-kelas' not in request.url.path %}bg-teal-50 text-teal-700 font-medium{% else %}text-zinc-700 hover:bg-zinc-100{% endif %}"
            title="Daftar Kelas">
             <i data-lucide="school" class="w-4 h-4 flex-shrink-0 menu-icon"></i>
@@ -25,7 +25,7 @@
         </a>
         {% endif %}
         {% if has_any_perm(user, "guru.view", "guru.create", "guru.update", "guru.delete", "guru.reset") %}
-        <a href="/madrasah-app/data/guru"
+        <a href="/apps/data/guru"
            class="flex items-center gap-2 px-3 py-2 rounded-lg {% if '/guru' in request.url.path and '/guru-import' not in request.url.path and '/guru-template' not in request.url.path %}bg-teal-50 text-teal-700 font-medium{% else %}text-zinc-700 hover:bg-zinc-100{% endif %}"
            title="Data Guru">
             <i data-lucide="user-cog" class="w-4 h-4 flex-shrink-0 menu-icon"></i>
@@ -33,7 +33,7 @@
         </a>
         {% endif %}
         {% if has_any_perm(user, "mapel.view", "mapel.create", "mapel.update", "mapel.delete") %}
-        <a href="/madrasah-app/data/mapel"
+        <a href="/apps/data/mapel"
            class="flex items-center gap-2 px-3 py-2 rounded-lg {% if '/mapel' in request.url.path %}bg-teal-50 text-teal-700 font-medium{% else %}text-zinc-700 hover:bg-zinc-100{% endif %}"
            title="Mata Pelajaran">
             <i data-lucide="book-open-check" class="w-4 h-4 flex-shrink-0 menu-icon"></i>
@@ -41,7 +41,7 @@
         </a>
         {% endif %}
         {% if has_any_perm(user, "ta.view", "ta.create", "ta.update") %}
-        <a href="/madrasah-app/data/tahun-ajaran"
+        <a href="/apps/data/tahun-ajaran"
            class="flex items-center gap-2 px-3 py-2 rounded-lg {% if '/tahun-ajaran' in request.url.path %}bg-teal-50 text-teal-700 font-medium{% else %}text-zinc-700 hover:bg-zinc-100{% endif %}"
            title="Tahun Ajaran">
             <i data-lucide="calendar" class="w-4 h-4 flex-shrink-0 menu-icon"></i>

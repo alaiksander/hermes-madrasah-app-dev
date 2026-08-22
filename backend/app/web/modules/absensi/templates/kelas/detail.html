@@ -15,10 +15,10 @@
     </div>
     <div class="flex items-center gap-2">
         {% if has_perm(user, 'kelas.update') %}
-        <a href="/madrasah-app/data/kelas/{{ kelas.id }}/edit" class="btn btn-secondary text-sm">
+        <a href="/apps/data/kelas/{{ kelas.id }}/edit" class="btn btn-secondary text-sm">
             <i data-lucide="pencil" class="w-4 h-4"></i> Edit
         </a>
-        <form method="post" action="/madrasah-app/data/kelas/{{ kelas.id }}/luluskan"
+        <form method="post" action="/apps/data/kelas/{{ kelas.id }}/luluskan"
               class="inline" onsubmit="return confirm('Luluskan semua murid aktif di kelas ini?')">
             <button type="submit" class="btn btn-secondary text-sm">
                 <i data-lucide="graduation-cap" class="w-4 h-4"></i> Luluskan Semua
@@ -69,11 +69,11 @@
                     {% endif %}
                 </td>
                 <td class="text-right">
-                    <a href="/madrasah-app/data/murid/{{ m.id }}" class="text-teal-700 hover:underline text-xs">
+                    <a href="/apps/data/murid/{{ m.id }}" class="text-teal-700 hover:underline text-xs">
                         Edit
                     </a>
                     {% if has_perm(user, 'kelas.update') %}
-                    <form method="post" action="/madrasah-app/data/murid/{{ m.id }}/hapus"
+                    <form method="post" action="/apps/data/murid/{{ m.id }}/hapus"
                           class="inline" onsubmit="return confirm('Arsipkan {{ m.nama }}?')">
                         <button type="submit" class="text-red-600 hover:underline text-xs ml-2">Arsip</button>
                     </form>

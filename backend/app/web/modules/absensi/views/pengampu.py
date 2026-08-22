@@ -1,11 +1,11 @@
 """Web UI: Halaman Penugasan Mengajar (admin only) + view guru sendiri.
 
 Routes:
-- GET  /madrasah-app/pengampu                — list semua guru (dengan jumlah pengampu)
-- GET  /madrasah-app/pengampu/{guru_id}      — detail 1 guru + form bulk edit
-- POST /madrasah-app/pengampu/{guru_id}      — submit bulk (replace all)
-- POST /madrasah-app/pengampu/{guru_id}/delete/{id} — hapus 1 item
-- GET  /madrasah-app/pengampu/me             — pengampu sendiri (guru only)
+- GET  /apps/pengampu                — list semua guru (dengan jumlah pengampu)
+- GET  /apps/pengampu/{guru_id}      — detail 1 guru + form bulk edit
+- POST /apps/pengampu/{guru_id}      — submit bulk (replace all)
+- POST /apps/pengampu/{guru_id}/delete/{id} — hapus 1 item
+- GET  /apps/pengampu/me             — pengampu sendiri (guru only)
 """
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import RedirectResponse
@@ -17,7 +17,7 @@ from ....core.templates import templates
 router = APIRouter(prefix="/pengampu")
 
 
-def _redirect(msg: str, type_: str = "success", path: str = "/madrasah-app/pengampu"):
+def _redirect(msg: str, type_: str = "success", path: str = "/apps/pengampu"):
     return RedirectResponse(
         url=f"{path}?msg={msg.replace(' ', '+')}&type={type_}",
         status_code=303,
@@ -177,9 +177,9 @@ async def pengampu_save(
     if r.status_code in (200, 201):
         return _redirect(f"Penugasan diperbarui ({len(items)} item)",
                           "success",
-                          f"/madrasah-app/pengampu/{guru_id}")
+                          f"/apps/pengampu/{guru_id}")
     return _redirect(f"Gagal simpan: {r.text[:80]}", "error",
-                     f"/madrasah-app/pengampu/{guru_id}")
+                     f"/apps/pengampu/{guru_id}")
 
 
 @router.post("/{guru_id}/delete/{pengampu_id}")
@@ -193,6 +193,6 @@ async def pengampu_delete_one(
     from ....core.client import api_delete
     r = await api_delete(request, f"/api/guru-pengampu/{pengampu_id}")
     if r.status_code in (200, 204):
-        return _redirect("Item dihapus", "success", f"/madrasah-app/pengampu/{guru_id}")
+        return _redirect("Item dihapus", "success", f"/apps/pengampu/{guru_id}")
     return _redirect(f"Gagal hapus: {r.text[:80]}", "error",
-                     f"/madrasah-app/pengampu/{guru_id}")
+                     f"/apps/pengampu/{guru_id}")

@@ -9,19 +9,19 @@
     <h1 class="text-xl font-bold text-zinc-900">Rekap Nilai {{ data.kelas_nama }}</h1>
     <div class="flex items-center gap-2">
         {% if has_perm(user, 'penilaian.export') %}
-        <a href="/madrasah-app/penilaian/export-rdm?kelas_id={{ kelas_id }}"
+        <a href="/apps/penilaian/export-rdm?kelas_id={{ kelas_id }}"
            class="btn btn-secondary text-sm">
             <i data-lucide="download" class="w-4 h-4"></i> Export RDM
         </a>
         {% endif %}
-        <a href="/madrasah-app/penilaian" class="btn btn-secondary text-sm">
+        <a href="/apps/penilaian" class="btn btn-secondary text-sm">
             <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali
         </a>
     </div>
 </div>
 
 <!-- Filter -->
-<form method="get" action="/madrasah-app/penilaian/rekap"
+<form method="get" action="/apps/penilaian/rekap"
       class="bg-white rounded-lg border border-zinc-200 p-3 mb-3 flex flex-wrap items-end gap-3">
     <div class="min-w-[180px]">
         <label class="block text-xs font-medium text-zinc-600 mb-1">Kelas</label>
@@ -104,7 +104,7 @@
     <i data-lucide="clipboard-list" class="w-12 h-12 mx-auto mb-2 text-zinc-300"></i>
     <p class="font-medium text-zinc-700">Belum ada materi penilaian untuk kelas ini</p>
     {% if has_perm(user, 'penilaian.input') %}
-    <a href="/madrasah-app/penilaian/baru" class="inline-block mt-2 text-xs text-teal-600 hover:underline">
+    <a href="/apps/penilaian/baru" class="inline-block mt-2 text-xs text-teal-600 hover:underline">
         Buat penilaian pertama
     </a>
     {% endif %}

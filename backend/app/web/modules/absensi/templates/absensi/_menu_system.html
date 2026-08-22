@@ -9,13 +9,13 @@
     </summary>
     <div class="sidebar-group-items">
         {% if has_perm(user, "pengaturan.view") or has_perm(user, "pengaturan.update") %}
-        <a href="/madrasah-app/system/pengaturan/jam-hari"
+        <a href="/apps/system/pengaturan/jam-hari"
            class="flex items-center gap-2 px-3 py-2 rounded-lg {% if '/pengaturan/jam-hari' in request.url.path %}bg-teal-50 text-teal-700 font-medium{% else %}text-zinc-700 hover:bg-zinc-100{% endif %}"
            title="Jam & Hari Aktif">
             <i data-lucide="clock" class="w-4 h-4 flex-shrink-0 menu-icon"></i>
             <span class="menu-text">Jam & Hari</span>
         </a>
-        <a href="/madrasah-app/system/pengaturan/scan-mode"
+        <a href="/apps/system/pengaturan/scan-mode"
            class="flex items-center gap-2 px-3 py-2 rounded-lg {% if '/pengaturan/scan-mode' in request.url.path %}bg-teal-50 text-teal-700 font-medium{% else %}text-zinc-700 hover:bg-zinc-100{% endif %}"
            title="Scan Mode">
             <i data-lucide="scan-line" class="w-4 h-4 flex-shrink-0 menu-icon"></i>
@@ -23,7 +23,7 @@
         </a>
         {% endif %}
         {% if has_perm(user, "role.view") or has_perm(user, "role.update") %}
-        <a href="/madrasah-app/system/role"
+        <a href="/apps/system/role"
            class="flex items-center gap-2 px-3 py-2 rounded-lg {% if '/role' in request.url.path and '/role/' not in request.url.path %}bg-teal-50 text-teal-700 font-medium{% else %}text-zinc-700 hover:bg-zinc-100{% endif %}"
            title="Role & Permission">
             <i data-lucide="shield-check" class="w-4 h-4 flex-shrink-0 menu-icon"></i>

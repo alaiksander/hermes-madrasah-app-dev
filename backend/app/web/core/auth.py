@@ -8,7 +8,7 @@ from fastapi.responses import Response
 
 
 _COOKIE_NAME = "madrasah_app_token"
-# Path root supaya cookie dikirim ke semua path (termasuk /tarbeya dan /madrasah-app)
+# Path root supaya cookie dikirim ke semua path (termasuk /tarbeya dan /apps)
 _COOKIE_PATH = "/"
 
 

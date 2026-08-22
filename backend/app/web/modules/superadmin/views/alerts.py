@@ -56,13 +56,13 @@ async def alerts_check(
         else:
             msg = pesan
         _audit(user, "alerts_check_web", msg)
-        return _redirect("/madrasah-app/superadmin/alerts", msg)
+        return _redirect("/apps/superadmin/alerts", msg)
     detail = "Gagal menjalankan cek"
     try:
         detail = r.json().get("detail", detail)
     except Exception:
         pass
-    return _redirect("/madrasah-app/superadmin/alerts", detail, "error")
+    return _redirect("/apps/superadmin/alerts", detail, "error")
 
 
 @router.post("/alerts/test")
@@ -76,10 +76,10 @@ async def alerts_test(
         data = r.json()
         pesan = data.get("pesan", "Uji dikirim")
         _audit(user, "alerts_test_web", f"Uji notifikasi: {pesan}")
-        return _redirect("/madrasah-app/superadmin/alerts", pesan)
+        return _redirect("/apps/superadmin/alerts", pesan)
     detail = "Gagal mengirim uji"
     try:
         detail = r.json().get("detail", detail)
     except Exception:
         pass
-    return _redirect("/madrasah-app/superadmin/alerts", detail, "error")
+    return _redirect("/apps/superadmin/alerts", detail, "error")

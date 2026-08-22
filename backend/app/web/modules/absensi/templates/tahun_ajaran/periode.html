@@ -6,7 +6,7 @@
 <div class="max-w-4xl">
   <div class="flex items-center justify-between mb-4">
     <div><h1 class="text-xl font-bold text-zinc-900">Atur Semester</h1><p class="text-sm text-zinc-500">{{ tahun.nama }} · {{ tahun.tanggal_mulai|format_date_id }} s.d. {{ tahun.tanggal_selesai|format_date_id }}</p></div>
-    <a href="/madrasah-app/data/tahun-ajaran" class="btn btn-secondary text-sm"><i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali</a>
+    <a href="/apps/data/tahun-ajaran" class="btn btn-secondary text-sm"><i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali</a>
   </div>
   <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 text-sm text-blue-800"><i data-lucide="info" class="w-4 h-4 inline"></i> Tanggal semester harus berada di dalam rentang tahun ajaran dan tidak boleh saling tumpang tindih.</div>
   {% if request.query_params.get('msg') %}<div class="bg-{{ 'green' if request.query_params.get('type') != 'error' else 'red' }}-50 border border-{{ 'green' if request.query_params.get('type') != 'error' else 'red' }}-200 rounded-lg p-3 mb-4 text-sm">{{ request.query_params.get('msg') }}</div>{% endif %}

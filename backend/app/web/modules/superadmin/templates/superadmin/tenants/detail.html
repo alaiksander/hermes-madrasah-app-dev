@@ -7,7 +7,7 @@
 {% block content %}
 <div class="flex items-center justify-between mb-4">
     <div>
-        <a href="/madrasah-app/superadmin/tenants"
+        <a href="/apps/superadmin/tenants"
            class="inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-700 mb-1">
             <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke Tenants
         </a>
@@ -26,12 +26,12 @@
         </p>
     </div>
     <div class="flex items-center gap-2">
-        <form method="get" action="/madrasah-app/superadmin/tenants/{{ tenant.id }}/backup">
+        <form method="get" action="/apps/superadmin/tenants/{{ tenant.id }}/backup">
             <button type="submit" class="btn btn-secondary text-sm">
                 <i data-lucide="database-backup" class="w-4 h-4"></i> Backup
             </button>
         </form>
-        <a href="/madrasah-app/superadmin/tenants/{{ tenant.id }}/edit" class="btn btn-secondary text-sm">
+        <a href="/apps/superadmin/tenants/{{ tenant.id }}/edit" class="btn btn-secondary text-sm">
             <i data-lucide="edit-3" class="w-4 h-4"></i> Edit
         </a>
     </div>
@@ -63,7 +63,7 @@
         <i data-lucide="key" class="w-4 h-4 text-zinc-500"></i> Reset Password Akun
     </h2>
     <p class="text-xs text-zinc-500 mb-3">Reset password akun admin/guru di tenant ini</p>
-    <form method="post" action="/madrasah-app/superadmin/tenants/{{ tenant.id }}/reset-password"
+    <form method="post" action="/apps/superadmin/tenants/{{ tenant.id }}/reset-password"
           class="flex items-end gap-2">
         <div class="w-48">
             <label class="block text-xs font-medium text-zinc-600 mb-1">Username Akun</label>
@@ -91,7 +91,7 @@
         Buat akun admin pertama atau tambah admin baru untuk tenant ini
         (tenant baru wajib punya admin agar bisa login)
     </p>
-    <form method="post" action="/madrasah-app/superadmin/tenants/{{ tenant.id }}/admin"
+    <form method="post" action="/apps/superadmin/tenants/{{ tenant.id }}/admin"
           class="grid grid-cols-1 md:grid-cols-4 gap-2 items-end">
         <div>
             <label class="block text-xs font-medium text-zinc-600 mb-1">Nama Lengkap</label>
@@ -146,14 +146,14 @@
                     {% endif %}
                 </td>
                 <td class="text-right">
-                    <form method="post" action="/madrasah-app/superadmin/tenants/{{ tenant.id }}/admins/{{ a.id }}/toggle"
+                    <form method="post" action="/apps/superadmin/tenants/{{ tenant.id }}/admins/{{ a.id }}/toggle"
                           class="inline">
                         <button type="submit"
                                 class="text-xs {% if a.is_active %}text-amber-600 hover:underline{% else %}text-green-600 hover:underline{% endif %}">
                             {% if a.is_active %}Nonaktifkan{% else %}Aktifkan{% endif %}
                         </button>
                     </form>
-                    <form method="post" action="/madrasah-app/superadmin/tenants/{{ tenant.id }}/admins/{{ a.id }}/hapus"
+                    <form method="post" action="/apps/superadmin/tenants/{{ tenant.id }}/admins/{{ a.id }}/hapus"
                           class="inline"
                           onsubmit="return confirm('Hapus akun {{ a.username }}?')">
                         <button type="submit" class="text-xs text-red-600 hover:underline ml-2">Hapus</button>
@@ -175,7 +175,7 @@
     <h2 class="text-sm font-semibold text-red-800 mb-2 flex items-center gap-2">
         <i data-lucide="alert-triangle" class="w-4 h-4"></i> Zona Berbahaya
     </h2>
-    <form method="post" action="/madrasah-app/superadmin/tenants/{{ tenant.id }}/hapus"
+    <form method="post" action="/apps/superadmin/tenants/{{ tenant.id }}/hapus"
           onsubmit="return confirm('HAPUS PERMANEN tenant {{ tenant.nama }}? Semua data murid, guru, absensi akan hilang!')"
           class="flex items-end gap-2">
         <div class="flex-1">

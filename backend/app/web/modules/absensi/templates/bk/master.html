@@ -10,7 +10,7 @@
         <h1 class="text-xl font-bold text-zinc-900">Master BK</h1>
         <p class="text-sm text-zinc-500 mt-1">Kelola kategori + item pelanggaran / prestasi.</p>
     </div>
-    <a href="/madrasah-app/bk/konfigurasi"
+    <a href="/apps/bk/konfigurasi"
        class="inline-flex items-center gap-2 px-4 py-2 bg-zinc-700 text-white rounded-lg hover:bg-zinc-800 text-sm">
         <i data-lucide="settings" class="w-4 h-4"></i> Konfigurasi
     </a>
@@ -24,7 +24,7 @@
     <!-- Form kategori baru -->
     <div class="bg-white rounded-lg border border-zinc-200 p-4">
         <h2 class="font-semibold text-zinc-900 text-sm mb-3">Tambah Kategori</h2>
-        <form method="post" action="/madrasah-app/bk/kategori/new" class="space-y-2">
+        <form method="post" action="/apps/bk/kategori/new" class="space-y-2">
             <div>
                 <label class="block text-xs font-medium text-zinc-600 mb-1">Nama kategori</label>
                 <input type="text" name="nama" required placeholder="cth: Konseling Akademik, Kedisiplinan"
@@ -66,7 +66,7 @@
     <!-- Form pelanggaran baru -->
     <div class="bg-white rounded-lg border border-zinc-200 p-4">
         <h2 class="font-semibold text-zinc-900 text-sm mb-3">Tambah Item (Pelanggaran/Prestasi)</h2>
-        <form method="post" action="/madrasah-app/bk/pelanggaran/new" class="space-y-2">
+        <form method="post" action="/apps/bk/pelanggaran/new" class="space-y-2">
             <div>
                 <label class="block text-xs font-medium text-zinc-600 mb-1">Kategori</label>
                 <select name="kategori_id" required class="w-full px-3 py-1.5 border border-zinc-300 rounded-md text-sm">
@@ -124,7 +124,7 @@
                     class="text-xs text-teal-700 hover:underline inline-flex items-center gap-1">
                 <i data-lucide="pencil" class="w-3 h-3"></i> Edit
             </button>
-            <form method="post" action="/madrasah-app/bk/kategori/{{ k.id }}/delete"
+            <form method="post" action="/apps/bk/kategori/{{ k.id }}/delete"
                   onsubmit="return confirm('Hapus kategori? Item harus dihapus dulu.')">
                 <button type="submit" class="text-xs text-red-700 hover:underline">Hapus</button>
             </form>
@@ -145,7 +145,7 @@
                                 class="text-xs text-teal-700 hover:underline inline-flex items-center gap-1">
                             <i data-lucide="pencil" class="w-3 h-3"></i> Edit
                         </button>
-                        <form method="post" action="/madrasah-app/bk/pelanggaran/{{ p.id }}/delete"
+                        <form method="post" action="/apps/bk/pelanggaran/{{ p.id }}/delete"
                               onsubmit="return confirm('Hapus item?')" class="inline">
                             <button type="submit" class="text-xs text-red-700 hover:underline">Hapus</button>
                         </form>
@@ -246,14 +246,14 @@ function closeModal(id) {
 function openEditKategori(id, nama, jenis) {
     document.getElementById('editKatNama').value = nama;
     document.getElementById('editKatJenis').value = jenis;
-    document.getElementById('formEditKategori').action = '/madrasah-app/bk/kategori/' + id + '/edit';
+    document.getElementById('formEditKategori').action = '/apps/bk/kategori/' + id + '/edit';
     openModal('modalEditKategori');
 }
 function openEditItem(id, nama, poin, tingkat) {
     document.getElementById('editItemNama').value = nama;
     document.getElementById('editItemPoin').value = poin;
     document.getElementById('editItemTingkat').value = tingkat;
-    document.getElementById('formEditItem').action = '/madrasah-app/bk/pelanggaran/' + id + '/edit';
+    document.getElementById('formEditItem').action = '/apps/bk/pelanggaran/' + id + '/edit';
     openModal('modalEditItem');
 }
 </script>

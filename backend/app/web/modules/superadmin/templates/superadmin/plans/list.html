@@ -10,7 +10,7 @@
         <h1 class="text-xl font-bold text-zinc-900">Paket & Kuota (Plans)</h1>
         <p class="text-sm text-zinc-500 mt-1">Definisi plan: batas murid, guru, dan fitur tiap paket</p>
     </div>
-    <a href="/madrasah-app/superadmin/plans/baru" class="btn btn-primary text-sm">
+    <a href="/apps/superadmin/plans/baru" class="btn btn-primary text-sm">
         <i data-lucide="plus" class="w-4 h-4"></i> Tambah Plan
     </a>
 </div>
@@ -52,10 +52,10 @@
             </div>
         </div>
         <div class="px-5 py-3 border-t border-zinc-100 flex items-center justify-end gap-2">
-            <a href="/madrasah-app/superadmin/plans/{{ p.id }}/edit" class="btn btn-secondary text-xs">
+            <a href="/apps/superadmin/plans/{{ p.id }}/edit" class="btn btn-secondary text-xs">
                 <i data-lucide="edit-3" class="w-3 h-3"></i> Edit
             </a>
-            <form method="post" action="/madrasah-app/superadmin/plans/{{ p.id }}/hapus"
+            <form method="post" action="/apps/superadmin/plans/{{ p.id }}/hapus"
                   onsubmit="return confirm('Hapus plan {{ p.nama }}?')">
                 <button type="submit" class="btn bg-red-600 text-white text-xs hover:bg-red-700">
                     <i data-lucide="trash-2" class="w-3 h-3"></i> Hapus
