@@ -622,7 +622,7 @@ async def murid_import_commit(
     async with httpx.AsyncClient(timeout=60) as c:
         token = request.cookies.get("madrasah_app_token")
         r = await c.post(
-            "http://127.0.0.1:8010/api/murid/import",
+            "http://127.0.0.1:8013/api/murid/import",
             files={"file": (file.filename or "import.xlsx", cleaned_bytes,
                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")},
             headers={"Authorization": f"Bearer {token}"} if token else {},

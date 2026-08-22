@@ -14,7 +14,7 @@ from .core.templates import templates
 
 router = APIRouter(tags=["web-shared"])
 
-API_BASE = "http://127.0.0.1:8010"
+API_BASE = "http://127.0.0.1:8013"
 
 
 @router.get("/")
