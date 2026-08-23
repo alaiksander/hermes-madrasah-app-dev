@@ -70,17 +70,18 @@
 
         {% if kegiatan %}
         {% for k in kegiatan %}
-        <div class="border border-zinc-200 rounded-lg p-4 mb-3">
+        <div class="border border-zinc-200 rounded-lg p-4 mb-3"
+             x-data="{ total: {{ k.jumlah_anggota }}, hadir: {{ k.jumlah_hadir }} }">
             <div class="flex items-center justify-between mb-2">
                 <div class="text-sm font-medium">{{ k.tanggal }} {% if k.topik %}<span class="text-zinc-500">— {{ k.topik }}</span>{% endif %}</div>
-                <span class="text-xs text-zinc-500">{{ k.jumlah_hadir }}/{{ k.jumlah_anggota }} hadir</span>
+                <span class="text-xs text-zinc-500" x-text="hadir + '/' + total + ' hadir'">{{ k.jumlah_hadir }}/{{ k.jumlah_anggota }} hadir</span>
             </div>
             {% if anggota %}
-            <form method="post" action="/apps/ekskul/{{ ekskul.id }}/kegiatan/{{ k.id }}/presensi">
+            <form method="post" action="/apps/ekskul/{{ ekskul.id }}/kegiatan/{{ k.id }}/presensi" @submit="hadir = $el.querySelectorAll('input[name=hadir]:checked').length">
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-1 mb-2">
                     {% for a in anggota %}
                     <label class="flex items-center gap-2 text-sm">
-                        <input type="checkbox" name="hadir" value="{{ a.murid_id }}" checked class="accent-teal-600">
+                        <input type="checkbox" name="hadir" value="{{ a.murid_id }}" checked class="accent-teal-600" @change="hadir = $root.querySelectorAll('input[name=hadir]:checked').length">
                         {{ a.nama }}
                     </label>
                     {% endfor %}

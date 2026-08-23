@@ -12,16 +12,20 @@
     </a>
 </div>
 
-<!-- Tab masuk/keluar -->
-<div class="flex gap-1 mb-4 bg-zinc-100 p-1 rounded-lg w-fit">
-    <a href="/apps/tata-usaha?jenis=masuk"
-       class="px-4 py-1.5 rounded-md text-sm font-medium {% if jenis == 'masuk' %}bg-white text-zinc-900 shadow-sm{% else %}text-zinc-600 hover:text-zinc-900{% endif %}">
-        Surat Masuk
-    </a>
-    <a href="/apps/tata-usaha?jenis=keluar"
-       class="px-4 py-1.5 rounded-md text-sm font-medium {% if jenis == 'keluar' %}bg-white text-zinc-900 shadow-sm{% else %}text-zinc-600 hover:text-zinc-900{% endif %}">
-        Surat Keluar
-    </a>
+<!-- Tab masuk/keluar (Alpine.js — state client-side) -->
+<div x-data="{ jenis: '{{ jenis }}' }" class="mb-4">
+    <div class="flex gap-1 bg-zinc-100 p-1 rounded-lg w-fit">
+        <button type="button" @click="jenis='masuk'; window.location='/apps/tata-usaha?jenis=masuk'"
+                :class="jenis==='masuk' ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-600 hover:text-zinc-900'"
+                class="px-4 py-1.5 rounded-md text-sm font-medium">
+            Surat Masuk
+        </button>
+        <button type="button" @click="jenis='keluar'; window.location='/apps/tata-usaha?jenis=keluar'"
+                :class="jenis==='keluar' ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-600 hover:text-zinc-900'"
+                class="px-4 py-1.5 rounded-md text-sm font-medium">
+            Surat Keluar
+        </button>
+    </div>
 </div>
 
 <!-- Filter -->
