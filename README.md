@@ -1,18 +1,18 @@
-# Madrasah-App
+# Tarbeya
 
 > **Multi-tenant SaaS for Islamic school (madrasah) administration** — QR attendance, student counseling (BK), teaching journal, grading, EMIS import, and class advisor tools, all in one platform.
 
-[![Live Demo](https://img.shields.io/badge/demo-vps.alaiksander.my.id%2Fmadrasah--app-blue)](https://vps.alaiksander.my.id/madrasah-app/)
+[![Live Demo](https://img.shields.io/badge/demo-vps.alaiksander.my.id%2Fapps-blue)](https://vps.alaiksander.my.id/apps/)
 [![Stack](https://img.shields.io/badge/backend-FastAPI%20%2B%20SQLAlchemy%202.0-009688)]()
-[![Frontend](https://img.shields.io/badge/frontend-Flutter%20Web%20%2B%20HTMX-02569B)]()
-[![Tests](https://img.shields.io/badge/tests-1%2C552%20functions-green)]()
-[![Endpoints](https://img.shields.io/badge/endpoints-293%20(139%20API%20%2B%20154%20web)-orange)]()
+[![Frontend](https://img.shields.io/badge/frontend-Jinja2%20%2B%20HTMX%20%2B%20Flutter-02569B)]()
+[![Tests](https://img.shields.io/badge/tests-530%20pass-green)]()
+[![Endpoints](https://img.shields.io/badge/endpoints-389%20(173%20API%20%2B%20216%20web)-orange)]()
 
 ---
 
-## 🎯 What is Madrasah-App?
+## 🎯 What is Tarbeya?
 
-Madrasah-App is a **multi-tenant SaaS platform** built for the operational needs of Indonesian *madrasah* (Islamic schools), from MTs (Madrasah Tsanawiyah / junior high) to MA (Madrasah Aliyah / senior high) and beyond.
+Tarbeya is a **multi-tenant SaaS platform** built for the operational needs of Indonesian *madrasah* (Islamic schools), from MTs (Madrasah Tsanawiyah / junior high) to MA (Madrasah Aliyah / senior high) and beyond.
 
 It replaces the fragmented, manual workflows that consume hours of teacher and admin time each week:
 
@@ -22,11 +22,11 @@ It replaces the fragmented, manual workflows that consume hours of teacher and a
 | **Jurnal Mengajar** | Teacher logs daily lesson topics, attendance, materials | Manual lesson log book |
 | **Bimbingan Konseling (BK)** | Student violation points, counseling sessions, status SP (Surat Peringatan) | Manual violation tracking |
 | **Penilaian** | KKTP formatif-sumatif grading, per-materi assessment, RDM export | Spreadsheet grade books |
+| **Pembayaran** | Tuition/fee billing, installments, discounts, deferrals, auto-generate per type | Manual fee ledger |
 | **Wali Kelas** | Class advisor dashboard: student roster, parent contacts, periodic reports | Manual roll books |
 | **Import EMIS** | Bulk import from EMIS Excel, auto-map to classes | Manual data entry into EMIS |
 | **Role & Permission Matrix** | Admin defines roles; menus/buttons auto-hide based on permissions | Hard-coded role checks |
 | **Multi-madrasah tenant** | One deployment serves many schools; data isolated per schema | Each school needs its own server |
-
 
 ---
 
@@ -42,27 +42,26 @@ It replaces the fragmented, manual workflows that consume hours of teacher and a
 | **Database (prod)** | PostgreSQL 16 (schema-per-tenant isolation) |
 | **Auth** | JWT (PyJWT) + HttpOnly cookies (HttpOnly + Secure on HTTPS) |
 | **Validation** | Pydantic v2 |
-| **Templates** | Jinja2 + HTMX 2.0 + Tailwind CSS (CDN) + Lucide icons (local) |
+| **Templates** | Jinja2 + HTMX 2.0 + Tailwind CSS (CDN) + Lucide icons (local) + Fuse.js (local) |
 | **QR** | `qrcode` + Pillow |
 | **Excel I/O** | openpyxl |
 | **PDF** | reportlab |
 | **Server** | uvicorn + nginx reverse proxy + systemd |
 
-### Frontend (`app/`)
+### Frontend
 
 | Component | Technology |
 |-----------|------------|
-| **Framework** | [Flutter](https://flutter.dev/) 3.x (web build) |
-| **State** | Provider / built-in stateful widgets |
+| **Web admin UI** | Jinja2 + HTMX 2.0 + Tailwind (served at `/apps/`) |
+| **Mobile app** | [Flutter](https://flutter.dev/) 3.x web build (served at `/madrasah/`) |
 | **API client** | `http` package + custom AuthService |
 | **Storage** | SharedPreferences (token + user cache) |
-| **Build target** | Web (single-page app) — `--base-href=/madrasah/` |
 
 ### Deployment & Ops
 
 | Component | Technology |
 |-----------|------------|
-| **Process manager** | systemd (user-level for Hermes gateway) |
+| **Process manager** | systemd (`tarbeya-backend.service`, uvicorn on `127.0.0.1:8013`) |
 | **Reverse proxy** | nginx with brotli + HTTP/2 + keepalive pool |
 | **CI/CD** | Manual `push-to-prod.sh` script (zero-downtime rsync + verify) |
 | **Observability** | journalctl + nginx access log + per-app health endpoints |
@@ -73,7 +72,7 @@ It replaces the fragmented, manual workflows that consume hours of teacher and a
 ## 📁 Project Structure
 
 ```
-madrasah-app/
+tarbeya/
 ├── backend/                    # FastAPI backend
 │   ├── app/
 │   │   ├── main.py             # Application entry point
@@ -83,12 +82,13 @@ madrasah-app/
 │   │   ├── schemas.py          # Pydantic request/response schemas
 │   │   ├── deps.py             # FastAPI dependencies (auth, permission, db)
 │   │   ├── permissions.py      # Permission codes + role defaults
-│   │   ├── routers/            # API endpoints (139 total)
+│   │   ├── routers/            # API endpoints (173 total)
 │   │   │   ├── absensi.py      # Attendance (QR scan, manual, recap)
 │   │   │   ├── bk.py           # Bimbingan Konseling
 │   │   │   ├── jurnal.py       # Teaching journal
 │   │   │   ├── murid.py        # Students CRUD + import/export
 │   │   │   ├── kelas.py        # Classes + naik kelas
+│   │   │   ├── tagihan.py      # Billing / payments
 │   │   │   ├── superadmin.py   # Tenant management, backup, audit
 │   │   │   └── ...
 │   │   ├── web/                # Web admin UI (Jinja2 + HTMX)
@@ -100,19 +100,16 @@ madrasah-app/
 │   ├── requirements.txt
 │   └── .env.example            # Template (real .env is gitignored)
 │
-├── app/                        # Flutter web frontend
+├── app/                        # Flutter web frontend (mobile)
 │   ├── lib/
 │   │   ├── main.dart
 │   │   ├── services/           # auth, api, storage
 │   │   ├── screens/            # absensi, profile, login
 │   │   └── widgets/
 │   ├── web/                    # Web build output (gitignored)
-│   ├── android/                # Android build (optional)
 │   └── pubspec.yaml
 │
 ├── marketing/                  # Marketing materials (slides, social cards)
-│
-├── .github/                    # (optional) GitHub Actions workflows
 ├── README.md                   # ← you are here
 ├── .gitignore                  # Comprehensive (secrets, venv, DB, build artifacts)
 └── LICENSE                     # TBD
@@ -125,7 +122,7 @@ madrasah-app/
 ### Prerequisites
 
 - Python 3.11+ (tested on 3.11 and 3.12)
-- Flutter 3.x (for web build)
+- Flutter 3.x (for mobile web build)
 - Git
 - ~500 MB disk space
 
@@ -159,11 +156,12 @@ python3 -c "from app.db import init_global_db; init_global_db()"
 ### 3. Start backend
 
 ```bash
-uvicorn app.main:app --reload --host 127.0.0.1 --port 8010
-# API docs: http://127.0.0.1:8010/docs (Swagger UI)
+uvicorn app.main:app --reload --host 127.0.0.1 --port 8013
+# API docs: http://127.0.0.1:8013/docs (Swagger UI)
+# Web admin: http://127.0.0.1:8013/apps/
 ```
 
-### 4. Start Flutter web (separate terminal)
+### 4. Start Flutter web (separate terminal, optional)
 
 ```bash
 cd ../app
@@ -211,45 +209,43 @@ app/web/modules/<module>/
 
 ### Permission System
 
-Inspired by [P-WEB-82](https://github.com/alaiksander/hermes-madrasah-app-dev) (in this repo's skill references):
-
 1. Each user has a `role` (admin/guru) AND optionally a `role_id` (custom role)
 2. **Custom roles win** — DB lookup `RolePermission` for `role_id`
 3. Falls back to `admin` → `ROLE_DEFAULT_PERMISSIONS["guru"]` → `False`
 4. Sidebar + API use the same `user_has_permission()` check
 
-Admin can toggle each permission per role via `/system/role/{id}/matrix`. Groups auto-hide if all submenus have no permission.
+Admin can toggle each permission per role via `/apps/system/role/{id}/matrix`. Groups auto-hide if all submenus have no permission.
 
 ---
 
 ## 📡 API Overview
 
-The project has **293 endpoints** total: **139 REST API + 154 web views**.
+The project has **389 endpoints** total: **173 REST API + 216 web views**.
 
 ### API Base Path
-- Dev: `http://127.0.0.1:8010/api/...`
-- Prod: `https://vps.alaiksander.my.id/madrasah-api/api/...`
+- Dev: `http://127.0.0.1:8013/api/...`
+- Prod: `https://vps.alaiksander.my.id/apps-api/api/...`
 
 ### Quick examples
 
 ```bash
 # Login
-curl -X POST http://127.0.0.1:8010/api/auth/login \
+curl -X POST http://127.0.0.1:8013/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"kode_madrasah":"mtsn2kudus","username":"admin","password":"admin123"}'
 
 # List students (with Bearer token)
-curl -H "Authorization: Bearer $TOKEN" \
-  "http://127.0.0.1:8010/api/murid?page=1&per_page=50"
+curl -H "Authorization: Bearer ***" \
+  "http://127.0.0.1:8013/api/murid?page=1&per_page=50"
 
 # Get attendance today
-curl -H "Authorization: Bearer $TOKEN" \
-  http://127.0.0.1:8010/api/absensi/hari-ini
+curl -H "Authorization: Bearer ***" \
+  http://127.0.0.1:8013/api/absensi/hari-ini
 ```
 
 ### Full API reference
 
-After starting the backend, visit **http://127.0.0.1:8010/docs** for interactive Swagger UI (auto-generated by FastAPI).
+After starting the backend, visit **http://127.0.0.1:8013/docs** for interactive Swagger UI (auto-generated by FastAPI).
 
 ---
 
@@ -257,14 +253,13 @@ After starting the backend, visit **http://127.0.0.1:8010/docs** for interactive
 
 ```bash
 cd backend
-pytest -x -q                    # Run all tests
-pytest tests/test_absensi.py     # Specific module
-pytest -k "test_login"           # Specific test name
+./venv/bin/python test_auth_role.py    # Run a single test file
+./venv/bin/python test_*.py            # Run all test files
 ```
 
-- **1,552 test functions** across the project
-- **5.3 tests per endpoint** (above industry standard of 3-5)
-- Coverage gaps mapped to skill `web-modul-pitfalls-lanjutan.md`
+- **530 test assertions** across 17 test files, **0 failures**
+- Covers all 173 API endpoints (100% coverage)
+- Tests use isolated test tenants — never touch real `mtsn2kudus` data
 
 ---
 
@@ -274,14 +269,14 @@ This is currently a **single-author project** built by a teacher. If you find it
 
 1. **Open an issue** first — describe the use case or bug
 2. **Fork the repo** and create a feature branch (`git checkout -b feat/your-feature`)
-3. **Write tests** for new features (target: maintain the 5.3 tests/endpoint ratio)
+3. **Write tests** for new features (target: maintain full API coverage)
 4. **Follow existing patterns**:
    - Multi-tenant aware (no raw `tenant_id` filters — isolation is structural)
    - Permission-driven (sidebar + API use `user_has_permission()`)
    - HTMX 2.0 + Tailwind for web, no heavy JS framework
 5. **Submit a Pull Request** with:
    - Description of what + why
-   - Test results (`pytest output`)
+   - Test results (`./venv/bin/python test_*.py`)
    - Migration file (if schema change): `alembic revision -m "msg"`
 
 ### Code of Conduct
@@ -317,7 +312,7 @@ This repo tracks extensive in-repo documentation:
 
 - `backend/alembic/` — Database migration history
 - `marketing/` — Landing page copy, social media assets
-- Skill references (in the Hermes Agent ecosystem): `madrasah-app`, `web-modul-pattern`, `permission-driven-menu`, `mobile-friendly-patterns`
+- Skill references (in the Hermes Agent ecosystem): `madrasah-app`, `tarbeya-migrate-path`, `permission-driven-menu`, `mobile-friendly-patterns`
 
 ---
 
