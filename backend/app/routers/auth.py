@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from ..db import GlobalSession, tenant_session_factory
 from ..deps import get_current_user, maintenance_block
 from ..models import Guru, SuperAdmin, Tenant
+from ..ratelimit import rate_limit_login
 from ..schemas import LoginRequest, SuperLoginRequest, TokenResponse, UserMe
 from ..security import create_token, verify_password
 
@@ -22,12 +23,14 @@ def get_global_db():
 
 
 @router.post("/login", response_model=TokenResponse)
-def login(data: LoginRequest, gs: Session = Depends(get_global_db)):
+def login(data: LoginRequest, gs: Session = Depends(get_global_db),
+          _rl: None = Depends(rate_limit_login)):
     """Login guru/admin madrasah: kode_madrasah + username + password."""
     maintenance_block()
     tenant = gs.query(Tenant).filter_by(kode=data.kode_madrasah).first()
     if not tenant:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Kode madrasah tidak ditemukan")
+        # Response seragam (anti tenant enumeration) — jangan bocor bahwa kode tidak ada
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Username atau password salah")
     if tenant.status == "suspended":
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Madrasah sedang disuspend — hubungi admin")
     if (tenant.masa_langganan_hingga
@@ -59,7 +62,8 @@ def login(data: LoginRequest, gs: Session = Depends(get_global_db)):
 
 
 @router.post("/login-super", response_model=TokenResponse)
-def login_super(data: SuperLoginRequest, gs: Session = Depends(get_global_db)):
+def login_super(data: SuperLoginRequest, gs: Session = Depends(get_global_db),
+                _rl: None = Depends(rate_limit_login)):
     """Login super admin (kelola seluruh tenant)."""
     sa = gs.query(SuperAdmin).filter_by(username=data.username).first()
     if not sa or not verify_password(data.password, sa.password_hash):

@@ -31,6 +31,14 @@ class Settings(BaseSettings):
     alert_disk_pct: int = 80
     alert_ram_pct: int = 12
 
+    # Lokasi backup DB (default dev; production set BACKUP_DIR di .env)
+    backup_dir: str = str(BASE_DIR / "backups")
+
+    @property
+    def is_prod(self) -> bool:
+        """True kalau APP_ENV=production."""
+        return self.app_env == "production"
+
     @property
     def is_pg(self) -> bool:
         """True kalau database_url PostgreSQL (schema-per-tenant mode)."""

@@ -298,15 +298,38 @@ async def lifespan(_: FastAPI):
     _stop_scheduler.set()
 
 
-app = FastAPI(title="Aplikasi Madrasah API", version="0.1.0",
-              description="Absensi QR multi-madrasah — Phase 1", lifespan=lifespan)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # dev — dibatasi mengko pas production
-    allow_methods=["*"],
-    allow_headers=["*"],
+app = FastAPI(
+    title="Aplikasi Madrasah API",
+    version="0.1.0",
+    description="Absensi QR multi-madrasah — Phase 1",
+    lifespan=lifespan,
+    # Production: matikan Swagger UI / OpenAPI (jangan bocor endpoint ke publik).
+    # Dev: biarkan aktif untuk tes manual.
+    docs_url=("/docs" if not settings.is_prod else None),
+    redoc_url=("/redoc" if not settings.is_prod else None),
+    openapi_url=("/openapi.json" if not settings.is_prod else None),
 )
+
+# CORS: dev = wildcard; production = whitelist domain resmi.
+if settings.is_prod:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[
+            "https://vps.alaiksander.my.id",
+            "http://103.92.214.198",
+            "http://127.0.0.1",
+        ],
+        allow_methods=["*"],
+        allow_headers=["*"],
+        allow_credentials=True,
+    )
+else:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 # ── Web panel (Jinja2 + HTMX) ──────────────────────────────────────
 from pathlib import Path
@@ -487,4 +510,4 @@ for r in (auth.router, superadmin.router, kelas.router, tahun_ajaran.router,
 
 @app.get("/api/health")
 def health():
-    return {"status": "ok", "app": "madrasah-api", "env": "dev"}
+    return {"status": "ok", "app": "madrasah-api"}

@@ -21,7 +21,9 @@ WIB = ZoneInfo("Asia/Jakarta")
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent   # .../backend
 DATA_DIR = BACKEND_DIR / "data"
-BACKUP_DIR = Path(os.environ.get("BACKUP_DIR", "/home/ubuntu/backups/madrasah"))
+# Lokasi backup: pakai settings.backup_dir (bisa di-override via BACKUP_DIR env / .env).
+# Default dev = backend/backups; production set BACKUP_DIR di .env (mis. /opt/madrasah-app/backups).
+BACKUP_DIR = Path(os.environ.get("BACKUP_DIR", settings.backup_dir))
 DELETED_DIR = BACKUP_DIR / "deleted"   # backup wajib sadurunge tenant dihapus (ora kena retensi)
 SNAPSHOT_DIR = BACKUP_DIR / "snapshots"   # snapshot point-in-time per tenant
 
