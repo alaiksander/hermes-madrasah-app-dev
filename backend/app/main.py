@@ -241,6 +241,44 @@ def _alert_scheduler() -> None:
         _stop_scheduler.wait(15 * 60)
 
 
+def _snapshot_scheduler() -> None:
+    """Cek saben menit: snapshot otomatis per tenant miturut setelan."""
+    from .backup import create_tenant_snapshot
+    from .models import SnapshotLog, Tenant
+    while not _stop_scheduler.is_set():
+        try:
+            with GlobalSession() as gs:
+                now = datetime.now(WIB)
+                mulai_hari = datetime(now.year, now.month, now.day)
+                tenants = (gs.query(Tenant)
+                           .filter(Tenant.snapshot_otomatis_enabled.is_(True))
+                           .all())
+                for t in tenants:
+                    jam = t.snapshot_otomatis_jam or "02:00"
+                    if now.strftime("%H:%M") != jam:
+                        continue
+                    # cegah dobel di hari yang sama
+                    done = (gs.query(SnapshotLog)
+                            .filter(SnapshotLog.tenant_id == t.id,
+                                    SnapshotLog.jenis == "otomatis",
+                                    SnapshotLog.waktu >= mulai_hari)
+                            .first())
+                    if done:
+                        continue
+                    try:
+                        path = create_tenant_snapshot(t.kode)
+                        gs.add(SnapshotLog(tenant_id=t.id, kode=t.kode,
+                                           nama=t.nama, file=path.name,
+                                           ukuran=path.stat().st_size,
+                                           user="otomatis", jenis="otomatis"))
+                        gs.commit()
+                    except Exception:  # noqa: BLE001
+                        gs.rollback()
+        except Exception:  # noqa: BLE001
+            pass
+        _stop_scheduler.wait(60)
+
+
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     init_global_db()
@@ -251,6 +289,7 @@ async def lifespan(_: FastAPI):
     _stop_scheduler.clear()
     threading.Thread(target=_backup_scheduler, daemon=True).start()
     threading.Thread(target=_alert_scheduler, daemon=True).start()
+    threading.Thread(target=_snapshot_scheduler, daemon=True).start()
     try:
         kirim_startup()
     except Exception:  # noqa: BLE001

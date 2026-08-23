@@ -1,4 +1,6 @@
 """Super admin: kelola tenant (onboarding madrasah anyar)"""
+import csv
+import io
 import json
 import os
 import re
@@ -8,24 +10,29 @@ from datetime import UTC, date, datetime, time, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from fastapi import (APIRouter, Depends, File, HTTPException, Response,
+import openpyxl
+from fastapi import (APIRouter, Body, Depends, File, HTTPException, Response,
                      UploadFile, status)
 from fastapi.responses import FileResponse
+from openpyxl.styles import Font
+from openpyxl.utils import get_column_letter
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from ..backup import BACKUP_DIR, DATA_DIR, backup_tenant_db, run_backup
+from ..backup import (BACKUP_DIR, DATA_DIR, SNAPSHOT_DIR, backup_tenant_db,
+                      run_backup)
 from ..config import settings
 from ..db import GlobalSession, global_engine, provision_tenant_db, tenant_session_factory
 from ..deps import require_roles
 from ..models import (Absensi, AuditLog, BackupLog, BackupSetting,
-                      GlobalSetting, Guru, Kelas, Murid, Plan, TahunAjaran,
-                      Tenant)
+                      GlobalConfig, GlobalSetting, Guru, Kelas, Murid, Plan,
+                      SnapshotLog, SuperAdmin, TahunAjaran, Tenant)
 from ..schemas import (BackupConfigRequest, DashboardOut, HariAbsen,
                        LanggananAlert, LoginTerakhir, TenantAdminCreate,
                        TenantAdminReset, TenantCreate, TenantDeleteRequest,
                        TenantDetailOut, TenantOut, TenantUpdate)
-from ..security import hash_password
+from ..security import hash_password, verify_password
+from ..xlsx_utils import XLSX_MIME
 
 router = APIRouter(prefix="/api/super", tags=["superadmin"])
 
@@ -90,7 +97,9 @@ def create_tenant(data: TenantCreate,
 
     t = Tenant(kode=data.kode, nama=data.nama, subdomain=data.subdomain,
                plan=data.plan, max_murid=max_murid,
-               masa_langganan_hingga=data.masa_langganan_hingga)
+               masa_langganan_hingga=data.masa_langganan_hingga,
+               kontak_nama=data.kontak_nama, kontak_email=data.kontak_email,
+               kontak_telepon=data.kontak_telepon, alamat=data.alamat)
     gs.add(t)
     gs.commit()
     gs.refresh(t)
@@ -618,6 +627,39 @@ def alerts_test(_: dict = Depends(require_roles("super_admin"))):
                          "alert superadmin aktif lan bot berfungsi.")
 
 
+@router.post("/alerts/config")
+def alerts_config(
+    payload: dict = Body(...),
+    user: dict = Depends(require_roles("super_admin")),
+    gs: Session = Depends(get_global_db),
+):
+    """Simpen konfigurasi bot Telegram (token + chat_id) menyang DB.
+
+    Token kosong = hapus (balik fallback .env). Chat_id kosong = hapus.
+    """
+    token = str(payload.get("token") or "").strip()
+    chat_id = str(payload.get("chat_id") or "").strip()
+
+    def _set(key: str, val: str) -> None:
+        row = gs.get(GlobalConfig, key)
+        if val:
+            if row:
+                row.value = val
+            else:
+                gs.add(GlobalConfig(key=key, value=val))
+        else:
+            if row:
+                gs.delete(row)
+
+    _set("alert_telegram_token", token)
+    _set("alert_telegram_chat_id", chat_id)
+    gs.commit()
+
+    _log(gs, user, "alerts_config_web",
+         f"Konfigurasi bot Telegram disimpen (chat_id={chat_id or '-'})")
+    return {"ok": True, "disetel": bool(token and chat_id)}
+
+
 @router.delete("/tenants/{tenant_id}")
 def tenant_delete(tenant_id: int, body: TenantDeleteRequest,
                   user: dict = Depends(require_roles("super_admin")),
@@ -707,10 +749,107 @@ def tenant_detail(tenant_id: int,
     return TenantDetailOut(
         id=t.id, kode=t.kode, nama=t.nama, status=t.status, plan=t.plan,
         max_murid=t.max_murid, masa_langganan_hingga=t.masa_langganan_hingga,
+        kontak_nama=t.kontak_nama, kontak_email=t.kontak_email,
+        kontak_telepon=t.kontak_telepon, alamat=t.alamat,
         dibuat=t.created_at, jumlah_kelas=jumlah_kelas, jumlah_guru=jumlah_guru,
         jumlah_admin=jumlah_admin, jumlah_murid=jumlah_murid,
         murid_aktif=murid_aktif, absen_total=absen_total,
         absen_7_hari=absen_7_hari, login_terakhir=logins)
+
+
+@router.get("/tenants/{tenant_id}/kesehatan")
+def tenant_kesehatan(tenant_id: int,
+                     _: dict = Depends(require_roles("super_admin")),
+                     gs: Session = Depends(get_global_db)):
+    """Ringkasan kesehatan siji tenant: kuota, aktivitas, langganan, backup.
+
+    Dipakai halaman detail/kesehatan tenant di panel superadmin.
+    """
+    t = gs.get(Tenant, tenant_id)
+    if not t:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Tenant tidak ditemukan")
+
+    tgl_now = datetime.now(WIB).date()
+    bulan_awal = tgl_now.replace(day=1)
+
+    # Statistik tenant
+    with tenant_session_factory(t.kode)() as s:
+        jumlah_guru = s.query(Guru).count()
+        jumlah_murid = s.query(Murid).count()
+        murid_aktif = s.query(Murid).filter(Murid.is_active.is_(True)).count()
+        absen_bulan = s.query(Absensi).filter(Absensi.tanggal >= bulan_awal).count()
+        last_absen = s.query(Absensi.tanggal).order_by(
+            Absensi.tanggal.desc()).first()
+        last_login = s.query(Guru.last_login).filter(
+            Guru.last_login.isnot(None)).order_by(
+            Guru.last_login.desc()).first()
+
+    # Kuota
+    max_murid = t.max_murid
+    kuota_murid_pct = round(jumlah_murid / max_murid * 100) if max_murid else None
+    kuota_guru_pct = None  # tidak ada max_guru di model Tenant
+
+    # Langganan
+    sisa_hari = None
+    tingkat_langganan = "tanpa_batas"
+    if t.masa_langganan_hingga:
+        sisa_hari = (t.masa_langganan_hingga - tgl_now).days
+        if sisa_hari < 0:
+            tingkat_langganan = "kadaluwarsa"
+        elif sisa_hari <= 3:
+            tingkat_langganan = "kritis"
+        elif sisa_hari <= 7:
+            tingkat_langganan = "waspada"
+        elif sisa_hari <= 30:
+            tingkat_langganan = "info"
+        else:
+            tingkat_langganan = "aman"
+
+    # Backup terakhir
+    last_backup = (gs.query(BackupLog)
+                   .filter(BackupLog.nama_file.like(f"{t.kode}%"))
+                   .order_by(BackupLog.waktu.desc()).first())
+
+    # Aktivitas
+    last_active = last_absen[0] if last_absen else None
+    if t.last_active_at and (not last_active or t.last_active_at.date() > last_active):
+        last_active = t.last_active_at.date()
+    status_aktivitas = "tidak_aktif"
+    if last_active:
+        sisa_aktif = (tgl_now - last_active).days
+        if sisa_aktif <= 14:
+            status_aktivitas = "aktif"
+        elif sisa_aktif <= 30:
+            status_aktivitas = "jarang"
+
+    return {
+        "id": t.id, "kode": t.kode, "nama": t.nama, "status": t.status,
+        "plan": t.plan,
+        "kontak": {
+            "nama": t.kontak_nama, "email": t.kontak_email,
+            "telepon": t.kontak_telepon, "alamat": t.alamat,
+        },
+        "kuota": {
+            "max_murid": max_murid, "jumlah_murid": jumlah_murid,
+            "murid_aktif": murid_aktif, "kuota_murid_pct": kuota_murid_pct,
+            "jumlah_guru": jumlah_guru,
+        },
+        "aktivitas": {
+            "status": status_aktivitas,
+            "absen_bulan_ini": absen_bulan,
+            "absen_terakhir": last_absen[0].isoformat() if last_absen else None,
+            "login_terakhir": last_login[0].isoformat() if last_login else None,
+        },
+        "langganan": {
+            "masa_langganan_hingga": t.masa_langganan_hingga.isoformat()
+                                     if t.masa_langganan_hingga else None,
+            "sisa_hari": sisa_hari, "tingkat": tingkat_langganan,
+        },
+        "backup": {
+            "terakhir": last_backup.waktu.isoformat() if last_backup else None,
+            "status": last_backup.status if last_backup else None,
+        },
+    }
 
 
 @router.patch("/tenants/{tenant_id}", response_model=TenantOut)
@@ -730,6 +869,14 @@ def update_tenant(tenant_id: int, data: TenantUpdate,
         t.masa_langganan_hingga = None
     elif data.masa_langganan_hingga is not None:
         t.masa_langganan_hingga = data.masa_langganan_hingga
+    if data.kontak_nama is not None:
+        t.kontak_nama = data.kontak_nama or None
+    if data.kontak_email is not None:
+        t.kontak_email = data.kontak_email or None
+    if data.kontak_telepon is not None:
+        t.kontak_telepon = data.kontak_telepon or None
+    if data.alamat is not None:
+        t.alamat = data.alamat or None
     gs.commit()
     gs.refresh(t)
     jg, jm = _counts(t.kode)
@@ -743,19 +890,20 @@ def update_tenant(tenant_id: int, data: TenantUpdate,
 def create_tenant_admin(tenant_id: int, data: TenantAdminCreate,
                         user: dict = Depends(require_roles("super_admin")),
                         gs: Session = Depends(get_global_db)):
-    """Super admin gawe akun ADMIN ing tenant (madrasah)."""
+    """Super admin gawe akun ing tenant (madrasah) — role guru/admin."""
     t = gs.get(Tenant, tenant_id)
     if not t:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Tenant tidak ditemukan")
+    role = data.role if data.role in ("guru", "admin") else "guru"
     with tenant_session_factory(t.kode)() as s:
         if s.query(Guru).filter_by(username=data.username).first():
             raise HTTPException(status.HTTP_409_CONFLICT, "Username sudah dipakai")
         s.add(Guru(nama=data.nama, username=data.username,
-                   password_hash=hash_password(data.password), role="admin"))
+                   password_hash=hash_password(data.password), role=role))
         s.commit()
-    _log(gs, user, "tambah_admin", f"Gawe admin {data.username} ({t.nama})", t.kode)
+    _log(gs, user, "tambah_user", f"Gawe {role} {data.username} ({t.nama})", t.kode)
     return {"ok": True, "kode": t.kode, "nama": data.nama, "username": data.username,
-            "role": "admin"}
+            "role": role}
 
 
 def _admin_aktif_count(s: Session) -> int:
@@ -851,6 +999,157 @@ def tenant_admin_delete(tenant_id: int, guru_id: int,
 
     _log(gs, user, "hapus_admin", f"Hapus akun {username} ({t.kode})", t.kode)
     return {"ok": True, "username": username}
+
+
+@router.post("/tenants/{tenant_id}/admins/{guru_id}/reset-password")
+def tenant_admin_reset_password(tenant_id: int, guru_id: int,
+                                data: TenantAdminReset,
+                                user: dict = Depends(require_roles("super_admin")),
+                                gs: Session = Depends(get_global_db)):
+    """Reset password akun user tenant (by guru_id)."""
+    t = gs.get(Tenant, tenant_id)
+    if not t:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Tenant tidak ditemukan")
+    with tenant_session_factory(t.kode)() as s:
+        g = s.get(Guru, guru_id)
+        if not g:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "Akun tidak ditemukan")
+        g.password_hash = hash_password(data.password)
+        s.commit()
+        username = g.username
+    _log(gs, user, "reset_password",
+         f"Reset password {username} ({t.kode})", t.kode)
+    return {"ok": True, "kode": t.kode, "username": username}
+
+
+# ── Snapshot & Rollback per tenant ───────────────────────────────────────
+
+@router.post("/tenants/{tenant_id}/snapshots")
+def create_snapshot(tenant_id: int,
+                    user: dict = Depends(require_roles("super_admin")),
+                    gs: Session = Depends(get_global_db)):
+    """Buat snapshot point-in-time data tenant (manual)."""
+    from ..backup import create_tenant_snapshot
+    t = gs.get(Tenant, tenant_id)
+    if not t:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Tenant tidak ditemukan")
+    try:
+        path = create_tenant_snapshot(t.kode)
+    except Exception as e:  # noqa: BLE001
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            f"Gagal membuat snapshot: {e}")
+    snap = SnapshotLog(tenant_id=t.id, kode=t.kode, nama=t.nama,
+                       file=path.name, ukuran=path.stat().st_size,
+                       user=user.get("username", "-"), jenis="manual")
+    gs.add(snap)
+    gs.commit()
+    gs.refresh(snap)
+    _log(gs, user, "buat_snapshot",
+         f"Snapshot {t.nama} ({t.kode}) — {path.name}", t.kode)
+    return {"ok": True, "id": snap.id, "file": path.name,
+            "ukuran": snap.ukuran}
+
+
+@router.get("/tenants/{tenant_id}/snapshots")
+def list_snapshots(tenant_id: int,
+                   _: dict = Depends(require_roles("super_admin")),
+                   gs: Session = Depends(get_global_db)):
+    """List snapshot tenant (paling anyar dhisik)."""
+    t = gs.get(Tenant, tenant_id)
+    if not t:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Tenant tidak ditemukan")
+    rows = (gs.query(SnapshotLog)
+            .filter(SnapshotLog.tenant_id == tenant_id)
+            .order_by(SnapshotLog.waktu.desc()).all())
+    return [{
+        "id": r.id, "waktu": r.waktu.isoformat(), "file": r.file,
+        "ukuran": r.ukuran, "user": r.user, "jenis": r.jenis,
+        "catatan": r.catatan,
+    } for r in rows]
+
+
+@router.post("/tenants/{tenant_id}/snapshots/{snap_id}/rollback")
+def rollback_snapshot(tenant_id: int, snap_id: int,
+                      user: dict = Depends(require_roles("super_admin")),
+                      gs: Session = Depends(get_global_db)):
+    """Rollback tenant menyang snapshot. WAJIB tenant suspended dhisik."""
+    from ..backup import rollback_tenant_snapshot
+    t = gs.get(Tenant, tenant_id)
+    if not t:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Tenant tidak ditemukan")
+    if t.status != "suspended":
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST,
+            "Tenant harus di-suspend dulu sebelum rollback (cegah data live tertimpa)")
+    snap = gs.get(SnapshotLog, snap_id)
+    if not snap or snap.tenant_id != tenant_id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Snapshot tidak ditemukan")
+    snap_path = Path(SNAPSHOT_DIR) / t.kode / snap.file
+    if not snap_path.exists():
+        raise HTTPException(status.HTTP_404_NOT_FOUND,
+                            "File snapshot tidak ada di server")
+    try:
+        pre = rollback_tenant_snapshot(t.kode, snap_path)
+    except Exception as e:  # noqa: BLE001
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            f"Rollback gagal: {e}")
+    _log(gs, user, "rollback_snapshot",
+         f"Rollback {t.nama} ({t.kode}) ke snapshot {snap.file} "
+         f"(pre-rollback: {pre.name})", t.kode)
+    return {"ok": True, "pre_rollback": pre.name}
+
+
+@router.delete("/tenants/{tenant_id}/snapshots/{snap_id}")
+def delete_snapshot(tenant_id: int, snap_id: int,
+                    user: dict = Depends(require_roles("super_admin")),
+                    gs: Session = Depends(get_global_db)):
+    """Hapus snapshot (file + log)."""
+    t = gs.get(Tenant, tenant_id)
+    if not t:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Tenant tidak ditemukan")
+    snap = gs.get(SnapshotLog, snap_id)
+    if not snap or snap.tenant_id != tenant_id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Snapshot tidak ditemukan")
+    snap_path = Path(SNAPSHOT_DIR) / t.kode / snap.file
+    if snap_path.exists():
+        snap_path.unlink(missing_ok=True)
+    gs.delete(snap)
+    gs.commit()
+    _log(gs, user, "hapus_snapshot",
+         f"Hapus snapshot {snap.file} ({t.kode})", t.kode)
+    return {"ok": True}
+
+
+@router.get("/tenants/{tenant_id}/snapshot-config")
+def get_snapshot_config(tenant_id: int,
+                        _: dict = Depends(require_roles("super_admin")),
+                        gs: Session = Depends(get_global_db)):
+    """Baca konfigurasi snapshot otomatis tenant."""
+    t = gs.get(Tenant, tenant_id)
+    if not t:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Tenant tidak ditemukan")
+    return {"enabled": bool(t.snapshot_otomatis_enabled),
+            "jam": t.snapshot_otomatis_jam or "02:00"}
+
+
+@router.put("/tenants/{tenant_id}/snapshot-config")
+def set_snapshot_config(tenant_id: int, payload: dict = Body(...),
+                        user: dict = Depends(require_roles("super_admin")),
+                        gs: Session = Depends(get_global_db)):
+    """Setel konfigurasi snapshot otomatis tenant."""
+    t = gs.get(Tenant, tenant_id)
+    if not t:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Tenant tidak ditemukan")
+    t.snapshot_otomatis_enabled = bool(payload.get("enabled", False))
+    jam = str(payload.get("jam") or "02:00")
+    if len(jam) == 5 and jam[2] == ":":
+        t.snapshot_otomatis_jam = jam
+    gs.commit()
+    _log(gs, user, "set_snapshot_config",
+         f"Snapshot otomatis {t.kode}: enabled={t.snapshot_otomatis_enabled}, "
+         f"jam={t.snapshot_otomatis_jam}", t.kode)
+    return {"ok": True, "enabled": t.snapshot_otomatis_enabled,
+            "jam": t.snapshot_otomatis_jam}
 
 
 @router.delete("/tenants/{tenant_id}")
@@ -950,22 +1249,44 @@ def branding(gs: Session = Depends(get_global_db)):
             "logo": bool(g and g.logo)}
 
 
+@router.post("/ganti-password")
+def ganti_password_superadmin(
+    payload: dict = Body(...),
+    user: dict = Depends(require_roles("super_admin")),
+    gs: Session = Depends(get_global_db),
+):
+    """Ganti password akun superadmin sendiri (butuh password lama)."""
+    password_lama = str(payload.get("password_lama") or "")
+    password_baru = str(payload.get("password_baru") or "")
+    if len(password_baru) < 6:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST,
+                            "Password baru minimal 6 karakter")
+    sa = gs.get(SuperAdmin, int(user["id"]))
+    if not sa:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Akun superadmin tidak ditemukan")
+    if not verify_password(password_lama, sa.password_hash):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Password lama salah")
+    sa.password_hash = hash_password(password_baru)
+    gs.commit()
+    _log(gs, user, "ganti_password_superadmin",
+         f"Password superadmin {sa.username} diganti")
+    return {"ok": True}
+
+
 # ── Audit trail ───────────────────────────────────────────────────────────
 
-@router.get("/audit")
-def audit_logs(limit: int = 50, offset: int = 0,
-               tanggal_dari: str | None = None,
-               tanggal_sampai: str | None = None,
-               _: dict = Depends(require_roles("super_admin")),
-               gs: Session = Depends(get_global_db)):
-    """Jejak aksi sensitif superadmin — paling anyar dhisik.
+def _wib(dt: datetime) -> str:
+    """Konversi waktu UTC (naive) menyang string WIB (+7) kanggo tampilan."""
+    return (dt + timedelta(hours=7)).strftime("%Y-%m-%d %H:%M")
 
-    Pagination offset + filter tanggal WIB (YYYY-MM-DD); waktu balik
-    wis dikonversi menyang WIB (+7) kanggo tampilan.
-    """
-    limit = min(max(limit, 1), 200)
-    offset = max(offset, 0)
+
+def _audit_query(gs: Session, tanggal_dari: str | None = None,
+                 tanggal_sampai: str | None = None,
+                 tenant: str | None = None):
+    """Query AuditLog + filter tanggal WIB (YYYY-MM-DD) & tenant opsional."""
     q = gs.query(AuditLog)
+    if tenant:
+        q = q.filter(AuditLog.tenant == tenant)
     if tanggal_dari or tanggal_sampai:
         try:
             tz = ZoneInfo("Asia/Jakarta")
@@ -983,18 +1304,81 @@ def audit_logs(limit: int = 50, offset: int = 0,
         except ValueError:
             raise HTTPException(status.HTTP_400_BAD_REQUEST,
                                 "Format tanggal salah (YYYY-MM-DD)")
+    return q
+
+
+@router.get("/audit")
+def audit_logs(limit: int = 50, offset: int = 0,
+               tanggal_dari: str | None = None,
+               tanggal_sampai: str | None = None,
+               _: dict = Depends(require_roles("super_admin")),
+               gs: Session = Depends(get_global_db)):
+    """Jejak aksi sensitif superadmin — paling anyar dhisik.
+
+    Pagination offset + filter tanggal WIB (YYYY-MM-DD); waktu balik
+    wis dikonversi menyang WIB (+7) kanggo tampilan.
+    """
+    limit = min(max(limit, 1), 200)
+    offset = max(offset, 0)
+    q = _audit_query(gs, tanggal_dari, tanggal_sampai)
     total = q.count()
     rows = (q.order_by(AuditLog.waktu.desc())
             .offset(offset).limit(limit).all())
-
-    def _wib(dt: datetime) -> str:
-        return (dt + timedelta(hours=7)).strftime("%Y-%m-%d %H:%M")
 
     return {"total": total,
             "items": [{"id": r.id, "waktu": _wib(r.waktu),
                        "user": r.user, "aksi": r.aksi,
                        "rincian": r.rincian, "tenant": r.tenant}
                       for r in rows]}
+
+
+@router.get("/audit/export.csv", response_class=Response)
+def audit_export_csv(tanggal_dari: str | None = None,
+                     tanggal_sampai: str | None = None,
+                     tenant: str | None = None,
+                     _: dict = Depends(require_roles("super_admin")),
+                     gs: Session = Depends(get_global_db)):
+    """Export jejak audit global dadi CSV (BOM — kebukak bener ing Excel)."""
+    rows = (_audit_query(gs, tanggal_dari, tanggal_sampai, tenant)
+            .order_by(AuditLog.waktu.desc()).all())
+    buf = io.StringIO()
+    buf.write("\ufeff")  # BOM supaya Excel maca UTF-8
+    w = csv.writer(buf)
+    w.writerow(["Waktu (WIB)", "User", "Aksi", "Rincian", "Tenant"])
+    for r in rows:
+        w.writerow([_wib(r.waktu), r.user, r.aksi, r.rincian, r.tenant])
+    return Response(
+        content=buf.getvalue().encode("utf-8"),
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": 'attachment; filename="audit.csv"'})
+
+
+@router.get("/audit/export.xlsx", response_class=Response)
+def audit_export_xlsx(tanggal_dari: str | None = None,
+                      tanggal_sampai: str | None = None,
+                      tenant: str | None = None,
+                      _: dict = Depends(require_roles("super_admin")),
+                      gs: Session = Depends(get_global_db)):
+    """Export jejak audit global dadi .xlsx (Excel)."""
+    rows = (_audit_query(gs, tanggal_dari, tanggal_sampai, tenant)
+            .order_by(AuditLog.waktu.desc()).all())
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Audit"
+    ws.append(["Waktu (WIB)", "User", "Aksi", "Rincian", "Tenant"])
+    for cell in ws[1]:
+        cell.font = Font(bold=True)
+    for r in rows:
+        ws.append([_wib(r.waktu), r.user, r.aksi, r.rincian, r.tenant])
+    for col in ws.columns:
+        ws.column_dimensions[get_column_letter(col[0].column)].width = (
+                max(len(str(c.value or "")) for c in col) + 2)
+    buf = io.BytesIO()
+    wb.save(buf)
+    return Response(
+        content=buf.getvalue(),
+        media_type=XLSX_MIME,
+        headers={"Content-Disposition": 'attachment; filename="audit.xlsx"'})
 
 
 @router.get("/audit/tenant")

@@ -43,7 +43,7 @@
     </div>
 
     <!-- Logo -->
-    <div class="bg-white rounded-lg border border-zinc-200 p-5">
+    <div class="bg-white rounded-lg border border-zinc-200 p-5 mb-4">
         <h2 class="text-sm font-semibold text-zinc-800 mb-4 flex items-center gap-2">
             <i data-lucide="image" class="w-4 h-4 text-zinc-500"></i> Logo Platform
         </h2>
@@ -90,5 +90,58 @@
         </form>
         {% endif %}
     </div>
+
+    <!-- Ganti Password -->
+    <div class="bg-white rounded-lg border border-zinc-200 p-5">
+        <h2 class="text-sm font-semibold text-zinc-800 mb-4 flex items-center gap-2">
+            <i data-lucide="key-round" class="w-4 h-4 text-zinc-500"></i> Ganti Password
+        </h2>
+        <p class="text-xs text-zinc-500 mb-4">Ubah password akun superadmin Anda sendiri.</p>
+        <form method="post" action="/apps/superadmin/settings/ganti-password" class="space-y-3 max-w-md">
+            <div>
+                <label class="block text-sm font-medium text-zinc-700 mb-1">Password Lama</label>
+                <input type="password" name="password_lama" required
+                       placeholder="Password saat ini"
+                       class="w-full border border-zinc-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-zinc-700 mb-1">Password Baru</label>
+                <input type="password" name="password_baru" required minlength="6"
+                       placeholder="Minimal 6 karakter"
+                       class="w-full border border-zinc-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-zinc-700 mb-1">Ulangi Password Baru</label>
+                <input type="password" name="password_ulangi" required minlength="6"
+                       placeholder="Ketik ulang password baru"
+                       oninput="validatePassword(this)"
+                       class="w-full border border-zinc-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+            </div>
+            <button type="submit" onclick="return validateSubmit()" class="btn btn-primary text-sm">
+                <i data-lucide="save" class="w-4 h-4"></i> Ganti Password
+            </button>
+        </form>
+    </div>
 </div>
+<script>
+function validatePassword(el) {
+    var baru = document.querySelector('input[name="password_baru"]').value;
+    if (el.value !== baru) {
+        el.style.borderColor = '#dc2626';
+        el.setCustomValidity('Password tidak sama');
+    } else {
+        el.style.borderColor = '';
+        el.setCustomValidity('');
+    }
+}
+function validateSubmit() {
+    var baru = document.querySelector('input[name="password_baru"]').value;
+    var ulang = document.querySelector('input[name="password_ulangi"]').value;
+    if (baru !== ulang) {
+        alert('Password baru dan ulangi tidak sama');
+        return false;
+    }
+    return true;
+}
+</script>
 {% endblock %}

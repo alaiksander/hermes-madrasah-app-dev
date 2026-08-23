@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="/apps/static/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/apps/static/favicon.png">
     <title>{% block title %}Madrasah{% endblock %} · {{ get_nama_aplikasi(user) }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="/apps/static/app.css">
@@ -69,8 +71,9 @@
                       fixed inset-y-0 left-0 z-40 -translate-x-full
                       lg:static lg:translate-x-0">
             <div class="p-4 border-b border-zinc-200 flex items-center justify-between flex-shrink-0">
-                <a href="/apps/" class="flex items-center gap-2 text-zinc-900 brand-link">
-                    <i data-lucide="graduation-cap" class="w-5 h-5 text-teal-700 flex-shrink-0"></i>
+                <a href="/apps/" onclick="return handleBrandClick(event)"
+                   class="flex items-center gap-2 text-zinc-900 brand-link">
+                    <img src="/apps/static/favicon.png" alt="Tarbeya" class="w-6 h-6 rounded flex-shrink-0">
                     <span class="font-semibold brand-text">{{ get_nama_aplikasi(user) }}</span>
                 </a>
                 <button type="button"

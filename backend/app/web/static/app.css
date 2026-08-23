@@ -81,6 +81,27 @@
 #app-sidebar[data-state="collapsed"] .footer-link {
     justify-content: center;
 }
+/* Header brand saat collapsed: hilangkan padding, center logo, logo jadi toggle.
+   (p-4 = 32px horizontal → tergencet di lebar 64px) */
+#app-sidebar[data-state="collapsed"] > div:first-child {
+    padding-left: 0;
+    padding-right: 0;
+    justify-content: center;
+}
+#app-sidebar[data-state="collapsed"] .brand-link {
+    display: flex;
+    justify-content: center;
+    padding: 0.5rem 0;
+    margin: 0 auto;
+}
+#app-sidebar[data-state="collapsed"] .brand-link img {
+    width: 1.75rem;   /* 28px — sedikit lebih besar biar tetap tegas sebagai identitas */
+    height: 1.75rem;
+}
+/* Tombol chevron toggle disembunyikan saat collapsed — logo yang jadi toggle */
+#app-sidebar[data-state="collapsed"] #sidebar-toggle-btn {
+    display: none;
+}
 #app-sidebar[data-state="collapsed"] #sidebar-toggle-icon {
     transform: rotate(180deg);
 }

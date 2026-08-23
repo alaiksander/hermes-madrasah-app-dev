@@ -23,6 +23,7 @@ BACKEND_DIR = Path(__file__).resolve().parent.parent   # .../backend
 DATA_DIR = BACKEND_DIR / "data"
 BACKUP_DIR = Path(os.environ.get("BACKUP_DIR", "/home/ubuntu/backups/madrasah"))
 DELETED_DIR = BACKUP_DIR / "deleted"   # backup wajib sadurunge tenant dihapus (ora kena retensi)
+SNAPSHOT_DIR = BACKUP_DIR / "snapshots"   # snapshot point-in-time per tenant
 
 
 def _backup_sqlite(src: Path, dst: Path) -> None:
@@ -165,3 +166,56 @@ def run_backup(jenis: str = "otomatis", retensi: int = 14) -> dict:
         gs.commit()
 
     return {"ok": ok, "nama": nama, "ukuran": ukuran, "pesan": pesan}
+
+
+# ── Snapshot per tenant ───────────────────────────────────────────────────
+
+def create_tenant_snapshot(kode: str) -> Path:
+    """Buat snapshot point-in-time DB tenant → SNAPSHOT_DIR/<kode>/.
+
+    - SQLite: salin file DB (sqlite backup API)
+    - PostgreSQL: pg_dump --schema <kode> (sudah gzip -Fc)
+    """
+    ts = datetime.now(WIB).strftime("%Y%m%d-%H%M%S")
+    d = SNAPSHOT_DIR / kode
+    d.mkdir(parents=True, exist_ok=True)
+    if settings.is_pg:
+        dst = d / f"{kode}-{ts}.dump"
+        _backup_pg_schema(kode, dst)
+    else:
+        src = DATA_DIR / "tenants" / f"{kode}.db"
+        dst = d / f"{kode}-{ts}.db"
+        _backup_sqlite(src, dst)
+    return dst
+
+
+def rollback_tenant_snapshot(kode: str, snap_path: Path) -> Path:
+    """Rollback DB tenant menyang snapshot. Backup kondisi saiki dhisik.
+
+    Return path backup kondisi sebelum rollback (pre-rollback).
+    """
+    # Backup kondisi sekarang (aman — bisa balik lagi)
+    pre = create_tenant_snapshot(kode)
+
+    if settings.is_pg:
+        import subprocess
+        from sqlalchemy import text
+        from .db import global_engine
+        dbname = settings.database_url.split("/")[-1]
+        env = dict(os.environ, PGPASSWORD=settings.pg_pass or "")
+        with global_engine.begin() as conn:
+            conn.execute(text(f'DROP SCHEMA IF EXISTS "{kode}" CASCADE'))
+            conn.execute(text(f'CREATE SCHEMA "{kode}"'))
+        subprocess.run(
+            ["pg_restore", "-h", "127.0.0.1", "-p", "5432", "-U", settings.pg_user,
+             "-d", dbname, "--schema", kode, str(snap_path)],
+            env=env, check=True, capture_output=True)
+        from .db import provision_tenant_db
+        provision_tenant_db(kode)
+    else:
+        dst = DATA_DIR / "tenants" / f"{kode}.db"
+        _backup_sqlite(snap_path, dst)
+        Path(str(dst) + "-wal").unlink(missing_ok=True)
+        Path(str(dst) + "-shm").unlink(missing_ok=True)
+
+    return pre

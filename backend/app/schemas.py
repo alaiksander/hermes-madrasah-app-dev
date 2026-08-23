@@ -47,6 +47,10 @@ class TenantCreate(BaseModel):
     plan: str = "free"
     max_murid: int | None = Field(default=None, ge=0)
     masa_langganan_hingga: date | None = None
+    kontak_nama: str | None = None
+    kontak_email: str | None = None
+    kontak_telepon: str | None = None
+    alamat: str | None = None
 
 
 class TenantDeleteRequest(BaseModel):
@@ -60,12 +64,17 @@ class TenantUpdate(BaseModel):
     max_murid: int | None = None
     masa_langganan_hingga: date | None = None
     hapus_masa_langganan: bool = False  # true = set tanpa batas (None)
+    kontak_nama: str | None = None
+    kontak_email: str | None = None
+    kontak_telepon: str | None = None
+    alamat: str | None = None
 
 
 class TenantAdminCreate(BaseModel):
     nama: str
     username: str = Field(min_length=3, max_length=50)
     password: str = Field(min_length=6)
+    role: str = "guru"
 
 
 class TenantAdminReset(BaseModel):
@@ -118,6 +127,10 @@ class TenantDetailOut(BaseModel):
     plan: str
     max_murid: int
     masa_langganan_hingga: date | None
+    kontak_nama: str | None = None
+    kontak_email: str | None = None
+    kontak_telepon: str | None = None
+    alamat: str | None = None
     dibuat: datetime | None
     jumlah_kelas: int
     jumlah_guru: int
@@ -145,6 +158,10 @@ class TenantOut(BaseModel):
     plan: str
     max_murid: int | None
     masa_langganan_hingga: date | None
+    kontak_nama: str | None = None
+    kontak_email: str | None = None
+    kontak_telepon: str | None = None
+    alamat: str | None = None
     created_at: datetime
     jumlah_guru: int = 0
     jumlah_murid: int = 0

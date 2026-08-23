@@ -83,3 +83,34 @@ async def alerts_test(
     except Exception:
         pass
     return _redirect("/apps/superadmin/alerts", detail, "error")
+
+
+@router.post("/alerts/config")
+async def alerts_config(
+    request: Request,
+    user: dict = Depends(require_super_admin_web),
+):
+    """Simpan konfigurasi bot Telegram (token + chat_id) via form."""
+    form = await request.form()
+    hapus = bool(form.get("hapus"))
+    token = "" if hapus else str(form.get("token") or "").strip()
+    chat_id = "" if hapus else str(form.get("chat_id") or "").strip()
+    r = await api_post(request, "/api/super/alerts/config",
+                       json={"token": token, "chat_id": chat_id})
+    if r.status_code == 200:
+        data = r.json()
+        disetel = data.get("disetel", False)
+        if hapus:
+            msg = "Konfigurasi bot Telegram dihapus — fallback ke .env"
+        else:
+            msg = ("Konfigurasi bot Telegram disimpan — notifikasi aktif"
+                   if disetel else
+                   "Konfigurasi disimpan (token/chat_id kosong — fallback .env)")
+        _audit(user, "alerts_config_web", msg)
+        return _redirect("/apps/superadmin/alerts", msg)
+    detail = "Gagal menyimpan konfigurasi"
+    try:
+        detail = r.json().get("detail", detail)
+    except Exception:
+        pass
+    return _redirect("/apps/superadmin/alerts", detail, "error")

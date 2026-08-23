@@ -37,6 +37,14 @@ class Tenant(GlobalBase):
     plan: Mapped[str] = mapped_column(String(30), default="free")
     max_murid: Mapped[int | None] = mapped_column(Integer, nullable=True)
     masa_langganan_hingga: Mapped[date | None] = mapped_column(Date, nullable=True)
+    # Info kontak tenant (PIC / penanggung jawab)
+    kontak_nama: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    kontak_email: Mapped[str | None] = mapped_column(String(150), nullable=True)
+    kontak_telepon: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    alamat: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    # Snapshot otomatis per tenant
+    snapshot_otomatis_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    snapshot_otomatis_jam: Mapped[str] = mapped_column(String(5), default="02:00")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     last_active_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True),
                                                             nullable=True)
@@ -75,6 +83,22 @@ class BackupLog(GlobalBase):
     pesan: Mapped[str] = mapped_column(String(300), default="")
 
 
+class SnapshotLog(GlobalBase):
+    """Snapshot point-in-time data siji tenant (manual/otomatis)."""
+    __tablename__ = "tenant_snapshots"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    tenant_id: Mapped[int] = mapped_column(Integer)
+    kode: Mapped[str] = mapped_column(String(50))
+    nama: Mapped[str] = mapped_column(String(150))
+    waktu: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    file: Mapped[str] = mapped_column(String(300))
+    ukuran: Mapped[int] = mapped_column(Integer, default=0)
+    user: Mapped[str] = mapped_column(String(50), default="")
+    catatan: Mapped[str] = mapped_column(String(300), default="")
+    jenis: Mapped[str] = mapped_column(String(10), default="manual")
+
+
 class GlobalSetting(GlobalBase):
     """Setelan global platform (siji baris, id=1)."""
     __tablename__ = "global_settings"
@@ -83,6 +107,18 @@ class GlobalSetting(GlobalBase):
     nama_aplikasi: Mapped[str] = mapped_column(String(100), default="Aplikasi Madrasah")
     maintenance: Mapped[bool] = mapped_column(Boolean, default=False)
     logo: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
+
+
+class GlobalConfig(GlobalBase):
+    """Key-value config global (token bot, chat_id, dll) — bisa diubah via UI.
+
+    Lebih fleksibel daripada menambah kolom ke GlobalSetting: tanpa alter
+    tabel existing, cukup create_all (tabel baru dibuat otomatis).
+    """
+    __tablename__ = "global_config"
+
+    key: Mapped[str] = mapped_column(String(100), primary_key=True)
+    value: Mapped[str | None] = mapped_column(Text, nullable=True)
 
 
 class AuditLog(GlobalBase):
