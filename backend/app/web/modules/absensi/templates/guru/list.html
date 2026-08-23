@@ -76,21 +76,21 @@
                     {% endif %}
                 </td>
                 <td class="text-right whitespace-nowrap">
-                    <a href="/apps/pengampu/{{ g.id }}" class="text-teal-700 hover:underline">
+                    <a href="/apps/pengampu/{{ g.id }}" class="text-teal-700 hover:underline text-xs">
                         Set Pengampu
                     </a>
-                    <a href="/apps/data/guru/{{ g.id }}/edit" class="text-teal-700 hover:underline">
+                    <a href="/apps/data/guru/{{ g.id }}/edit" class="text-teal-700 hover:underline text-xs">
                         Edit
                     </a>
                     {% if g.is_active %}
                     {% if g.id != current_user_id %}
                     <button type="button" onclick="resetPassword({{ g.id }}, '{{ g.nama }}')"
-                            class="text-amber-700 hover:underline">
+                            class="text-amber-700 hover:underline text-xs">
                         Reset Password
                     </button>
                     <form method="post" action="/apps/data/guru/{{ g.id }}/hapus"
                           class="inline" onsubmit="return confirm('Arsipkan {{ g.nama }}? Wali kelas yang ditunjuk guru ini akan dikosongkan.')">
-                        <button type="submit" class="text-red-600 hover:underline">Arsip</button>
+                        <button type="submit" class="text-red-600 hover:underline text-xs">Arsip</button>
                     </form>
                     {% endif %}
                     {% else %}
