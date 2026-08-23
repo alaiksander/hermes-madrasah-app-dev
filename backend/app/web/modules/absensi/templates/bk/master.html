@@ -121,8 +121,8 @@
         </div>
         <div class="flex items-center gap-3">
             <button type="button" onclick="openEditKategori({{ k.id }}, '{{ k.nama }}', '{{ k.jenis }}')"
-                    class="text-xs text-teal-700 hover:underline inline-flex items-center gap-1">
-                <i data-lucide="pencil" class="w-3 h-3"></i> Edit
+                    class="text-xs text-teal-700 hover:underline">
+                Edit
             </button>
             <form method="post" action="/apps/bk/kategori/{{ k.id }}/delete"
                   onsubmit="return confirm('Hapus kategori? Item harus dihapus dulu.')">
@@ -142,8 +142,8 @@
                 <td class="px-4 py-2 text-right w-24">
                     <div class="flex items-center justify-end gap-3">
                         <button type="button" onclick="openEditItem({{ p.id }}, '{{ p.nama }}', {{ p.poin }}, '{{ p.tingkat or '' }}')"
-                                class="text-xs text-teal-700 hover:underline inline-flex items-center gap-1">
-                            <i data-lucide="pencil" class="w-3 h-3"></i> Edit
+                                class="text-xs text-teal-700 hover:underline">
+                            Edit
                         </button>
                         <form method="post" action="/apps/bk/pelanggaran/{{ p.id }}/delete"
                               onsubmit="return confirm('Hapus item?')" class="inline">
