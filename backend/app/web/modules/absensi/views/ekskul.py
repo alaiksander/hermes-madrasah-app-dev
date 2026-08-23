@@ -53,6 +53,8 @@ async def ekskul_create(
     hari: str = Form(""),
     jam_mulai: str = Form(""),
     jam_selesai: str = Form(""),
+    is_wajib: str = Form(""),
+    wajib_tingkat: str = Form(""),
     user: dict = Depends(require_permission_web("ekskul.kelola")),
 ):
     payload = {
@@ -63,6 +65,8 @@ async def ekskul_create(
         "hari": hari or None,
         "jam_mulai": jam_mulai or None,
         "jam_selesai": jam_selesai or None,
+        "is_wajib": is_wajib == "1",
+        "wajib_tingkat": wajib_tingkat or None,
     }
     r = await api_post(request, "/api/ekskul", json=payload)
     if r.status_code not in (200, 201):
@@ -95,6 +99,20 @@ async def ekskul_detail(
         {"user": user, "ekskul": ekskul, "anggota": anggota,
          "kegiatan": kegiatan, "murid_list": murid_list},
     )
+
+
+@router.post("/{ekskul_id}/masukkan-tingkat")
+async def anggota_bulk_tingkat(
+    request: Request,
+    ekskul_id: int,
+    tingkat: str = Form(...),
+    user: dict = Depends(require_permission_web("ekskul.kelola")),
+):
+    r = await api_post(request, f"/api/ekskul/{ekskul_id}/masukkan-tingkat",
+                       json={"tingkat": tingkat})
+    d = r.json() if r.status_code in (200, 201) else {}
+    n = d.get("ditambahkan", 0)
+    return _redirect(f"{n} murid ditambahkan", path=f"/apps/ekskul/{ekskul_id}")
 
 
 @router.post("/{ekskul_id}/anggota")

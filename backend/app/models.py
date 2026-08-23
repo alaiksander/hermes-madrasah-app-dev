@@ -763,6 +763,9 @@ class Ekskul(TenantBase):
     jam_mulai: Mapped[str | None] = mapped_column(String(5), nullable=True)  # HH:MM
     jam_selesai: Mapped[str | None] = mapped_column(String(5), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    # Ekskul wajib: is_wajib True + wajib_tingkat (7/8/9/semua)
+    is_wajib: Mapped[bool] = mapped_column(Boolean, default=False)
+    wajib_tingkat: Mapped[str | None] = mapped_column(String(10), nullable=True)  # "7"|"8"|"9"|"semua"
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
     pembina: Mapped["Guru | None"] = relationship()

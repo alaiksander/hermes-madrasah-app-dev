@@ -19,12 +19,29 @@
             <div><span class="text-zinc-500 text-xs block">Anggota</span><span class="font-medium">{{ ekskul.jumlah_anggota }} / {{ ekskul.kuota or '∞' }}</span></div>
             <div><span class="text-zinc-500 text-xs block">Status</span><span class="font-medium">{{ 'Aktif' if ekskul.is_active else 'Nonaktif' }}</span></div>
         </div>
+        {% if ekskul.is_wajib %}
+        <div class="mt-3 inline-flex items-center gap-1 px-2 py-1 rounded text-xs bg-amber-100 text-amber-800">
+            <i data-lucide="badge-check" class="w-3 h-3"></i>
+            Ekskul Wajib — {% if ekskul.wajib_tingkat == 'semua' %}Semua tingkat{% else %}Tingkat {{ ekskul.wajib_tingkat }}{% endif %}
+        </div>
+        {% endif %}
         {% if ekskul.deskripsi %}<p class="text-sm text-zinc-600 mt-3">{{ ekskul.deskripsi }}</p>{% endif %}
     </div>
 
     <!-- Anggota -->
     <div class="bg-white rounded-lg border border-zinc-200 p-5 mb-4">
         <h2 class="text-sm font-semibold text-zinc-800 mb-3">Anggota</h2>
+        <!-- Tombol masukkan semua murid per tingkat (manual trigger) -->
+        <div class="flex flex-wrap gap-2 mb-3">
+            <span class="text-xs text-zinc-500 self-center mr-1">Masukkan semua murid:</span>
+            {% for t in [('7','Tingkat 7'),('8','Tingkat 8'),('9','Tingkat 9'),('semua','Semua Tingkat')] %}
+            <form method="post" action="/apps/ekskul/{{ ekskul.id }}/masukkan-tingkat" class="inline"
+                  onsubmit="return confirm('Masukkan semua murid {{ t[1] }} ke ekskul ini?')">
+                <input type="hidden" name="tingkat" value="{{ t[0] }}">
+                <button type="submit" class="btn btn-secondary text-xs">{{ t[1] }}</button>
+            </form>
+            {% endfor %}
+        </div>
         <form method="post" action="/apps/ekskul/{{ ekskul.id }}/anggota" class="flex flex-col sm:flex-row gap-2 mb-3">
             <select name="murid_id" class="border border-zinc-300 rounded px-3 py-2 text-sm flex-1">
                 <option value="">— Pilih Murid —</option>

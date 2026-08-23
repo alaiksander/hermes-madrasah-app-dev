@@ -20,6 +20,19 @@
                 <input type="text" name="nama" required value="{{ ekskul.nama if ekskul else '' }}"
                        placeholder="Pramuka" class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
             </div>
+            <div class="flex items-center gap-3 mb-3">
+                <label class="flex items-center gap-2 text-sm cursor-pointer">
+                    <input type="checkbox" name="is_wajib" value="1" {% if ekskul and ekskul.is_wajib %}checked{% endif %} class="accent-teal-600">
+                    Ekskul wajib
+                </label>
+                <select name="wajib_tingkat" class="border border-zinc-300 rounded px-3 py-2 text-sm">
+                    <option value="">— Tingkat —</option>
+                    <option value="7" {% if ekskul and ekskul.wajib_tingkat == '7' %}selected{% endif %}>Kelas 7</option>
+                    <option value="8" {% if ekskul and ekskul.wajib_tingkat == '8' %}selected{% endif %}>Kelas 8</option>
+                    <option value="9" {% if ekskul and ekskul.wajib_tingkat == '9' %}selected{% endif %}>Kelas 9</option>
+                    <option value="semua" {% if ekskul and ekskul.wajib_tingkat == 'semua' %}selected{% endif %}>Semua Tingkat</option>
+                </select>
+            </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                 <div>
                     <label class="block text-sm font-medium text-zinc-700 mb-1">Pembina</label>

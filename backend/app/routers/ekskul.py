@@ -13,7 +13,8 @@ from sqlalchemy.orm import Session
 
 from ..audit import log_action
 from ..deps import get_tenant_db, require_permission
-from ..models import Ekskul, EkskulAnggota, EkskulKegiatan, EkskulPresensi, Guru, Murid
+from ..models import (Ekskul, EkskulAnggota, EkskulKegiatan, EkskulPresensi,
+                      Guru, Kelas, Murid)
 from ..xlsx_utils import XLSX_MIME, rows_to_xlsx
 
 router = APIRouter(prefix="/api/ekskul", tags=["Ekstrakurikuler"])
@@ -29,6 +30,8 @@ class EkskulCreate(BaseModel):
     jam_mulai: str | None = None
     jam_selesai: str | None = None
     is_active: bool = True
+    is_wajib: bool = False
+    wajib_tingkat: str | None = None  # "7"|"8"|"9"|"semua"
 
 
 class EkskulUpdate(BaseModel):
@@ -40,6 +43,8 @@ class EkskulUpdate(BaseModel):
     jam_mulai: str | None = None
     jam_selesai: str | None = None
     is_active: bool | None = None
+    is_wajib: bool | None = None
+    wajib_tingkat: str | None = None
 
 
 class AnggotaCreate(BaseModel):
@@ -68,6 +73,8 @@ def _ekskul_out(e: Ekskul) -> dict:
         "jam_mulai": e.jam_mulai,
         "jam_selesai": e.jam_selesai,
         "is_active": e.is_active,
+        "is_wajib": e.is_wajib,
+        "wajib_tingkat": e.wajib_tingkat,
         "jumlah_anggota": len(e.anggota),
         "created_at": e.created_at.isoformat() if e.created_at else None,
     }
@@ -188,6 +195,44 @@ def anggota_list(
             "tanggal_daftar": a.tanggal_daftar.isoformat() if a.tanggal_daftar else None,
         })
     return out
+
+
+@router.post("/{ekskul_id}/masukkan-tingkat")
+def anggota_bulk_tingkat(
+    ekskul_id: int,
+    data: dict,
+    db: Session = Depends(get_tenant_db),
+    user: dict = Depends(require_permission("ekskul.kelola")),
+):
+    """Masukkan semua murid pada tingkat tertentu (7/8/9/semua) ke ekskul.
+
+    Manual trigger dari halaman detail. Skip murid yang sudah jadi anggota.
+    """
+    e = db.get(Ekskul, ekskul_id)
+    if not e:
+        raise HTTPException(404, "Ekskul tidak ditemukan")
+    tingkat = data.get("tingkat", "").strip()
+    if tingkat not in ("7", "8", "9", "semua"):
+        raise HTTPException(400, "Tingkat harus 7/8/9/semua")
+
+    # Ambil semua kelas unik (nama_kelas) -> filter tingkat
+    kelas_ids = []
+    for k in db.query(Kelas).all():
+        nama = k.nama_kelas.strip()
+        if tingkat == "semua" or nama.startswith(tingkat):
+            kelas_ids.append(k.id)
+    if not kelas_ids:
+        return {"ok": True, "ditambahkan": 0, "sudah": 0, "kelas": 0}
+
+    murid_ids = [m.id for m in db.query(Murid).filter(Murid.kelas_id.in_(kelas_ids), Murid.is_active.is_(True)).all()]
+    existing = {a.murid_id for a in e.anggota}
+    baru = [m for m in murid_ids if m not in existing]
+    for mid in baru:
+        db.add(EkskulAnggota(ekskul_id=ekskul_id, murid_id=mid))
+    db.commit()
+    log_action(user, f"ekskul_bulk_tingkat {e.nama} tingkat {tingkat} (+{len(baru)})")
+    return {"ok": True, "ditambahkan": len(baru), "sudah": len(existing),
+            "kelas": len(kelas_ids), "total_murid": len(murid_ids)}
 
 
 @router.post("/{ekskul_id}/anggota")
