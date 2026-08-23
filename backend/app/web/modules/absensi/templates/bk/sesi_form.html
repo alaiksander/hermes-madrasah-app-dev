@@ -6,7 +6,7 @@
 
 {% block content %}
 <div class="mb-4">
-    <a href="/madrasah-app/bk/sesi" class="text-sm text-zinc-500 hover:text-zinc-700">
+    <a href="/apps/bk/sesi" class="text-sm text-zinc-500 hover:text-zinc-700">
         <i data-lucide="arrow-left" class="w-4 h-4 inline"></i> Kembali
     </a>
     <h1 class="text-xl font-bold text-zinc-900 mt-2">
@@ -21,7 +21,7 @@
 {% endif %}
 
 <div class="bg-white rounded-lg border border-zinc-200 p-6 max-w-2xl">
-    <form method="post" action="{% if sesi and sesi.id %}/madrasah-app/bk/sesi/{{ sesi.id }}/edit{% else %}/madrasah-app/bk/sesi/new{% endif %}"
+    <form method="post" action="{% if sesi and sesi.id %}/apps/bk/sesi/{{ sesi.id }}/edit{% else %}/apps/bk/sesi/new{% endif %}"
           class="space-y-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -84,7 +84,7 @@
                 <i data-lucide="save" class="w-4 h-4 inline"></i>
                 {% if sesi and sesi.id %}Simpan{% else %}Buat Sesi{% endif %}
             </button>
-            <a href="/madrasah-app/bk/sesi"
+            <a href="/apps/bk/sesi"
                class="px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-100 rounded-lg">
                 Batal
             </a>

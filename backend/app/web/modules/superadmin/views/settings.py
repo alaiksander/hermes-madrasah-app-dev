@@ -63,14 +63,14 @@ async def settings_update(
     if r.status_code == 200:
         _audit(user, "ubah_setting_platform_web",
                f"nama='{nama_aplikasi}', maintenance={maintenance == 'on'}")
-        return _redirect("/madrasah-app/superadmin/settings",
+        return _redirect("/apps/superadmin/settings",
                          "Pengaturan platform disimpan")
     detail = "Gagal menyimpan"
     try:
         detail = r.json().get("detail", detail)
     except Exception:
         pass
-    return _redirect("/madrasah-app/superadmin/settings", detail, "error")
+    return _redirect("/apps/superadmin/settings", detail, "error")
 
 
 @router.post("/settings/logo")
@@ -89,13 +89,13 @@ async def settings_logo_upload(
     if r.status_code == 200:
         _audit(user, "upload_logo_web",
                f"Logo platform diganti ({file.filename or 'unknown'})")
-        return _redirect("/madrasah-app/superadmin/settings", "Logo berhasil diunggah")
+        return _redirect("/apps/superadmin/settings", "Logo berhasil diunggah")
     detail = "Gagal upload logo"
     try:
         detail = r.json().get("detail", detail)
     except Exception:
         pass
-    return _redirect("/madrasah-app/superadmin/settings", detail, "error")
+    return _redirect("/apps/superadmin/settings", detail, "error")
 
 
 @router.get("/settings/logo-preview")
@@ -122,10 +122,10 @@ async def settings_logo_delete(
     r = await api_delete(request, "/api/super/settings/logo", json={})
     if r.status_code == 200:
         _audit(user, "hapus_logo_web", "Logo platform dihapus")
-        return _redirect("/madrasah-app/superadmin/settings", "Logo dihapus")
+        return _redirect("/apps/superadmin/settings", "Logo dihapus")
     detail = "Gagal menghapus logo"
     try:
         detail = r.json().get("detail", detail)
     except Exception:
         pass
-    return _redirect("/madrasah-app/superadmin/settings", detail, "error")
+    return _redirect("/apps/superadmin/settings", detail, "error")

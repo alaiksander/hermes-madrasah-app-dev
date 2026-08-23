@@ -163,9 +163,9 @@ async def jenis_create(request: Request,
     }
     r = await api_post(request, "/api/tagihan/jenis", body)
     if r.status_code in (200, 201):
-        return RedirectResponse("/madrasah-app/pembayaran/jenis?ok=1",
+        return RedirectResponse("/apps/pembayaran/jenis?ok=1",
                                 status_code=303)
-    return RedirectResponse("/madrasah-app/pembayaran/jenis?err=1",
+    return RedirectResponse("/apps/pembayaran/jenis?err=1",
                             status_code=303)
 
 
@@ -174,7 +174,7 @@ async def jenis_toggle(request: Request, jenis_id: int,
                        user: dict = Depends(require_login_web)):
     """Aktif/nonaktifkan jenis."""
     await api_post(request, f"/api/tagihan/jenis/{jenis_id}/toggle", None)
-    return RedirectResponse("/madrasah-app/pembayaran/jenis", status_code=303)
+    return RedirectResponse("/apps/pembayaran/jenis", status_code=303)
 
 
 @router.post("/generate")
@@ -184,16 +184,17 @@ async def generate(request: Request,
     form = await request.form()
     periode = form.get("periode", "")
     jenis_id = form.get("jenis_id") or None
+    tingkat = form.get("tingkat") or None
     # PENTING: pass query via kwargs (httpx.params=) — bukan ditanaman di path
     r = await api_post(request, "/api/tagihan/generate", None,
-                       periode=periode, jenis_id=jenis_id)
+                       periode=periode, jenis_id=jenis_id, tingkat=tingkat)
     if r.status_code == 200:
         d = r.json()
         msg = f"Generate OK: {d.get('total_baru', 0)} tagihan baru "
         msg += "· ".join(d.get("rincian", []))
-        return RedirectResponse(f"/madrasah-app/pembayaran/jenis?ok={msg}",
+        return RedirectResponse(f"/apps/pembayaran/jenis?ok={msg}",
                                 status_code=303)
-    return RedirectResponse("/madrasah-app/pembayaran/jenis?err=1",
+    return RedirectResponse("/apps/pembayaran/jenis?err=1",
                             status_code=303)
 
 
@@ -247,10 +248,10 @@ async def input_cepat_simpan(request: Request,
     if r.status_code == 200:
         d = r.json()
         return RedirectResponse(
-            f"/madrasah-app/pembayaran/input-cepat?ok={d.get('ok', 0)}"
+            f"/apps/pembayaran/input-cepat?ok={d.get('ok', 0)}"
             + (f"&gagal={len(d.get('gagal', []))}" if d.get("gagal") else ""),
             status_code=303)
-    return RedirectResponse("/madrasah-app/pembayaran/input-cepat?err=1",
+    return RedirectResponse("/apps/pembayaran/input-cepat?err=1",
                             status_code=303)
 
 
@@ -329,7 +330,7 @@ async def tagihan_detail(request: Request, tagihan_id: int,
     """Detail tagihan + riwayat pembayaran + aksi."""
     r = await api_get(request, f"/api/tagihan/{tagihan_id}")
     if r.status_code != 200:
-        return RedirectResponse("/madrasah-app/pembayaran", status_code=303)
+        return RedirectResponse("/apps/pembayaran", status_code=303)
     t = r.json()
     return templates.TemplateResponse(
         "pembayaran/detail.html",
@@ -349,10 +350,10 @@ async def tagihan_bayar(request: Request, tagihan_id: int,
     }
     r = await api_post(request, f"/api/tagihan/{tagihan_id}/bayar", body)
     if r.status_code == 200:
-        return RedirectResponse(f"/madrasah-app/pembayaran/{tagihan_id}?ok=1",
+        return RedirectResponse(f"/apps/pembayaran/{tagihan_id}?ok=1",
                                 status_code=303)
     return RedirectResponse(
-        f"/madrasah-app/pembayaran/{tagihan_id}?err=" + r.text[:80],
+        f"/apps/pembayaran/{tagihan_id}?err=" + r.text[:80],
         status_code=303)
 
 
@@ -367,10 +368,10 @@ async def tagihan_keringanan(request: Request, tagihan_id: int,
     }
     r = await api_post(request, f"/api/tagihan/{tagihan_id}/keringanan", body)
     if r.status_code == 200:
-        return RedirectResponse(f"/madrasah-app/pembayaran/{tagihan_id}?ok=1",
+        return RedirectResponse(f"/apps/pembayaran/{tagihan_id}?ok=1",
                                 status_code=303)
     return RedirectResponse(
-        f"/madrasah-app/pembayaran/{tagihan_id}?err=" + r.text[:80],
+        f"/apps/pembayaran/{tagihan_id}?err=" + r.text[:80],
         status_code=303)
 
 
@@ -385,10 +386,10 @@ async def tagihan_tunda(request: Request, tagihan_id: int,
                 "catatan": form.get("catatan", "").strip()}
         r = await api_post(request, f"/api/tagihan/{tagihan_id}/tunda", body)
         if r.status_code == 200:
-            return RedirectResponse(f"/madrasah-app/pembayaran/{tagihan_id}?ok=1",
+            return RedirectResponse(f"/apps/pembayaran/{tagihan_id}?ok=1",
                                     status_code=303)
     return RedirectResponse(
-        f"/madrasah-app/pembayaran/{tagihan_id}?err=tunda",
+        f"/apps/pembayaran/{tagihan_id}?err=tunda",
         status_code=303)
 
 
@@ -397,4 +398,4 @@ async def tagihan_hapus(request: Request, tagihan_id: int,
                         user: dict = Depends(require_login_web)):
     """Hapus tagihan (kasus salah generate)."""
     await api_delete(request, f"/api/tagihan/{tagihan_id}")
-    return RedirectResponse("/madrasah-app/pembayaran", status_code=303)
+    return RedirectResponse("/apps/pembayaran", status_code=303)

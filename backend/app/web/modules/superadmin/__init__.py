@@ -1,6 +1,6 @@
 """Modul web superadmin — panel manajemen platform.
 
-Prefix: /superadmin (di-mount di /madrasah-app/superadmin)
+Prefix: /superadmin (di-mount di /apps/superadmin)
 Semua endpoint WAJIB pakai require_super_admin_web (bukan require_admin_web)
 supaya tenant admin TIDAK bisa akses.
 """

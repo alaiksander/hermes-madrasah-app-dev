@@ -9,7 +9,7 @@ from ....core.templates import templates
 router = APIRouter(tags=["web-data-guru"])
 
 
-def _redirect(msg: str, type_: str = "success", path: str = "/madrasah-app/data/guru"):
+def _redirect(msg: str, type_: str = "success", path: str = "/apps/data/guru"):
     return RedirectResponse(
         url=f"{path}?msg={msg.replace(' ', '+')}&type={type_}",
         status_code=303,
@@ -68,7 +68,7 @@ async def guru_baru(
             "user": user,
             "guru": None,
             "form_title": "Tambah Guru",
-            "form_action": "/madrasah-app/data/guru",
+            "form_action": "/apps/data/guru",
             "show_password": True,
             "is_self": False,
         },
@@ -106,7 +106,7 @@ async def guru_create(
             "user": user,
             "guru": payload,
             "form_title": "Tambah Guru",
-            "form_action": "/madrasah-app/data/guru",
+            "form_action": "/apps/data/guru",
             "show_password": True,
             "is_self": False,
             "error": detail,
@@ -136,7 +136,7 @@ async def guru_edit(
             "user": user,
             "guru": guru,
             "form_title": "Edit Guru",
-            "form_action": f"/madrasah-app/data/guru/{gid}",
+            "form_action": f"/apps/data/guru/{gid}",
             "show_password": False,
             "is_self": gid == user["id"],
         },
@@ -394,7 +394,7 @@ async def guru_import_commit(
     async with httpx.AsyncClient(timeout=60) as c:
         token = request.cookies.get("madrasah_app_token")
         r = await c.post(
-            "http://127.0.0.1:8010/api/guru/import",
+            "http://127.0.0.1:8013/api/guru/import",
             files={"file": (file.filename or "import.xlsx", contents,
                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")},
             headers={"Authorization": f"Bearer {token}"} if token else {},

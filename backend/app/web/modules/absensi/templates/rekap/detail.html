@@ -8,7 +8,7 @@
 <!-- Header -->
 <div class="flex items-center justify-between mb-4">
     <div>
-        <a href="/madrasah-app/absensi/rekap?tanggal={{ tgl_str }}"
+        <a href="/apps/absensi/rekap?tanggal={{ tgl_str }}"
            class="inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-700 mb-1">
             <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke Rekap
         </a>
@@ -16,17 +16,17 @@
         <p class="text-sm text-zinc-500">{{ tgl | format_date_id }}</p>
     </div>
     <div class="flex items-center gap-2">
-        <a href="/madrasah-app/absensi/rekap-detail?kelas_id={{ kelas.id }}&tanggal={{ yesterday }}"
+        <a href="/apps/absensi/rekap-detail?kelas_id={{ kelas.id }}&tanggal={{ yesterday }}"
            class="btn btn-secondary text-sm">
             <i data-lucide="chevron-left" class="w-4 h-4"></i> {{ yesterday }}
         </a>
         {% if not is_today %}
-        <a href="/madrasah-app/absensi/rekap-detail?kelas_id={{ kelas.id }}&tanggal={{ tomorrow }}"
+        <a href="/apps/absensi/rekap-detail?kelas_id={{ kelas.id }}&tanggal={{ tomorrow }}"
            class="btn btn-secondary text-sm">
             {{ tomorrow }} <i data-lucide="chevron-right" class="w-4 h-4"></i>
         </a>
         {% endif %}
-        <a href="/madrasah-app/absensi/input-manual?tab=bulk&kelas_id={{ kelas.id }}&tanggal={{ tgl_str }}"
+        <a href="/apps/absensi/input-manual?tab=bulk&kelas_id={{ kelas.id }}&tanggal={{ tgl_str }}"
            class="btn btn-primary text-sm">
             <i data-lucide="edit-3" class="w-4 h-4"></i> Koreksi Absen
         </a>
@@ -34,7 +34,7 @@
 </div>
 
 <!-- Filter tanggal -->
-<form method="get" action="/madrasah-app/absensi/rekap-detail"
+<form method="get" action="/apps/absensi/rekap-detail"
       class="bg-white rounded-lg border border-zinc-200 p-3 mb-3 flex items-end gap-3">
     <input type="hidden" name="kelas_id" value="{{ kelas.id }}">
     <div>

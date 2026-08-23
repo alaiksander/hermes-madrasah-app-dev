@@ -9,10 +9,10 @@
     <h1 class="text-xl font-bold text-zinc-900">Daftar Kelas</h1>
     <div class="flex items-center gap-2">
         {% if has_perm(user, 'kelas.update') %}
-        <a href="/madrasah-app/absensi/naik-kelas" class="btn btn-secondary text-sm">
+        <a href="/apps/absensi/naik-kelas" class="btn btn-secondary text-sm">
             <i data-lucide="arrow-up-circle" class="w-4 h-4"></i> Naik Kelas
         </a>
-        <a href="/madrasah-app/data/kelas/baru" class="btn btn-primary">
+        <a href="/apps/data/kelas/baru" class="btn btn-primary">
             <i data-lucide="plus" class="w-4 h-4"></i> Tambah Kelas
         </a>
         {% endif %}
@@ -20,7 +20,7 @@
 </div>
 
 <!-- Filter tahun ajaran -->
-<form method="get" action="/madrasah-app/data/kelas"
+<form method="get" action="/apps/data/kelas"
       class="bg-white rounded-lg border border-zinc-200 p-3 mb-3 flex items-end gap-3">
     <div class="min-w-[200px]">
         <label class="block text-xs font-medium text-zinc-600 mb-1">Tahun Ajaran</label>
@@ -52,7 +52,7 @@
             {% for k in kelas_list %}
             <tr>
                 <td>
-                    <a href="/madrasah-app/data/kelas/{{ k.id }}" class="text-teal-700 hover:underline font-medium">
+                    <a href="/apps/data/kelas/{{ k.id }}" class="text-teal-700 hover:underline font-medium">
                         {{ k.nama_kelas }}
                     </a>
                 </td>
@@ -65,16 +65,16 @@
                     </span>
                 </td>
                 <td class="text-right whitespace-nowrap">
-                    <a href="/madrasah-app/data/kelas/{{ k.id }}" class="text-teal-700 hover:underline text-xs">
+                    <a href="/apps/data/kelas/{{ k.id }}" class="text-teal-700 hover:underline text-xs">
                         Detail
                     </a>
                     {% if has_perm(user, 'kelas.update') %}
-                    <a href="/madrasah-app/data/kelas/{{ k.id }}/edit" class="text-teal-700 hover:underline text-xs ml-2">
+                    <a href="/apps/data/kelas/{{ k.id }}/edit" class="text-teal-700 hover:underline text-xs ml-2">
                         Edit
                     </a>
-                    <form method="post" action="/madrasah-app/data/kelas/{{ k.id }}/hapus"
+                    <form method="post" action="/apps/data/kelas/{{ k.id }}/hapus"
                           class="inline" onsubmit="return confirm('Hapus kelas {{ k.nama_kelas }}? Pastikan tidak ada murid aktif.')">
-                        <button type="submit" class="text-red-600 hover:underline text-xs ml-2">Hapus</button>
+                        <button type="submit" class="text-red-600 hover:underline text-xs ml-2 bg-transparent border-0 p-0 cursor-pointer">Hapus</button>
                     </form>
                     {% endif %}
                 </td>

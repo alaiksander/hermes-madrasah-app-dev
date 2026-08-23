@@ -9,16 +9,16 @@
     <h1 class="text-xl font-bold text-zinc-900">Daftar Murid</h1>
     <div class="flex items-center gap-2">
         {% if has_perm(user, 'murid.update') %}
-        <a href="/madrasah-app/data/murid/import-emis" class="btn btn-secondary text-sm border-teal-300 text-teal-700 hover:bg-teal-50">
+        <a href="/apps/data/murid/import-emis" class="btn btn-secondary text-sm border-teal-300 text-teal-700 hover:bg-teal-50">
             <i data-lucide="sparkles" class="w-4 h-4"></i> Import EMIS
         </a>
-        <a href="/madrasah-app/data/murid/import" class="btn btn-secondary text-sm">
+        <a href="/apps/data/murid/import" class="btn btn-secondary text-sm">
             <i data-lucide="upload" class="w-4 h-4"></i> Import Excel
         </a>
-        <a href="/madrasah-app/data/murid/export-xlsx" class="btn btn-secondary text-sm">
+        <a href="/apps/data/murid/export-xlsx" class="btn btn-secondary text-sm">
             <i data-lucide="download" class="w-4 h-4"></i> Export
         </a>
-        <a href="/madrasah-app/data/murid/baru" class="btn btn-primary">
+        <a href="/apps/data/murid/baru" class="btn btn-primary">
             <i data-lucide="user-plus" class="w-4 h-4"></i> Tambah Murid
         </a>
         {% endif %}
@@ -63,7 +63,7 @@
 <div id="filter-info" class="mb-2 text-xs text-zinc-500 hidden">
     Filter aktif:
     <span id="filter-tags"></span>
-    <button type="button" onclick="resetFilters()" class="text-teal-600 hover:underline">Hapus semua filter</button>
+    <button type="button" onclick="resetFilters()" class="text-teal-600 hover:underline bg-transparent border-0 p-0 cursor-pointer">Hapus semua filter</button>
 </div>
 
 <!-- Bulk action toolbar (Q2 Mr.) — muncul jika ada row dipilih -->
@@ -75,7 +75,7 @@
             <i data-lucide="x" class="w-3 h-3 inline"></i> Batal
         </button>
     </div>
-    <form method="post" action="/madrasah-app/data/murid-bulk-archive"
+    <form method="post" action="/apps/data/murid-bulk-archive"
           onsubmit="return confirm('Arsipkan murid yang dipilih?')">
         <input type="hidden" name="ids" id="bulk-ids" value="">
         <button type="submit" class="btn btn-danger text-sm">

@@ -10,7 +10,7 @@
         <h1 class="text-xl font-bold text-zinc-900">Role & Permission</h1>
         <p class="text-sm text-zinc-500 mt-1">Kelola role custom + permission matrix untuk tenant ini.</p>
     </div>
-    <a href="/madrasah-app/system/role/new"
+    <a href="/apps/system/role/new"
        class="inline-flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 text-sm">
         <i data-lucide="plus" class="w-4 h-4"></i>
         Role Baru
@@ -53,22 +53,13 @@
                     {% endif %}
                 </td>
                 <td class="px-4 py-3 text-center font-mono">{{ r.perm_count }}</td>
-                <td class="px-4 py-3 text-right">
-                    <a href="/madrasah-app/system/role/{{ r.id }}/matrix"
-                       class="inline-flex items-center gap-1 px-2 py-1 text-xs text-teal-700 hover:bg-teal-50 rounded">
-                        <i data-lucide="grid-3x3" class="w-3 h-3"></i> Permission
-                    </a>
+                <td class="px-4 py-3 text-right whitespace-nowrap">
+                    <a href="/apps/system/role/{{ r.id }}/matrix" class="text-teal-700 hover:underline text-xs">Permission</a>
                     {% if not r.is_system %}
-                    <a href="/madrasah-app/system/role/{{ r.id }}/edit"
-                       class="inline-flex items-center gap-1 px-2 py-1 text-xs text-zinc-700 hover:bg-zinc-100 rounded">
-                        <i data-lucide="pencil" class="w-3 h-3"></i> Edit
-                    </a>
-                    <form method="post" action="/madrasah-app/system/role/{{ r.id }}/delete"
+                    <a href="/apps/system/role/{{ r.id }}/edit" class="text-teal-700 hover:underline text-xs ml-2">Edit</a>
+                    <form method="post" action="/apps/system/role/{{ r.id }}/delete"
                           class="inline" onsubmit="return confirm('Hapus role {{ r.nama }}?')">
-                        <button type="submit"
-                                class="inline-flex items-center gap-1 px-2 py-1 text-xs text-red-700 hover:bg-red-50 rounded">
-                            <i data-lucide="trash-2" class="w-3 h-3"></i> Hapus
-                        </button>
+                        <button type="submit" class="text-red-600 hover:underline text-xs ml-2 bg-transparent border-0 p-0 cursor-pointer">Hapus</button>
                     </form>
                     {% else %}
                     <span class="text-xs text-zinc-400">— locked —</span>

@@ -23,7 +23,7 @@
 
     <!-- Form -->
     <div class="bg-white rounded-lg border border-zinc-200 p-4 mb-4">
-        <form method="get" action="/madrasah-app/absensi/cetak-absen" class="grid grid-cols-1 md:grid-cols-4 gap-3">
+        <form method="get" action="/apps/absensi/cetak-absen" class="grid grid-cols-1 md:grid-cols-4 gap-3">
             <div>
                 <label class="block text-xs font-medium text-zinc-600 mb-1">Data</label>
                 <select name="mode" onchange="this.form.submit()"
@@ -132,11 +132,11 @@
                 <button onclick="window.print()" class="btn btn-primary text-sm">
                     <i data-lucide="printer" class="w-4 h-4"></i> Cetak / Save PDF
                 </button>
-                <a href="/madrasah-app/absensi/cetak-absen/pdf?mode={{ mode }}&{% if mode == 'kelas' %}kelas_id={{ selected_kelas_id }}{% else %}murid_id={{ murid_id }}{% endif %}{% if ringkasan %}&ringkasan=true{% endif %}&dari={{ dari }}&sampai={{ sampai }}"
+                <a href="/apps/absensi/cetak-absen/pdf?mode={{ mode }}&{% if mode == 'kelas' %}kelas_id={{ selected_kelas_id }}{% else %}murid_id={{ murid_id }}{% endif %}{% if ringkasan %}&ringkasan=true{% endif %}&dari={{ dari }}&sampai={{ sampai }}"
                    class="btn btn-secondary text-sm">
                     <i data-lucide="file-down" class="w-4 h-4"></i> Download PDF
                 </a>
-                <a href="/madrasah-app/absensi/cetak-absen/xlsx?mode={{ mode }}&{% if mode == 'kelas' %}kelas_id={{ selected_kelas_id }}{% else %}murid_id={{ murid_id }}{% endif %}{% if ringkasan %}&ringkasan=true{% endif %}&dari={{ dari }}&sampai={{ sampai }}"
+                <a href="/apps/absensi/cetak-absen/xlsx?mode={{ mode }}&{% if mode == 'kelas' %}kelas_id={{ selected_kelas_id }}{% else %}murid_id={{ murid_id }}{% endif %}{% if ringkasan %}&ringkasan=true{% endif %}&dari={{ dari }}&sampai={{ sampai }}"
                    class="btn btn-secondary text-sm">
                     <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Download Excel
                 </a>

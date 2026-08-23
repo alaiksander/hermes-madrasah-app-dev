@@ -7,7 +7,7 @@
 {% block content %}
 <div class="max-w-5xl">
     <div class="mb-4">
-        <a href="/madrasah-app/pengampu" class="inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-700">
+        <a href="/apps/pengampu" class="inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-700">
             <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke daftar
         </a>
     </div>
@@ -33,7 +33,7 @@
         </div>
     </div>
 
-    <form method="post" action="/madrasah-app/pengampu/{{ guru.id }}" id="form-pengampu">
+    <form method="post" action="/apps/pengampu/{{ guru.id }}" id="form-pengampu">
         <input type="hidden" name="tahun_ajaran_id" value="{{ tahun_aktif.id }}">
 
         {# Form tambah kombinasi #}
@@ -85,7 +85,7 @@
                 </button>
             </div>
             <table class="w-full text-sm">
-                <thead class="bg-zinc-50 text-zinc-500 text-xs uppercase border-b border-zinc-100">
+                <thead class="bg-zinc-50 text-zinc-600 text-xs uppercase">
                     <tr>
                         <th class="text-left px-4 py-3">Tipe</th>
                         <th class="text-left px-4 py-3">Mapel</th>
@@ -133,7 +133,7 @@
                 Klik "Simpan" akan <strong>mengganti</strong> semua penugasan guru ini untuk TA aktif.
             </p>
             <div class="flex gap-2">
-                <a href="/madrasah-app/pengampu"
+                <a href="/apps/pengampu"
                    class="px-4 py-2 border border-zinc-300 rounded-lg text-zinc-600 hover:bg-zinc-50 text-sm">Batal</a>
                 <button type="submit"
                         class="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white font-medium px-6 py-2 rounded-lg text-sm">

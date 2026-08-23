@@ -13,7 +13,7 @@
 </div>
 
 <!-- Filter -->
-<form method="get" action="/madrasah-app/superadmin/audit"
+<form method="get" action="/apps/superadmin/audit"
       class="bg-white rounded-lg border border-zinc-200 p-3 mb-3 flex flex-wrap items-end gap-3">
     <div>
         <label class="block text-xs font-medium text-zinc-600 mb-1">Dari Tanggal</label>
@@ -34,7 +34,7 @@
         <i data-lucide="filter" class="w-4 h-4"></i> Filter
     </button>
     {% if tanggal_dari or tanggal_sampai or tenant %}
-    <a href="/madrasah-app/superadmin/audit" class="btn btn-secondary text-sm">
+    <a href="/apps/superadmin/audit" class="btn btn-secondary text-sm">
         <i data-lucide="x" class="w-4 h-4"></i> Reset
     </a>
     {% endif %}

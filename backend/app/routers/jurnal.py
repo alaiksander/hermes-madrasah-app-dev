@@ -28,7 +28,7 @@ def _guru_pengampu_kelas_ids(db: Session, guru_id: int) -> set[int]:
         return set()
     rows = db.query(GuruPengampu.kelas_id).filter(
         GuruPengampu.guru_id == guru_id,
-        GuruPengampuan.tahun_ajaran_id == ta_aktif.id,
+        GuruPengampu.tahun_ajaran_id == ta_aktif.id,
         GuruPengampu.is_active.is_(True),
     ).all()
     return {k for (k,) in rows}

@@ -1,6 +1,6 @@
 """Portal Orang Tua — rekap absensi bulanan anak via NIS + nama ortu.
 
-Publik (tanpa login): /madrasah-app/ortu
+Publik (tanpa login): /apps/ortu
 - Form verifikasi: NIS + Nama Orang Tua
 - Setelah valid: rekap bulan berjalan + dropdown pilih bulan
 - Data dari API /api/absensi/ortu/rekap (tenant-scoped)
@@ -16,7 +16,7 @@ from ....core.templates import templates, _MONTH_NAMES
 
 router = APIRouter()
 
-API_BASE = "http://127.0.0.1:8010"
+API_BASE = "http://127.0.0.1:8013"
 
 
 @router.get("/ortu")
@@ -88,6 +88,6 @@ async def ortu_rekap_bulan(
 ):
     """Redirect ke halaman ortu dengan bulan dipilih (biar URL bersih)."""
     return RedirectResponse(
-        f"/madrasah-app/ortu?kode={kode}&nisn={nisn}&nama_ortu={nama_ortu}&bulan={bulan}",
+        f"/apps/ortu?kode={kode}&nisn={nisn}&nama_ortu={nama_ortu}&bulan={bulan}",
         status_code=303,
     )

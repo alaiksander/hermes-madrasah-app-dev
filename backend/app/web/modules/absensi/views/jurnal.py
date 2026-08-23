@@ -197,8 +197,8 @@ async def jurnal_input_submit(request: Request,
     if r.status_code in (200, 201):
         result = r.json()
         jurnal_id = result.get("id")
-        return RedirectResponse(f"/madrasah-app/jurnal/{jurnal_id}", status_code=303)
-    return RedirectResponse(f"/madrasah-app/jurnal/input", status_code=303)
+        return RedirectResponse(f"/apps/jurnal/{jurnal_id}", status_code=303)
+    return RedirectResponse(f"/apps/jurnal/input", status_code=303)
 
 
 # ── Detail Jurnal ──────────────────────────────────────────────────────────
@@ -210,7 +210,7 @@ async def jurnal_detail(jurnal_id: int,
     """Detail jurnal + absensi per-murid (inline editable)."""
     r = await api_get(request, f"/api/jurnal/{jurnal_id}")
     if r.status_code != 200:
-        return RedirectResponse("/madrasah-app/jurnal/", status_code=303)
+        return RedirectResponse("/apps/jurnal/", status_code=303)
     jurnal = r.json()
     return templates.TemplateResponse(
         "jurnal/detail.html",
@@ -224,7 +224,7 @@ async def jurnal_submit(jurnal_id: int,
                          user: dict = Depends(require_login_web)):
     """Submit jurnal (draft → submitted)."""
     await api_post(request, f"/api/jurnal/{jurnal_id}/submit", {})
-    return RedirectResponse(f"/madrasah-app/jurnal/{jurnal_id}", status_code=303)
+    return RedirectResponse(f"/apps/jurnal/{jurnal_id}", status_code=303)
 
 
 @router.post("/{jurnal_id}/absensi")
@@ -240,7 +240,7 @@ async def jurnal_absensi_update(jurnal_id: int,
             updates[murid_id] = val
     await api_post(request, f"/api/jurnal/{jurnal_id}/absensi",
                    {"updates": updates})
-    return RedirectResponse(f"/madrasah-app/jurnal/{jurnal_id}", status_code=303)
+    return RedirectResponse(f"/apps/jurnal/{jurnal_id}", status_code=303)
 
 
 # ── Edit Jurnal (SEBELUM /{jurnal_id} untuk /edit path) ────────────────────
@@ -252,7 +252,7 @@ async def jurnal_edit(jurnal_id: int,
     """Form edit jurnal."""
     r = await api_get(request, f"/api/jurnal/{jurnal_id}")
     if r.status_code != 200:
-        return RedirectResponse("/madrasah-app/jurnal/", status_code=303)
+        return RedirectResponse("/apps/jurnal/", status_code=303)
     jurnal = r.json()
     r_kelas = await api_get(request, "/api/kelas")
     kelas_list = r_kelas.json() if r_kelas.status_code == 200 else []
@@ -292,5 +292,5 @@ async def jurnal_edit_submit(jurnal_id: int,
     if r.status_code == 200:
         result = r.json()
         j_id = result.get("id")
-        return RedirectResponse(f"/madrasah-app/jurnal/{j_id}", status_code=303)
-    return RedirectResponse(f"/madrasah-app/jurnal/{jurnal_id}/edit", status_code=303)
+        return RedirectResponse(f"/apps/jurnal/{j_id}", status_code=303)
+    return RedirectResponse(f"/apps/jurnal/{jurnal_id}/edit", status_code=303)

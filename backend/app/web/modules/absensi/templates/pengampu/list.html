@@ -7,7 +7,7 @@
 {% block content %}
 <div class="max-w-4xl">
     <div class="mb-4">
-        <a href="/madrasah-app/data/guru" class="inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-700">
+        <a href="/apps/data/guru" class="inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-700">
             <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke daftar guru
         </a>
     </div>
@@ -28,9 +28,9 @@
     {% endif %}
 
     {% if gurus %}
-    <div class="bg-white border border-zinc-200 rounded-xl shadow-sm overflow-hidden">
+    <div class="bg-white border border-zinc-200 rounded-xl shadow-sm overflow-x-auto">
         <table class="w-full text-sm">
-            <thead class="bg-zinc-50 text-zinc-500 text-xs uppercase border-b border-zinc-100">
+            <thead class="bg-zinc-50 text-zinc-600 text-xs uppercase">
                 <tr>
                     <th class="text-left px-4 py-3">Guru</th>
                     <th class="text-left px-4 py-3">Role</th>
@@ -55,9 +55,9 @@
                             {{ counts.get(g.id, 0) }} item
                         </span>
                     </td>
-                    <td class="px-4 py-2.5 text-right">
-                        <a href="/madrasah-app/pengampu/{{ g.id }}"
-                           class="text-teal-700 hover:underline">Set Pengampu</a>
+                    <td class="px-4 py-2.5 text-right whitespace-nowrap">
+                        <a href="/apps/pengampu/{{ g.id }}"
+                           class="text-teal-700 hover:underline text-xs">Set Pengampu</a>
                     </td>
                 </tr>
                 {% endfor %}

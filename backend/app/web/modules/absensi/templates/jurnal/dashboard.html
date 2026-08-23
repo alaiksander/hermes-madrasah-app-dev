@@ -7,14 +7,14 @@
         <h1 class="text-2xl font-bold text-zinc-800">Jurnal Mengajar</h1>
         <div class="flex items-center gap-2">
             {% if has_perm(user, "jurnal.export") or has_perm(user, "jurnal.verify") %}
-            <a href="/madrasah-app/jurnal/export?dari={{ dari }}&sampai={{ sampai }}"
+            <a href="/apps/jurnal/export?dari={{ dari }}&sampai={{ sampai }}"
                class="flex items-center gap-1.5 bg-teal-600 hover:bg-teal-700 text-white font-medium px-4 py-2 rounded-lg transition-colors text-sm">
                 <i data-lucide="download" class="w-4 h-4"></i>
                 Export
             </a>
             {% endif %}
             {% if has_perm(user, "jurnal.input") %}
-            <a href="/madrasah-app/jurnal/input"
+            <a href="/apps/jurnal/input"
                class="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white font-medium px-4 py-2 rounded-lg transition-colors text-sm">
                 <i data-lucide="plus" class="w-4 h-4"></i>
                 Input Jurnal
@@ -68,7 +68,7 @@
         {% if jurnal_list %}
         <div class="overflow-x-auto">
         <table class="w-full text-sm">
-            <thead class="bg-zinc-50 text-zinc-500 text-xs uppercase">
+            <thead class="bg-zinc-50 text-zinc-600 text-xs uppercase">
                 <tr>
                     <th class="text-left px-4 py-2">Tanggal</th>
                     <th class="text-left px-4 py-2">Kelas</th>
@@ -94,8 +94,8 @@
                         <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-teal-100 text-teal-700">Verified</span>
                         {% endif %}
                     </td>
-                    <td class="px-4 py-2 text-right">
-                        <a href="/madrasah-app/jurnal/{{ j.id }}"
+                    <td class="px-4 py-2 text-right whitespace-nowrap">
+                        <a href="/apps/jurnal/{{ j.id }}"
                            class="text-teal-600 hover:text-teal-800 text-sm font-medium">Buka</a>
                     </td>
                 </tr>
@@ -108,14 +108,14 @@
             <i data-lucide="notebook-pen" class="w-8 h-8 mx-auto mb-2 opacity-40"></i>
             <p>Belum ada jurnal bulan ini.</p>
             {% if has_perm(user, "jurnal.input") %}
-            <a href="/madrasah-app/jurnal/input" class="text-teal-600 hover:underline text-sm mt-1 inline-block">Buat jurnal pertama</a>
+            <a href="/apps/jurnal/input" class="text-teal-600 hover:underline text-sm mt-1 inline-block">Buat jurnal pertama</a>
             {% endif %}
         </div>
         {% endif %}
     </div>
 
     <div class="mt-4 text-right">
-        <a href="/madrasah-app/jurnal/riwayat" class="text-sm text-teal-600 hover:underline">Lihat semua riwayat →</a>
+        <a href="/apps/jurnal/riwayat" class="text-sm text-teal-600 hover:underline">Lihat semua riwayat →</a>
     </div>
 </div>
 {% endblock %}

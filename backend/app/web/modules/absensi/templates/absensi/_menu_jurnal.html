@@ -9,15 +9,15 @@
     </summary>
     <div class="sidebar-group-items">
         {% if has_perm(user, "jurnal.view") %}
-        <a href="/madrasah-app/jurnal/"
-           class="flex items-center gap-2 px-3 py-2 rounded-lg {% if request.url.path == '/madrasah-app/jurnal/' %}bg-teal-50 text-teal-700 font-medium{% else %}text-zinc-700 hover:bg-zinc-100{% endif %}"
+        <a href="/apps/jurnal/"
+           class="flex items-center gap-2 px-3 py-2 rounded-lg {% if request.url.path == '/apps/jurnal/' %}bg-teal-50 text-teal-700 font-medium{% else %}text-zinc-700 hover:bg-zinc-100{% endif %}"
            title="Dashboard Jurnal">
             <i data-lucide="layout-dashboard" class="w-4 h-4 flex-shrink-0 menu-icon"></i>
             <span class="menu-text">Dashboard</span>
         </a>
         {% endif %}
         {% if has_perm(user, "jurnal.input") %}
-        <a href="/madrasah-app/jurnal/input"
+        <a href="/apps/jurnal/input"
            class="flex items-center gap-2 px-3 py-2 rounded-lg {% if '/jurnal/input' in request.url.path %}bg-teal-50 text-teal-700 font-medium{% else %}text-zinc-700 hover:bg-zinc-100{% endif %}"
            title="Input Jurnal">
             <i data-lucide="notebook-pen" class="w-4 h-4 flex-shrink-0 menu-icon"></i>
@@ -25,7 +25,7 @@
         </a>
         {% endif %}
         {% if has_perm(user, "jurnal.view") %}
-        <a href="/madrasah-app/jurnal/riwayat"
+        <a href="/apps/jurnal/riwayat"
            class="flex items-center gap-2 px-3 py-2 rounded-lg {% if '/jurnal/riwayat' in request.url.path %}bg-teal-50 text-teal-700 font-medium{% else %}text-zinc-700 hover:bg-zinc-100{% endif %}"
            title="Riwayat Jurnal">
             <i data-lucide="history" class="w-4 h-4 flex-shrink-0 menu-icon"></i>

@@ -8,7 +8,7 @@
 <div class="flex items-center justify-between mb-4">
     <h1 class="text-xl font-bold text-zinc-900">Tahun Ajaran</h1>
     {% if has_perm(user, 'ta.update') %}
-    <a href="/madrasah-app/data/tahun-ajaran/baru" class="btn btn-primary">
+    <a href="/apps/data/tahun-ajaran/baru" class="btn btn-primary">
         <i data-lucide="plus" class="w-4 h-4"></i> Tambah Tahun Ajaran
     </a>
     {% endif %}
@@ -67,9 +67,9 @@
                     {% endif %}
                 </td>
                 {% if has_perm(user, 'ta.update') %}
-                <td class="text-right space-x-2 text-xs">
+                <td class="text-right whitespace-nowrap">
                     {% if not t.is_active %}
-                    <form method="post" action="/madrasah-app/data/tahun-ajaran/{{ t.id }}/aktifkan"
+                    <form method="post" action="/apps/data/tahun-ajaran/{{ t.id }}/aktifkan"
                           class="inline"
                           onsubmit="return confirm('Aktifkan {{ t.nama }}? Tahun ajaran aktif lain akan dinonaktifkan.')">
                         <button type="submit" class="text-green-700 hover:underline">
@@ -77,19 +77,19 @@
                         </button>
                     </form>
                     {% endif %}
-                    <a href="/madrasah-app/data/tahun-ajaran/{{ t.id }}/periode"
-                       class="text-blue-700 hover:underline">
+                    <a href="/apps/data/tahun-ajaran/{{ t.id }}/periode"
+                       class="text-blue-700 hover:underline ml-2">
                         Atur Semester
                     </a>
-                    <a href="/madrasah-app/data/tahun-ajaran/{{ t.id }}/edit"
-                       class="text-teal-700 hover:underline">
+                    <a href="/apps/data/tahun-ajaran/{{ t.id }}/edit"
+                       class="text-teal-700 hover:underline text-xs ml-2">
                         Edit
                     </a>
                     {% if t.jumlah_kelas == 0 %}
-                    <form method="post" action="/madrasah-app/data/tahun-ajaran/{{ t.id }}/hapus"
+                    <form method="post" action="/apps/data/tahun-ajaran/{{ t.id }}/hapus"
                           class="inline"
                           onsubmit="return confirm('Hapus tahun ajaran {{ t.nama }}?')">
-                        <button type="submit" class="text-red-600 hover:underline">
+                        <button type="submit" class="text-red-600 hover:underline text-xs ml-2 bg-transparent border-0 p-0 cursor-pointer">
                             Hapus
                         </button>
                     </form>

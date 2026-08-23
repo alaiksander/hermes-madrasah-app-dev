@@ -9,7 +9,7 @@ from ....core.templates import templates
 router = APIRouter()
 
 
-def _redirect(msg: str, type_: str = "success", path: str = "/madrasah-app/absensi/input-manual"):
+def _redirect(msg: str, type_: str = "success", path: str = "/apps/absensi/input-manual"):
     return RedirectResponse(
         url=f"{path}?msg={msg.replace(' ', '+')}&type={type_}",
         status_code=303,
@@ -120,12 +120,12 @@ async def input_manual_bulk_submit(
                 parts.append(f"{sudah_ada} sudah ada")
             msg = "Berhasil: " + ", ".join(parts) if parts else "Tidak ada perubahan"
             return RedirectResponse(
-                url=f"/madrasah-app/absensi/input-manual?tab=bulk&kelas_id={kelas_id}&tanggal={tanggal}&msg={msg.replace(' ', '+')}&type=success",
+                url=f"/apps/absensi/input-manual?tab=bulk&kelas_id={kelas_id}&tanggal={tanggal}&msg={msg.replace(' ', '+')}&type=success",
                 status_code=303,
             )
         except Exception:
             return RedirectResponse(
-                url=f"/madrasah-app/absensi/input-manual?tab=bulk&kelas_id={kelas_id}&tanggal={tanggal}&msg=Berhasil&type=success",
+                url=f"/apps/absensi/input-manual?tab=bulk&kelas_id={kelas_id}&tanggal={tanggal}&msg=Berhasil&type=success",
                 status_code=303,
             )
     detail = "Gagal menyimpan"
@@ -134,7 +134,7 @@ async def input_manual_bulk_submit(
     except Exception:
         pass
     return RedirectResponse(
-        url=f"/madrasah-app/absensi/input-manual?tab=bulk&kelas_id={kelas_id}&tanggal={tanggal}&msg={detail.replace(' ', '+')}&type=error",
+        url=f"/apps/absensi/input-manual?tab=bulk&kelas_id={kelas_id}&tanggal={tanggal}&msg={detail.replace(' ', '+')}&type=error",
         status_code=303,
     )
 
@@ -156,7 +156,7 @@ async def input_manual_individual_submit(
         except Exception:
             msg = "Berhasil dicatat"
         return RedirectResponse(
-            url=f"/madrasah-app/absensi/input-manual?tab=individual&q={q}&msg={msg.replace(' ', '+')}&type=success",
+            url=f"/apps/absensi/input-manual?tab=individual&q={q}&msg={msg.replace(' ', '+')}&type=success",
             status_code=303,
         )
     detail = "Gagal mencatat"
@@ -165,6 +165,6 @@ async def input_manual_individual_submit(
     except Exception:
         pass
     return RedirectResponse(
-        url=f"/madrasah-app/absensi/input-manual?tab=individual&q={q}&msg={detail.replace(' ', '+')}&type=error",
+        url=f"/apps/absensi/input-manual?tab=individual&q={q}&msg={detail.replace(' ', '+')}&type=error",
         status_code=303,
     )

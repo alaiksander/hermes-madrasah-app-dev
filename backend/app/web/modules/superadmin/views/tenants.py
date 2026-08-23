@@ -94,14 +94,14 @@ async def tenants_create(
             f"Tenant '{nama}' ({kode}) dibuat via panel superadmin; "
             f"id={created.get('id', '?')}",
         )
-        return _redirect("/madrasah-app/superadmin/tenants",
+        return _redirect("/apps/superadmin/tenants",
                          f"Tenant '{nama}' berhasil dibuat")
     detail = "Gagal membuat tenant"
     try:
         detail = r.json().get("detail", detail)
     except Exception:
         pass
-    return _redirect("/madrasah-app/superadmin/tenants", detail, "error")
+    return _redirect("/apps/superadmin/tenants", detail, "error")
 
 
 @router.get("/tenants/{tenant_id}")
@@ -134,7 +134,7 @@ async def _get_tenant_or_redirect(request: Request, tenant_id: int):
     tenants = list_r.json() if list_r.status_code == 200 else []
     tenant = next((t for t in tenants if t.get("id") == tenant_id), None)
     if not tenant:
-        return None, _redirect("/madrasah-app/superadmin/tenants",
+        return None, _redirect("/apps/superadmin/tenants",
                                "Tenant tidak ditemukan", "error")
     return tenant, None
 
@@ -191,14 +191,14 @@ async def tenants_update(
             f"Tenant id={tenant_id} diperbarui via panel superadmin; "
             f"nama='{nama}', plan='{plan}', status={status}",
         )
-        return _redirect(f"/madrasah-app/superadmin/tenants/{tenant_id}",
+        return _redirect(f"/apps/superadmin/tenants/{tenant_id}",
                          "Tenant diperbarui")
     detail = "Gagal update"
     try:
         detail = r.json().get("detail", detail)
     except Exception:
         pass
-    return _redirect(f"/madrasah-app/superadmin/tenants/{tenant_id}", detail, "error")
+    return _redirect(f"/apps/superadmin/tenants/{tenant_id}", detail, "error")
 
 
 @router.post("/tenants/{tenant_id}/admin")
@@ -219,14 +219,14 @@ async def tenants_create_admin(
     if r.status_code in (200, 201):
         _audit(user, "tambah_admin_tenant_web",
                f"Admin '{username}' ({nama}) dibuat untuk tenant id={tenant_id}")
-        return _redirect(f"/madrasah-app/superadmin/tenants/{tenant_id}",
+        return _redirect(f"/apps/superadmin/tenants/{tenant_id}",
                          f"Admin '{username}' berhasil dibuat")
     detail = "Gagal membuat admin"
     try:
         detail = r.json().get("detail", detail)
     except Exception:
         pass
-    return _redirect(f"/madrasah-app/superadmin/tenants/{tenant_id}", detail, "error")
+    return _redirect(f"/apps/superadmin/tenants/{tenant_id}", detail, "error")
 
 
 @router.post("/tenants/{tenant_id}/admins/{guru_id}/toggle")
@@ -241,7 +241,7 @@ async def tenants_admin_toggle(
     admins = r.json() if r.status_code == 200 else []
     target = next((a for a in admins if a.get("id") == guru_id), None)
     if not target:
-        return _redirect(f"/madrasah-app/superadmin/tenants/{tenant_id}",
+        return _redirect(f"/apps/superadmin/tenants/{tenant_id}",
                          "Akun tidak ditemukan", "error")
     new_state = not target.get("is_active", True)
 
@@ -254,14 +254,14 @@ async def tenants_admin_toggle(
         _audit(user, "toggle_admin_tenant_web",
                f"Admin '{target.get('username')}' di tenant id={tenant_id} → "
                f"{'aktif' if new_state else 'nonaktif'}")
-        return _redirect(f"/madrasah-app/superadmin/tenants/{tenant_id}",
+        return _redirect(f"/apps/superadmin/tenants/{tenant_id}",
                          f"Admin '{target.get('username')}' {'diaktifkan' if new_state else 'dinonaktifkan'}")
     detail = "Gagal mengubah status"
     try:
         detail = r2.json().get("detail", detail)
     except Exception:
         pass
-    return _redirect(f"/madrasah-app/superadmin/tenants/{tenant_id}", detail, "error")
+    return _redirect(f"/apps/superadmin/tenants/{tenant_id}", detail, "error")
 
 
 @router.post("/tenants/{tenant_id}/admins/{guru_id}/hapus")
@@ -280,14 +280,14 @@ async def tenants_admin_delete(
     if r.status_code == 200:
         _audit(user, "hapus_admin_tenant_web",
                f"Admin id={guru_id} dihapus dari tenant id={tenant_id}")
-        return _redirect(f"/madrasah-app/superadmin/tenants/{tenant_id}",
+        return _redirect(f"/apps/superadmin/tenants/{tenant_id}",
                          "Akun dihapus")
     detail = "Gagal menghapus akun"
     try:
         detail = r.json().get("detail", detail)
     except Exception:
         pass
-    return _redirect(f"/madrasah-app/superadmin/tenants/{tenant_id}", detail, "error")
+    return _redirect(f"/apps/superadmin/tenants/{tenant_id}", detail, "error")
 
 
 @router.get("/tenants/{tenant_id}/backup")
@@ -306,7 +306,7 @@ async def tenants_backup(
             detail = r.json().get("detail", detail)
         except Exception:
             pass
-        return _redirect(f"/madrasah-app/superadmin/tenants/{tenant_id}", detail, "error")
+        return _redirect(f"/apps/superadmin/tenants/{tenant_id}", detail, "error")
 
     # Ambil nama file dari Content-Disposition header backend
     fname = "backup.json"
@@ -343,14 +343,14 @@ async def tenants_reset_password(
             "reset_password_tenant_web",
             f"Password admin '{username}' untuk tenant id={tenant_id} direset via panel superadmin",
         )
-        return _redirect(f"/madrasah-app/superadmin/tenants/{tenant_id}",
+        return _redirect(f"/apps/superadmin/tenants/{tenant_id}",
                          f"Password '{username}' direset")
     detail = "Gagal reset password"
     try:
         detail = r.json().get("detail", detail)
     except Exception:
         pass
-    return _redirect(f"/madrasah-app/superadmin/tenants/{tenant_id}", detail, "error")
+    return _redirect(f"/apps/superadmin/tenants/{tenant_id}", detail, "error")
 
 
 @router.post("/tenants/{tenant_id}/hapus")
@@ -366,7 +366,7 @@ async def tenants_delete(
         return err
 
     if konfirmasi.strip() != tenant.get("nama", ""):
-        return _redirect(f"/madrasah-app/superadmin/tenants/{tenant_id}",
+        return _redirect(f"/apps/superadmin/tenants/{tenant_id}",
                          "Nama tidak cocok — tenant tidak dihapus", "error")
 
     # API delete butuh body {"kode": tenant_kode} (TenantDeleteRequest)
@@ -381,11 +381,11 @@ async def tenants_delete(
             "hapus_tenant_web",
             f"Tenant '{tenant.get('nama')}' ({tenant.get('kode', '')}) id={tenant_id} dihapus via panel superadmin",
         )
-        return _redirect("/madrasah-app/superadmin/tenants",
+        return _redirect("/apps/superadmin/tenants",
                          f"Tenant '{tenant.get('nama')}' dihapus")
     detail = "Gagal hapus"
     try:
         detail = del_r.json().get("detail", detail)
     except Exception:
         pass
-    return _redirect(f"/madrasah-app/superadmin/tenants/{tenant_id}", detail, "error")
+    return _redirect(f"/apps/superadmin/tenants/{tenant_id}", detail, "error")

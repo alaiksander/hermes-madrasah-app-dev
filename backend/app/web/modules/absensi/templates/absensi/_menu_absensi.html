@@ -9,7 +9,7 @@
     </summary>
     <div class="sidebar-group-items">
         {% if has_perm(user, "absen.scan") or has_perm(user, "absen.manual") or has_perm(user, "absen.rekap") %}
-        <a href="/madrasah-app/absensi/dashboard"
+        <a href="/apps/absensi/dashboard"
            class="flex items-center gap-2 px-3 py-2 rounded-lg {% if '/absensi/dashboard' in request.url.path %}bg-teal-50 text-teal-700 font-medium{% else %}text-zinc-700 hover:bg-zinc-100{% endif %}"
            title="Dashboard Absensi">
             <i data-lucide="layout-dashboard" class="w-4 h-4 flex-shrink-0 menu-icon"></i>
@@ -17,7 +17,7 @@
         </a>
         {% endif %}
         {% if has_perm(user, "absen.rekap") %}
-        <a href="/madrasah-app/absensi/rekap"
+        <a href="/apps/absensi/rekap"
            class="flex items-center gap-2 px-3 py-2 rounded-lg {% if '/rekap' in request.url.path %}bg-teal-50 text-teal-700 font-medium{% else %}text-zinc-700 hover:bg-zinc-100{% endif %}"
            title="Rekap Absensi">
             <i data-lucide="bar-chart-3" class="w-4 h-4 flex-shrink-0 menu-icon"></i>
@@ -25,7 +25,7 @@
         </a>
         {% endif %}
         {% if has_perm(user, "absen.manual") %}
-        <a href="/madrasah-app/absensi/input-manual"
+        <a href="/apps/absensi/input-manual"
            class="flex items-center gap-2 px-3 py-2 rounded-lg {% if '/input-manual' in request.url.path %}bg-teal-50 text-teal-700 font-medium{% else %}text-zinc-700 hover:bg-zinc-100{% endif %}"
            title="Input Manual">
             <i data-lucide="edit-3" class="w-4 h-4 flex-shrink-0 menu-icon"></i>
@@ -33,7 +33,7 @@
         </a>
         {% endif %}
         {% if has_perm(user, "murid.qr") %}
-        <a href="/madrasah-app/absensi/kartu-qr"
+        <a href="/apps/absensi/kartu-qr"
            class="flex items-center gap-2 px-3 py-2 rounded-lg {% if '/kartu-qr' in request.url.path %}bg-teal-50 text-teal-700 font-medium{% else %}text-zinc-700 hover:bg-zinc-100{% endif %}"
            title="Kartu QR Absensi">
             <i data-lucide="qr-code" class="w-4 h-4 flex-shrink-0 menu-icon"></i>
@@ -41,7 +41,7 @@
         </a>
         {% endif %}
         {% if has_perm(user, "absen.cetak") %}
-        <a href="/madrasah-app/absensi/cetak-absen"
+        <a href="/apps/absensi/cetak-absen"
            class="flex items-center gap-2 px-3 py-2 rounded-lg {% if '/cetak-absen' in request.url.path %}bg-teal-50 text-teal-700 font-medium{% else %}text-zinc-700 hover:bg-zinc-100{% endif %}"
            title="Cetak Absen PDF / Excel">
             <i data-lucide="printer" class="w-4 h-4 flex-shrink-0 menu-icon"></i>

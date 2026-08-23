@@ -18,11 +18,11 @@
     <!-- Tab navigation -->
     <div class="border-b border-zinc-200 mb-4">
         <nav class="flex gap-1">
-            <a href="/madrasah-app/absensi/kartu-qr?tab=kelas"
+            <a href="/apps/absensi/kartu-qr?tab=kelas"
                class="px-4 py-2 text-sm border-b-2 {% if tab == 'kelas' %}border-teal-700 text-teal-700 font-medium{% else %}border-transparent text-zinc-600 hover:text-zinc-900{% endif %}">
                 <i data-lucide="layers" class="w-4 h-4 inline"></i> Per Kelas (Massal)
             </a>
-            <a href="/madrasah-app/absensi/kartu-qr?tab=anak"
+            <a href="/apps/absensi/kartu-qr?tab=anak"
                class="px-4 py-2 text-sm border-b-2 {% if tab == 'anak' %}border-teal-700 text-teal-700 font-medium{% else %}border-transparent text-zinc-600 hover:text-zinc-900{% endif %}">
                 <i data-lucide="user" class="w-4 h-4 inline"></i> Per Anak
             </a>
@@ -32,7 +32,7 @@
     {# ─── TAB 1: Per Kelas ─────────────────────────────────────────── #}
     {% if tab == 'kelas' %}
     <!-- Pilih kelas -->
-    <form method="get" action="/madrasah-app/absensi/kartu-qr"
+    <form method="get" action="/apps/absensi/kartu-qr"
           class="bg-white rounded-lg border border-zinc-200 p-3 mb-4 flex items-end gap-3">
         <input type="hidden" name="tab" value="kelas">
         <div class="min-w-[200px]">
@@ -66,7 +66,7 @@
             {% for m in roster %}
             {% if loop.index0 % 10 == 0 %}<div class="qr-page">{% endif %}
             <div class="qr-card-item flex flex-col items-center text-center py-2">
-                <img src="/madrasah-app/data/murid/{{ m.id }}/qr-png"
+                <img src="/apps/data/murid/{{ m.id }}/qr-png"
                      alt="QR {{ m.nama }}" class="qr-img w-32 h-32 mb-3 flex-shrink-0">
                 <div class="qr-name text-sm font-bold text-zinc-900 leading-snug break-words max-w-full">
                     {% for ln in m.nama_baris %}{{ ln }}{% if not loop.last %}<br>{% endif %}{% endfor %}
@@ -84,7 +84,7 @@
         <button onclick="window.print()" class="btn btn-primary text-sm">
             <i data-lucide="printer" class="w-4 h-4"></i> Cetak / Save PDF
         </button>
-        <a href="/madrasah-app/absensi/kartu-qr/pdf?kelas_id={{ selected_kelas_id }}"
+        <a href="/apps/absensi/kartu-qr/pdf?kelas_id={{ selected_kelas_id }}"
            class="btn btn-secondary text-sm">
             <i data-lucide="download" class="w-4 h-4"></i> Download PDF
         </a>
@@ -106,7 +106,7 @@
     {# ─── TAB 2: Per Anak ──────────────────────────────────────────── #}
     {% else %}
     <!-- Search -->
-    <form method="get" action="/madrasah-app/absensi/kartu-qr"
+    <form method="get" action="/apps/absensi/kartu-qr"
           class="bg-white rounded-lg border border-zinc-200 p-3 mb-4">
         <input type="hidden" name="tab" value="anak">
         <div class="flex items-center gap-2">
@@ -121,7 +121,7 @@
     <!-- Preview kartu tunggal -->
     <div class="bg-white rounded-lg border border-zinc-200 p-6 mb-4 qr-print-card">
         <div class="flex flex-col items-center text-center">
-            <img src="/madrasah-app/data/murid/{{ selected_murid.id }}/qr-png"
+            <img src="/apps/data/murid/{{ selected_murid.id }}/qr-png"
                  alt="QR {{ selected_murid.nama }}" class="qr-img w-64 h-64 mb-3">
             <div class="qr-name text-lg font-bold text-zinc-900 break-words max-w-md leading-snug">
                 {% for ln in selected_murid.nama_baris %}{{ ln }}{% if not loop.last %}<br>{% endif %}{% endfor %}
@@ -134,7 +134,7 @@
         <button onclick="window.print()" class="btn btn-primary text-sm">
             <i data-lucide="printer" class="w-4 h-4"></i> Cetak / Save PDF
         </button>
-        <a href="/madrasah-app/absensi/kartu-qr/murid/{{ selected_murid.id }}/pdf"
+        <a href="/apps/absensi/kartu-qr/murid/{{ selected_murid.id }}/pdf"
            class="btn btn-secondary text-sm">
             <i data-lucide="download" class="w-4 h-4"></i> Download PDF
         </a>
@@ -144,7 +144,7 @@
     <!-- Hasil search -->
     <div class="bg-white rounded-lg border border-zinc-200 divide-y divide-zinc-200">
         {% for m in murid_list %}
-        <a href="/madrasah-app/absensi/kartu-qr?tab=anak&murid_id={{ m.id }}"
+        <a href="/apps/absensi/kartu-qr?tab=anak&murid_id={{ m.id }}"
            class="flex items-center justify-between px-4 py-3 hover:bg-zinc-50">
             <div class="flex items-center gap-3">
                 <div class="p-2 bg-teal-50 rounded-lg">

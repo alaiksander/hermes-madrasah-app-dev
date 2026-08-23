@@ -11,7 +11,7 @@ from ....core.templates import templates
 router = APIRouter()
 
 
-def _redirect(msg: str, type_: str = "success", path: str = "/madrasah-app/absensi/rekap"):
+def _redirect(msg: str, type_: str = "success", path: str = "/apps/absensi/rekap"):
     return RedirectResponse(
         url=f"{path}?msg={msg.replace(' ', '+')}&type={type_}",
         status_code=303,

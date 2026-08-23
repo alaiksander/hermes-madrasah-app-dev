@@ -77,14 +77,14 @@ async def plans_create(
     )
     if r.status_code in (200, 201):
         _audit(user, "tambah_plan_web", f"Plan '{nama.strip().lower()}' dibuat")
-        return _redirect("/madrasah-app/superadmin/plans",
+        return _redirect("/apps/superadmin/plans",
                          f"Plan '{nama.strip().lower()}' berhasil dibuat")
     detail = "Gagal membuat plan"
     try:
         detail = r.json().get("detail", detail)
     except Exception:
         pass
-    return _redirect("/madrasah-app/superadmin/plans", detail, "error")
+    return _redirect("/apps/superadmin/plans", detail, "error")
 
 
 @router.get("/plans/{plan_id}/edit")
@@ -98,7 +98,7 @@ async def plans_edit_form(
     plans = r.json() if r.status_code == 200 else []
     plan = next((p for p in plans if p.get("id") == plan_id), None)
     if not plan:
-        return _redirect("/madrasah-app/superadmin/plans",
+        return _redirect("/apps/superadmin/plans",
                          "Plan tidak ditemukan", "error")
     return templates.TemplateResponse(
         request,
@@ -131,13 +131,13 @@ async def plans_update(
     )
     if r.status_code == 200:
         _audit(user, "ubah_plan_web", f"Plan id={plan_id} diperbarui")
-        return _redirect("/madrasah-app/superadmin/plans", "Plan diperbarui")
+        return _redirect("/apps/superadmin/plans", "Plan diperbarui")
     detail = "Gagal update plan"
     try:
         detail = r.json().get("detail", detail)
     except Exception:
         pass
-    return _redirect("/madrasah-app/superadmin/plans", detail, "error")
+    return _redirect("/apps/superadmin/plans", detail, "error")
 
 
 @router.post("/plans/{plan_id}/hapus")
@@ -154,10 +154,10 @@ async def plans_delete(
     )
     if r.status_code == 200:
         _audit(user, "hapus_plan_web", f"Plan id={plan_id} dihapus")
-        return _redirect("/madrasah-app/superadmin/plans", "Plan dihapus")
+        return _redirect("/apps/superadmin/plans", "Plan dihapus")
     detail = "Gagal menghapus plan"
     try:
         detail = r.json().get("detail", detail)
     except Exception:
         pass
-    return _redirect("/madrasah-app/superadmin/plans", detail, "error")
+    return _redirect("/apps/superadmin/plans", detail, "error")

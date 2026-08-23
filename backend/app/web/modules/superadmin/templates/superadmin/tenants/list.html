@@ -7,20 +7,20 @@
 {% block content %}
 <div class="flex items-center justify-between mb-4">
     <h1 class="text-xl font-bold text-zinc-900">Daftar Madrasah (Tenant)</h1>
-    <a href="/madrasah-app/superadmin/tenants/baru" class="btn btn-primary text-sm">
+    <a href="/apps/superadmin/tenants/baru" class="btn btn-primary text-sm">
         <i data-lucide="plus" class="w-4 h-4"></i> Tambah Tenant
     </a>
 </div>
 
 <!-- Search -->
-<form method="get" action="/madrasah-app/superadmin/tenants" class="bg-white rounded-lg border border-zinc-200 p-3 mb-3 flex gap-2">
+<form method="get" action="/apps/superadmin/tenants" class="bg-white rounded-lg border border-zinc-200 p-3 mb-3 flex gap-2">
     <input type="text" name="q" value="{{ q }}" placeholder="Cari nama atau kode..."
            class="flex-1 border border-zinc-300 rounded px-3 py-1.5 text-sm">
     <button type="submit" class="btn btn-secondary text-sm">
         <i data-lucide="search" class="w-4 h-4"></i> Cari
     </button>
     {% if q %}
-    <a href="/madrasah-app/superadmin/tenants" class="btn btn-secondary text-sm">Reset</a>
+    <a href="/apps/superadmin/tenants" class="btn btn-secondary text-sm">Reset</a>
     {% endif %}
 </form>
 
@@ -57,7 +57,7 @@
                     {% endif %}
                 </td>
                 <td class="text-right">
-                    <a href="/madrasah-app/superadmin/tenants/{{ t.id }}" class="text-teal-700 hover:underline text-xs">Detail</a>
+                    <a href="/apps/superadmin/tenants/{{ t.id }}" class="text-teal-700 hover:underline text-xs">Detail</a>
                 </td>
             </tr>
             {% endfor %}

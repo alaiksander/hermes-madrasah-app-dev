@@ -157,7 +157,7 @@ async def catatan_create(request: Request,
     r = await api_post(request, "/api/bk/catatan", payload)
     if r.status_code in (200, 201):
         return RedirectResponse(
-            "/madrasah-app/bk/catatan", status_code=303)
+            "/apps/bk/catatan", status_code=303)
     ctx = await _catatan_form_context(
         request, user, payload, err=(r.json().get("detail") or "Gagal"))
     return templates.TemplateResponse(
@@ -197,7 +197,7 @@ async def catatan_update(request: Request, id: int,
     r = await api_patch(request, f"/api/bk/catatan/{id}", payload)
     if r.status_code == 200:
         return RedirectResponse(
-            "/madrasah-app/bk/catatan", status_code=303)
+            "/apps/bk/catatan", status_code=303)
     ctx = await _catatan_form_context(
         request, user, payload, err=(r.json().get("detail") or "Gagal"),
         edit_id=id)
@@ -211,7 +211,7 @@ async def catatan_delete(request: Request, id: int,
     """Hapus catatan."""
     await api_delete(request, f"/api/bk/catatan/{id}")
     return RedirectResponse(
-        "/madrasah-app/bk/catatan", status_code=303)
+        "/apps/bk/catatan", status_code=303)
 
 
 # ── Sesi ──────────────────────────────────────────────────────────────────
@@ -274,7 +274,7 @@ async def sesi_create(request: Request,
     r = await api_post(request, "/api/bk/sesi", payload)
     if r.status_code in (200, 201):
         return RedirectResponse(
-            "/madrasah-app/bk/sesi", status_code=303)
+            "/apps/bk/sesi", status_code=303)
     ctx = await _sesi_form_context(
         request, user, payload, err=(r.json().get("detail") or "Gagal"))
     return templates.TemplateResponse(
@@ -318,7 +318,7 @@ async def sesi_update(request: Request, id: int,
     r = await api_patch(request, f"/api/bk/sesi/{id}", payload)
     if r.status_code == 200:
         return RedirectResponse(
-            "/madrasah-app/bk/sesi", status_code=303)
+            "/apps/bk/sesi", status_code=303)
     ctx = await _sesi_form_context(
         request, user, payload, err=(r.json().get("detail") or "Gagal"),
         edit_id=id)
@@ -331,7 +331,7 @@ async def sesi_delete(request: Request, id: int,
                       user: dict = Depends(require_login_web)):
     await api_delete(request, f"/api/bk/sesi/{id}")
     return RedirectResponse(
-        "/madrasah-app/bk/sesi", status_code=303)
+        "/apps/bk/sesi", status_code=303)
 
 
 # ── Rekap poin (leaderboard) ─────────────────────────────────────────────
@@ -413,7 +413,7 @@ async def master_kategori_new(request: Request,
                     "poin": poin,
                     "urutan": int(form.get("urutan") or 0)})
     return RedirectResponse(
-        "/madrasah-app/bk/master", status_code=303)
+        "/apps/bk/master", status_code=303)
 
 
 @router.post("/kategori/{id}/delete")
@@ -421,7 +421,7 @@ async def master_kategori_delete(request: Request, id: int,
                                  user: dict = Depends(require_permission_web("bk.master", "bk.view", "bk.catatan", "bk.sesi", "bk.export", "bk.monitor"))):
     await api_delete(request, f"/api/bk/kategori/{id}")
     return RedirectResponse(
-        "/madrasah-app/bk/master", status_code=303)
+        "/apps/bk/master", status_code=303)
 
 
 @router.post("/kategori/{id}/edit")
@@ -437,7 +437,7 @@ async def master_kategori_edit(request: Request, id: int,
         payload["warna"] = form.get("warna")
     await api_patch(request, f"/api/bk/kategori/{id}", payload)
     return RedirectResponse(
-        "/madrasah-app/bk/master", status_code=303)
+        "/apps/bk/master", status_code=303)
 
 
 @router.post("/pelanggaran/new")
@@ -453,7 +453,7 @@ async def master_pelanggaran_new(request: Request,
                     "urutan": int(form.get("urutan") or 0)},
                    kategori_id=kat)
     return RedirectResponse(
-        "/madrasah-app/bk/master", status_code=303)
+        "/apps/bk/master", status_code=303)
 
 
 @router.post("/pelanggaran/{id}/delete")
@@ -461,7 +461,7 @@ async def master_pelanggaran_delete(request: Request, id: int,
                                     user: dict = Depends(require_permission_web("bk.master", "bk.view", "bk.catatan", "bk.sesi", "bk.export", "bk.monitor"))):
     await api_delete(request, f"/api/bk/pelanggaran/{id}")
     return RedirectResponse(
-        "/madrasah-app/bk/master", status_code=303)
+        "/apps/bk/master", status_code=303)
 
 
 @router.post("/pelanggaran/{id}/edit")
@@ -475,7 +475,7 @@ async def master_pelanggaran_edit(request: Request, id: int,
         payload["tingkat"] = form.get("tingkat")
     await api_patch(request, f"/api/bk/pelanggaran/{id}", payload)
     return RedirectResponse(
-        "/madrasah-app/bk/master", status_code=303)
+        "/apps/bk/master", status_code=303)
 
 
 # ── Konfigurasi ──────────────────────────────────────────────────────────
@@ -505,4 +505,4 @@ async def konfigurasi_post(request: Request,
         payload["catatan"] = form.get("catatan")
     await api_put(request, "/api/bk/konfigurasi", payload)
     return RedirectResponse(
-        "/madrasah-app/bk/konfigurasi?ok=1", status_code=303)
+        "/apps/bk/konfigurasi?ok=1", status_code=303)

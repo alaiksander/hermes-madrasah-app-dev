@@ -7,7 +7,7 @@
 {% block content %}
 <div class="mb-4 flex items-center justify-between">
     <div>
-        <a href="/madrasah-app/system/role" class="text-sm text-zinc-500 hover:text-zinc-700">
+        <a href="/apps/system/role" class="text-sm text-zinc-500 hover:text-zinc-700">
             <i data-lucide="arrow-left" class="w-4 h-4 inline"></i> Kembali
         </a>
         <h1 class="text-xl font-bold text-zinc-900 mt-2">
@@ -37,7 +37,7 @@
 </div>
 {% endif %}
 
-<form method="post" action="/madrasah-app/system/role/{{ role.id }}/matrix" class="space-y-6">
+<form method="post" action="/apps/system/role/{{ role.id }}/matrix" class="space-y-6">
     <!-- Quick actions -->
     <div class="bg-zinc-50 rounded-lg border border-zinc-200 p-3 flex items-center gap-2 text-sm">
         <span class="text-zinc-600">Aksi cepat:</span>
@@ -89,7 +89,7 @@
                 class="px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-100 rounded-lg">
             Pilih Semua
         </button>
-        <a href="/madrasah-app/system/role"
+        <a href="/apps/system/role"
            class="px-4 py-2 text-sm text-zinc-700 hover:bg-zinc-100 rounded-lg">
             Batal
         </a>

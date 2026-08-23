@@ -9,7 +9,7 @@ from ....core.templates import templates
 router = APIRouter(tags=["web-data-mapel"])
 
 
-def _redirect(msg: str, type_: str = "success", path: str = "/madrasah-app/data/mapel"):
+def _redirect(msg: str, type_: str = "success", path: str = "/apps/data/mapel"):
     return RedirectResponse(
         url=f"{path}?msg={msg.replace(' ', '+')}&type={type_}",
         status_code=303,
@@ -47,7 +47,7 @@ async def mapel_baru(
             "user": user,
             "mapel": None,
             "form_title": "Tambah Mata Pelajaran",
-            "form_action": "/madrasah-app/data/mapel",
+            "form_action": "/apps/data/mapel",
         },
     )
 
@@ -81,7 +81,7 @@ async def mapel_create(
             "user": user,
             "mapel": payload,
             "form_title": "Tambah Mata Pelajaran",
-            "form_action": "/madrasah-app/data/mapel",
+            "form_action": "/apps/data/mapel",
             "error": detail,
         },
         status_code=400,
@@ -108,7 +108,7 @@ async def mapel_edit(
             "user": user,
             "mapel": mapel,
             "form_title": "Edit Mata Pelajaran",
-            "form_action": f"/madrasah-app/data/mapel/{mid}",
+            "form_action": f"/apps/data/mapel/{mid}",
         },
     )
 

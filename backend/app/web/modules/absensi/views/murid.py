@@ -14,7 +14,7 @@ from ....core.templates import templates
 router = APIRouter(tags=["web-data-murid"])
 
 
-def _redirect(msg: str, type_: str = "success", path: str = "/madrasah-app/data/murid"):
+def _redirect(msg: str, type_: str = "success", path: str = "/apps/data/murid"):
     return RedirectResponse(
         url=f"{path}?msg={msg.replace(' ', '+')}&type={type_}",
         status_code=303,
@@ -106,7 +106,7 @@ async def murid_baru(
             "murid": None,
             "kelas_list": kelas_list,
             "form_title": "Tambah Murid",
-            "form_action": "/madrasah-app/data/murid",
+            "form_action": "/apps/data/murid",
         },
     )
 
@@ -131,7 +131,7 @@ async def murid_edit(
             "murid": r.json(),
             "kelas_list": kelas_list,
             "form_title": "Edit Murid",
-            "form_action": f"/madrasah-app/data/murid/{mid}",
+            "form_action": f"/apps/data/murid/{mid}",
         },
     )
 
@@ -192,7 +192,7 @@ async def murid_create(
                       "nama_ibu_kandung": nama_ibu_kandung},
             "kelas_list": kelas_r.json() if kelas_r.status_code == 200 else [],
             "form_title": "Tambah Murid",
-            "form_action": "/madrasah-app/data/murid",
+            "form_action": "/apps/data/murid",
             "error": detail,
         },
         status_code=400,
@@ -622,7 +622,7 @@ async def murid_import_commit(
     async with httpx.AsyncClient(timeout=60) as c:
         token = request.cookies.get("madrasah_app_token")
         r = await c.post(
-            "http://127.0.0.1:8010/api/murid/import",
+            "http://127.0.0.1:8013/api/murid/import",
             files={"file": (file.filename or "import.xlsx", cleaned_bytes,
                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")},
             headers={"Authorization": f"Bearer {token}"} if token else {},

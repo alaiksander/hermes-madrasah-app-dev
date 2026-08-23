@@ -7,9 +7,9 @@
 {% block content %}
 <div class="max-w-5xl">
     <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
-        <h1 class="text-2xl font-bold text-zinc-800">Tagihan Pembayaran</h1>
+        <h1 class="text-xl font-bold text-zinc-900">Tagihan Pembayaran</h1>
         {% if has_perm(user, "tagihan.kelola") %}
-        <a href="/madrasah-app/pembayaran/jenis"
+        <a href="/apps/pembayaran/jenis"
            class="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white font-medium px-4 py-2 rounded-lg transition-colors text-sm">
             <i data-lucide="settings2" class="w-4 h-4"></i>
             Kelola Jenis & Generate
@@ -18,7 +18,7 @@
     </div>
 
     {# Filter — pintu masuk utama: pilih periode + kelas #}
-    <form method="GET" action="/madrasah-app/pembayaran"
+    <form method="GET" action="/apps/pembayaran"
           class="bg-white border border-zinc-200 rounded-xl shadow-sm p-4 mb-6">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
             <div>
@@ -51,7 +51,7 @@
                     class="bg-teal-600 hover:bg-teal-700 text-white font-medium px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-1.5">
                 <i data-lucide="search" class="w-3.5 h-3.5"></i> Lihat Rekap
             </button>
-            <a href="/madrasah-app/pembayaran"
+            <a href="/apps/pembayaran"
                class="px-4 py-2 border border-zinc-300 rounded-lg text-zinc-600 hover:bg-zinc-50 text-sm">Reset</a>
         </div>
     </form>
@@ -134,7 +134,7 @@
         {% if murid_rows %}
         <div class="overflow-x-auto">
             <table class="w-full text-sm min-w-[640px]">
-                <thead class="bg-zinc-50 text-zinc-500 text-xs uppercase border-b border-zinc-100">
+                <thead class="bg-zinc-50 text-zinc-600 text-xs uppercase">
                     <tr>
                         <th class="text-left px-4 py-3">Murid</th>
                         <th class="text-left px-4 py-3">NISN</th>
@@ -242,7 +242,7 @@
                             {% endif %}
                         </div>
                     </div>
-                    <a href="/madrasah-app/pembayaran/{{ t.id }}"
+                    <a href="/apps/pembayaran/{{ t.id }}"
                        class="text-teal-700 hover:underline text-sm whitespace-nowrap flex-shrink-0">
                         Detail
                     </a>

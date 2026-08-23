@@ -13,7 +13,7 @@
         <h2 class="text-sm font-semibold text-zinc-800 mb-3 flex items-center gap-2">
             <i data-lucide="clock" class="w-4 h-4 text-zinc-500"></i> Jadwal Backup Otomatis
         </h2>
-        <form method="post" action="/madrasah-app/superadmin/backup/config" class="space-y-4">
+        <form method="post" action="/apps/superadmin/backup/config" class="space-y-4">
             <div class="flex items-center gap-2">
                 <input type="checkbox" name="enabled" id="enabled" value="on"
                        {% if config.enabled %}checked{% endif %}
@@ -45,7 +45,7 @@
             <i data-lucide="database-backup" class="w-4 h-4 text-zinc-500"></i> Backup Manual
         </h2>
         <p class="text-xs text-zinc-500 mb-3">Jalankan backup sekarang — semua database tenant + global + .env dikemas ke arsip .tar.gz</p>
-        <form method="post" action="/madrasah-app/superadmin/backup/run">
+        <form method="post" action="/apps/superadmin/backup/run">
             <button type="submit" class="btn btn-primary text-sm">
                 <i data-lucide="play" class="w-4 h-4"></i> Backup Sekarang
             </button>
@@ -75,7 +75,7 @@
                     <td class="text-xs">{{ f.tanggal }}</td>
                     <td class="text-xs">{{ (f.ukuran / 1024) | round(1) }} KB</td>
                     <td class="text-right">
-                        <a href="/madrasah-app/superadmin/backup/download/{{ f.nama }}"
+                        <a href="/apps/superadmin/backup/download/{{ f.nama }}"
                            class="text-teal-700 hover:underline text-xs">
                             <i data-lucide="download" class="w-3 h-3 inline"></i> Download
                         </a>
@@ -83,7 +83,7 @@
                             <summary class="text-xs text-red-600 hover:underline cursor-pointer">
                                 <i data-lucide="trash-2" class="w-3 h-3 inline"></i> Hapus
                             </summary>
-                            <form method="post" action="/madrasah-app/superadmin/backup/delete/{{ f.nama }}"
+                            <form method="post" action="/apps/superadmin/backup/delete/{{ f.nama }}"
                                   class="mt-2 p-2 bg-red-50 rounded border border-red-200 inline-block">
                                 <label class="block text-xs text-red-700 mb-1">
                                     Ketik <span class="font-mono">{{ f.nama }}</span> untuk konfirmasi
@@ -165,7 +165,7 @@
                     <i data-lucide="folder-open" class="w-4 h-4"></i> Dari file di server
                 </h3>
                 <p class="text-xs text-red-600 mb-3">Pilih arsip yang sudah ada di daftar di atas</p>
-                <form method="post" action="/madrasah-app/superadmin/backup/restore" class="space-y-2">
+                <form method="post" action="/apps/superadmin/backup/restore" class="space-y-2">
                     <select name="nama_file" required
                             class="w-full border border-red-300 rounded px-3 py-2 text-sm font-mono bg-white">
                         <option value="">— Pilih file backup —</option>
@@ -187,7 +187,7 @@
                     <i data-lucide="upload" class="w-4 h-4"></i> Upload dari komputer lain
                 </h3>
                 <p class="text-xs text-red-600 mb-3">Upload file .tar.gz (maks 100MB), lalu restore otomatis</p>
-                <form method="post" action="/madrasah-app/superadmin/backup/restore-upload"
+                <form method="post" action="/apps/superadmin/backup/restore-upload"
                       enctype="multipart/form-data" class="space-y-2"
                       onsubmit="return confirm('RESTORE SEMUA DATA dari file yang diupload? Tindakan ini mengganti seluruh database!')">
                     <input type="file" name="file" accept=".tar.gz,application/gzip" required

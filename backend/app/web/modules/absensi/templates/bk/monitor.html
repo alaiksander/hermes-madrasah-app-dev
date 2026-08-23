@@ -6,7 +6,7 @@
 
 {% block content %}
 <div class="mb-4">
-    <a href="/madrasah-app/bk/catatan" class="text-sm text-zinc-500 hover:text-zinc-700">
+    <a href="/apps/bk/catatan" class="text-sm text-zinc-500 hover:text-zinc-700">
         <i data-lucide="arrow-left" class="w-4 h-4 inline"></i> Kembali
     </a>
     <h1 class="text-xl font-bold text-zinc-900 mt-2">{{ data.murid.nama }}</h1>
@@ -24,7 +24,7 @@
         <input type="date" name="sampai" value="{{ filter_sampai or '' }}" class="px-3 py-1.5 border border-zinc-300 rounded-md text-sm">
     </div>
     <button type="submit" class="px-3 py-1.5 bg-zinc-700 text-white rounded-md text-sm">Filter</button>
-    <a href="/madrasah-app/bk/monitor/{{ data.murid.id }}" class="px-3 py-1.5 text-zinc-600 text-sm">Reset</a>
+    <a href="/apps/bk/monitor/{{ data.murid.id }}" class="px-3 py-1.5 text-zinc-600 text-sm">Reset</a>
 </form>
 
 <!-- Ringkasan poin -->
@@ -63,7 +63,7 @@
         </div>
         <div class="text-xs text-zinc-500 text-right">
             Threshold SP: {{ data.rekap.threshold.sp1 }} / {{ data.rekap.threshold.sp2 }} / {{ data.rekap.threshold.sp3 }}<br>
-            <a href="/madrasah-app/bk/konfigurasi" class="text-teal-700 hover:underline">Ubah setelan</a>
+            <a href="/apps/bk/konfigurasi" class="text-teal-700 hover:underline">Ubah setelan</a>
         </div>
     </div>
 </div>
@@ -136,11 +136,11 @@
 
 <!-- Quick actions -->
 <div class="flex gap-3">
-    <a href="/madrasah-app/bk/catatan/new?murid_id={{ data.murid.id }}"
+    <a href="/apps/bk/catatan/new?murid_id={{ data.murid.id }}"
        class="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm hover:bg-teal-700">
         <i data-lucide="plus" class="w-4 h-4 inline"></i> Catatan
     </a>
-    <a href="/madrasah-app/bk/sesi/new?murid_id={{ data.murid.id }}"
+    <a href="/apps/bk/sesi/new?murid_id={{ data.murid.id }}"
        class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">
         <i data-lucide="message-circle" class="w-4 h-4 inline"></i> Sesi Konseling
     </a>

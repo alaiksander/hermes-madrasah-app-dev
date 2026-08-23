@@ -46,16 +46,16 @@ def is_same_origin(request: Request) -> bool:
 
 
 async def csrf_middleware(request: Request, call_next):
-    """ASGI middleware: blok POST cross-origin ke /madrasah-app/*.
+    """ASGI middleware: blok POST cross-origin ke /apps/*.
 
     Dipasang di main.py via `app.middleware("http")`.
     """
     path = request.url.path
-    if request.method == "POST" and path.startswith("/madrasah-app"):
+    if request.method == "POST" and path.startswith("/apps"):
         if not is_same_origin(request):
             from fastapi.responses import RedirectResponse
             return RedirectResponse(
-                "/madrasah-app/login?msg=Sesi+kedaluwarsa,+silakan+masuk+lagi&type=error",
+                "/apps/login?msg=Sesi+kedaluwarsa,+silakan+masuk+lagi&type=error",
                 status_code=303,
             )
     return await call_next(request)

@@ -8,7 +8,7 @@
 <div class="max-w-3xl">
     <div class="mb-4 flex items-center justify-between">
         <div>
-            <a href="/madrasah-app/pembayaran" class="text-sm text-zinc-500 hover:text-zinc-700">
+            <a href="/apps/pembayaran" class="text-sm text-zinc-500 hover:text-zinc-700">
                 <i data-lucide="arrow-left" class="w-4 h-4 inline"></i> Kembali
             </a>
             <h1 class="text-2xl font-bold text-zinc-800 mt-2">{{ t.murid_nama }}</h1>
@@ -70,7 +70,7 @@
             <h2 class="font-semibold text-zinc-900 mb-3">Input Pembayaran</h2>
             {% if t.jenis_periode == 'bulanan' and not t.jenis_boleh_cicil is defined %}
             {% endif %}
-            <form method="POST" action="/madrasah-app/pembayaran/{{ t.id }}/bayar" class="space-y-3">
+            <form method="POST" action="/apps/pembayaran/{{ t.id }}/bayar" class="space-y-3">
                 <div>
                     <label class="block text-xs font-medium text-zinc-600 mb-1">Nominal (Rp) — sisa Rp{{ "{:,.0f}".format(t.sisa) }}</label>
                     <input type="number" name="nominal" min="1" max="{{ t.sisa }}" required
@@ -129,7 +129,7 @@
             {# Keringanan #}
             <div class="mt-5 pt-4 border-t border-zinc-100">
                 <h3 class="text-sm font-semibold text-zinc-800 mb-2">Keringanan (kasus khusus)</h3>
-                <form method="POST" action="/madrasah-app/pembayaran/{{ t.id }}/keringanan" class="flex gap-2">
+                <form method="POST" action="/apps/pembayaran/{{ t.id }}/keringanan" class="flex gap-2">
                     <input type="number" name="potongan" min="1" max="{{ t.nominal - 1 }}" placeholder="Potongan Rp"
                            class="flex-1 border border-zinc-300 rounded px-3 py-2 text-sm">
                     <button type="submit" class="px-3 py-2 border border-teal-600 text-teal-700 hover:bg-teal-50 rounded-lg text-sm whitespace-nowrap">
@@ -142,7 +142,7 @@
             {# Penundaan #}
             <div class="mt-4 pt-4 border-t border-zinc-100">
                 <h3 class="text-sm font-semibold text-zinc-800 mb-2">Penundaan</h3>
-                <form method="POST" action="/madrasah-app/pembayaran/{{ t.id }}/tunda" class="flex gap-2">
+                <form method="POST" action="/apps/pembayaran/{{ t.id }}/tunda" class="flex gap-2">
                     <input type="date" name="ditunda_sampai" required
                            class="flex-1 border border-zinc-300 rounded px-3 py-2 text-sm">
                     <button type="submit" class="px-3 py-2 border border-teal-600 text-teal-700 hover:bg-teal-50 rounded-lg text-sm whitespace-nowrap">
@@ -154,7 +154,7 @@
             {% endif %}
 
             {% if has_perm(user, "tagihan.kelola") %}
-            <form method="POST" action="/madrasah-app/pembayaran/{{ t.id }}/hapus" class="mt-4 pt-4 border-t border-zinc-100"
+            <form method="POST" action="/apps/pembayaran/{{ t.id }}/hapus" class="mt-4 pt-4 border-t border-zinc-100"
                   onsubmit="return confirm('Hapus tagihan ini + semua pembayarannya?')">
                 <button type="submit" class="text-xs text-red-500 hover:underline">
                     Hapus tagihan

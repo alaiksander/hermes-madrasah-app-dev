@@ -11,12 +11,12 @@
     <!-- Tab navigation -->
     <div class="border-b border-zinc-200 mb-4">
         <nav class="flex gap-1">
-            <a href="/madrasah-app/absensi/input-manual?tab=bulk{% if kelas_id %}&kelas_id={{ kelas_id }}{% endif %}{% if tgl_str %}&tanggal={{ tgl_str }}{% endif %}"
+            <a href="/apps/absensi/input-manual?tab=bulk{% if kelas_id %}&kelas_id={{ kelas_id }}{% endif %}{% if tgl_str %}&tanggal={{ tgl_str }}{% endif %}"
                class="px-4 py-2 text-sm border-b-2 {% if tab == 'bulk' %}border-teal-700 text-teal-700 font-medium{% else %}border-transparent text-zinc-600 hover:text-zinc-900{% endif %}">
                 <i data-lucide="list-checks" class="w-4 h-4 inline"></i>
                 Bulk per Kelas
             </a>
-            <a href="/madrasah-app/absensi/input-manual?tab=individual"
+            <a href="/apps/absensi/input-manual?tab=individual"
                class="px-4 py-2 text-sm border-b-2 {% if tab == 'individual' %}border-teal-700 text-teal-700 font-medium{% else %}border-transparent text-zinc-600 hover:text-zinc-900{% endif %}">
                 <i data-lucide="user-search" class="w-4 h-4 inline"></i>
                 Individual (QR Rusak/Hilang)
@@ -27,7 +27,7 @@
     {# ─── Tab 1: Bulk per Kelas ───────────────────────────────── #}
     {% if tab == 'bulk' %}
     <!-- Filter kelas + tanggal -->
-    <form method="get" action="/madrasah-app/absensi/input-manual" class="bg-white rounded-lg border border-zinc-200 p-3 mb-3 flex flex-wrap items-end gap-3">
+    <form method="get" action="/apps/absensi/input-manual" class="bg-white rounded-lg border border-zinc-200 p-3 mb-3 flex flex-wrap items-end gap-3">
         <input type="hidden" name="tab" value="bulk">
         <div class="min-w-[180px]">
             <label class="block text-xs font-medium text-zinc-600 mb-1">Kelas</label>
@@ -50,7 +50,7 @@
     </form>
 
     <!-- Roster dengan master button per kolom -->
-    <form method="post" action="/madrasah-app/absensi/input-manual/bulk" class="bg-white rounded-lg border border-zinc-200 overflow-x-auto">
+    <form method="post" action="/apps/absensi/input-manual/bulk" class="bg-white rounded-lg border border-zinc-200 overflow-x-auto">
         <input type="hidden" name="kelas_id" value="{{ kelas_id }}">
         <input type="hidden" name="tanggal" value="{{ tgl_str }}">
 
@@ -212,7 +212,7 @@ document.addEventListener('DOMContentLoaded', function() {
     {# ─── Tab 2: Individual ─────────────────────────────────── #}
     {% else %}
     <!-- Search box -->
-    <form method="get" action="/madrasah-app/absensi/input-manual" class="bg-white rounded-lg border border-zinc-200 p-3 mb-4">
+    <form method="get" action="/apps/absensi/input-manual" class="bg-white rounded-lg border border-zinc-200 p-3 mb-4">
         <input type="hidden" name="tab" value="individual">
         <div class="flex items-center gap-2">
             <i data-lucide="search" class="w-5 h-5 text-zinc-400"></i>
@@ -254,7 +254,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 </div>
             </div>
-            <form method="post" action="/madrasah-app/absensi/input-manual" class="inline">
+            <form method="post" action="/apps/absensi/input-manual" class="inline">
                 <input type="hidden" name="murid_id" value="{{ m.id }}">
                 <input type="hidden" name="q" value="{{ q }}">
                 <button type="submit" class="btn btn-primary text-sm">

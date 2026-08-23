@@ -8,10 +8,10 @@
 <div class="flex items-center justify-between mb-4">
     <h1 class="text-xl font-bold text-zinc-900">Daftar Guru & Admin</h1>
     <div class="flex items-center gap-2">
-        <a href="/madrasah-app/data/guru-import" class="btn btn-secondary text-sm">
+        <a href="/apps/data/guru-import" class="btn btn-secondary text-sm">
             <i data-lucide="upload" class="w-4 h-4"></i> Import Excel
         </a>
-        <a href="/madrasah-app/data/guru/baru" class="btn btn-primary">
+        <a href="/apps/data/guru/baru" class="btn btn-primary">
             <i data-lucide="user-plus" class="w-4 h-4"></i> Tambah Guru
         </a>
     </div>
@@ -75,26 +75,26 @@
                     <span class="inline-block px-2 py-0.5 rounded text-xs bg-zinc-200 text-zinc-600">Arsip</span>
                     {% endif %}
                 </td>
-                <td class="text-right space-x-2 text-xs">
-                    <a href="/madrasah-app/pengampu/{{ g.id }}" class="text-teal-700 hover:underline">
+                <td class="text-right whitespace-nowrap">
+                    <a href="/apps/pengampu/{{ g.id }}" class="text-teal-700 hover:underline text-xs">
                         Set Pengampu
                     </a>
-                    <a href="/madrasah-app/data/guru/{{ g.id }}/edit" class="text-teal-700 hover:underline">
+                    <a href="/apps/data/guru/{{ g.id }}/edit" class="text-teal-700 hover:underline text-xs ml-2">
                         Edit
                     </a>
                     {% if g.is_active %}
                     {% if g.id != current_user_id %}
                     <button type="button" onclick="resetPassword({{ g.id }}, '{{ g.nama }}')"
-                            class="text-amber-700 hover:underline">
+                            class="text-amber-700 hover:underline text-xs ml-2 bg-transparent border-0 p-0 cursor-pointer">
                         Reset Password
                     </button>
-                    <form method="post" action="/madrasah-app/data/guru/{{ g.id }}/hapus"
+                    <form method="post" action="/apps/data/guru/{{ g.id }}/hapus"
                           class="inline" onsubmit="return confirm('Arsipkan {{ g.nama }}? Wali kelas yang ditunjuk guru ini akan dikosongkan.')">
-                        <button type="submit" class="text-red-600 hover:underline">Arsip</button>
+                        <button type="submit" class="text-red-600 hover:underline text-xs ml-2 bg-transparent border-0 p-0 cursor-pointer">Arsip</button>
                     </form>
                     {% endif %}
                     {% else %}
-                    <form method="post" action="/madrasah-app/data/guru/{{ g.id }}/aktifkan"
+                    <form method="post" action="/apps/data/guru/{{ g.id }}/aktifkan"
                           class="inline">
                         <button type="submit" class="text-green-700 hover:underline">Aktifkan</button>
                     </form>
@@ -102,7 +102,7 @@
                         <summary class="text-xs text-red-600 hover:underline cursor-pointer">
                             Hapus
                         </summary>
-                        <form method="post" action="/madrasah-app/data/guru/{{ g.id }}/hapus-permanen"
+                        <form method="post" action="/apps/data/guru/{{ g.id }}/hapus-permanen"
                               class="mt-2 p-2 bg-red-50 rounded border border-red-200 inline-block">
                             <label class="block text-xs text-red-700 mb-1">
                                 Ketik username <span class="font-mono">{{ g.username }}</span> untuk hapus permanen
@@ -156,7 +156,7 @@
 <script>
 function resetPassword(gid, nama) {
     document.getElementById('reset-nama').textContent = nama;
-    document.getElementById('reset-form').action = '/madrasah-app/data/guru/' + gid + '/reset-password';
+    document.getElementById('reset-form').action = '/apps/data/guru/' + gid + '/reset-password';
     document.getElementById('reset-modal').classList.remove('hidden');
 }
 function closeResetModal() {

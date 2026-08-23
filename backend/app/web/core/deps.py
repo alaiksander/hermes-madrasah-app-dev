@@ -3,7 +3,7 @@
 Berbeda dari `app/deps.py` (yang dipakai API JSON):
 - Read JWT dari cookie (bukan Authorization header)
 - Return dict user (sama shape dengan `get_current_user` di app/deps.py)
-- Redirect ke /madrasah-app/login (bukan raise 401)
+- Redirect ke /apps/login (bukan raise 401)
 """
 import jwt
 from fastapi import Depends, HTTPException, Request
@@ -79,7 +79,7 @@ def require_login_web(request: Request):
 
     CATATAN: super_admin DITOLAK (403) — semua halaman modul absensi
     butuh tenant (guru/admin). Super admin punya panel sendiri di
-    /madrasah-app/superadmin/*.
+    /apps/superadmin/*.
     """
     try:
         user = get_current_user_web(request)
@@ -97,13 +97,13 @@ class _RedirectToLogin(Exception):
 
 def handle_login_redirect(request: Request, exc: Exception | None = None) -> RedirectResponse:
     """Convert exception ke RedirectResponse."""
-    return RedirectResponse("/madrasah-app/login", status_code=303)
+    return RedirectResponse("/apps/login", status_code=303)
 
 
 def require_admin_web(user: dict = Depends(get_current_user_web)) -> dict:
     """Dependency: HANYA admin tenant (bukan guru, BUKAN super_admin).
 
-    Super admin punya panel sendiri di /madrasah-app/superadmin/* —
+    Super admin punya panel sendiri di /apps/superadmin/* —
     mereka TIDAK boleh melihat halaman/fitur admin tenant.
     """
     if user.get("role") != "admin":
@@ -131,7 +131,7 @@ def require_permission_web(*kode: str):
 def require_super_admin_web(user: dict = Depends(get_current_user_web)) -> dict:
     """Dependency: HANYA super_admin (tenant admin/guru TIDAK boleh).
 
-    Dipakai untuk semua endpoint /madrasah-app/superadmin/*.
+    Dipakai untuk semua endpoint /apps/superadmin/*.
     """
     if user.get("role") != "super_admin":
         raise HTTPException(403, "Hanya Super Admin yang dapat mengakses")

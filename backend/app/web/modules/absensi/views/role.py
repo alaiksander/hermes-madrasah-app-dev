@@ -46,7 +46,7 @@ async def role_create(request: Request,
     r = await api_post(request, "/api/roles", {"nama": nama, "label": label})
     if r.status_code in (200, 201):
         return RedirectResponse(
-            "/madrasah-app/system/role", status_code=status.HTTP_303_SEE_OTHER)
+            "/apps/system/role", status_code=status.HTTP_303_SEE_OTHER)
     err = r.json().get("detail") if r.status_code >= 400 else None
     return templates.TemplateResponse(
         request, "role/form.html",
@@ -60,7 +60,7 @@ async def role_matrix(request: Request, role_id: int,
     """Halaman matrix: edit permission role (grouped by kategori)."""
     roles_r = await api_get(request, "/api/roles")
     if roles_r.status_code != 200:
-        return RedirectResponse("/madrasah-app/system/role", status_code=303)
+        return RedirectResponse("/apps/system/role", status_code=303)
     roles = roles_r.json()
     role = next((r for r in roles if r["id"] == role_id), None)
     if not role:
@@ -96,7 +96,7 @@ async def role_matrix_save(request: Request, role_id: int,
                        {"permissions": codes})
     if r.status_code == 200:
         return RedirectResponse(
-            f"/madrasah-app/system/role/{role_id}/matrix?ok=1",
+            f"/apps/system/role/{role_id}/matrix?ok=1",
             status_code=status.HTTP_303_SEE_OTHER)
     err = r.json().get("detail") if r.status_code >= 400 else "Gagal menyimpan"
     return templates.TemplateResponse(
@@ -132,7 +132,7 @@ async def role_update(request: Request, role_id: int,
     r = await api_patch(request, f"/api/roles/{role_id}", {"label": label})
     if r.status_code == 200:
         return RedirectResponse(
-            "/madrasah-app/system/role", status_code=status.HTTP_303_SEE_OTHER)
+            "/apps/system/role", status_code=status.HTTP_303_SEE_OTHER)
     err = r.json().get("detail") if r.status_code >= 400 else None
     return templates.TemplateResponse(
         request, "role/form.html",
@@ -147,7 +147,7 @@ async def role_delete(request: Request, role_id: int,
     r = await api_delete(request, f"/api/roles/{role_id}")
     if r.status_code == 204:
         return RedirectResponse(
-            "/madrasah-app/system/role", status_code=status.HTTP_303_SEE_OTHER)
+            "/apps/system/role", status_code=status.HTTP_303_SEE_OTHER)
     # Show error (simplified: back to list with flash)
     err = r.json().get("detail") if r.status_code >= 400 else "Gagal"
     roles_r = await api_get(request, "/api/roles")

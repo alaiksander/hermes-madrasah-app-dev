@@ -9,7 +9,7 @@ from ....core.templates import templates
 router = APIRouter(tags=["web-data-kelas"])
 
 
-def _redirect(msg: str, type_: str = "success", path: str = "/madrasah-app/data/kelas"):
+def _redirect(msg: str, type_: str = "success", path: str = "/apps/data/kelas"):
     return RedirectResponse(
         url=f"{path}?msg={msg.replace(' ', '+')}&type={type_}",
         status_code=303,
@@ -75,7 +75,7 @@ async def kelas_baru(
             "tahun_ajaran_list": tahun_ajaran_list,
             "tahun_aktif_id": tahun_aktif["id"] if tahun_aktif else None,
             "form_title": "Tambah Kelas",
-            "form_action": "/madrasah-app/data/kelas",
+            "form_action": "/apps/data/kelas",
         },
     )
 
@@ -115,7 +115,7 @@ async def kelas_create(
             "tahun_ajaran_list": ta_r.json() if ta_r.status_code == 200 else [],
             "tahun_aktif_id": int(tahun_ajaran_id) if tahun_ajaran_id else None,
             "form_title": "Tambah Kelas",
-            "form_action": "/madrasah-app/data/kelas",
+            "form_action": "/apps/data/kelas",
             "error": detail,
         },
         status_code=400,
@@ -198,7 +198,7 @@ async def kelas_edit(
             "tahun_ajaran_list": ta_r.json() if ta_r.status_code == 200 else [],
             "tahun_aktif_id": None,
             "form_title": "Edit Kelas",
-            "form_action": f"/madrasah-app/data/kelas/{kid}",
+            "form_action": f"/apps/data/kelas/{kid}",
         },
     )
 

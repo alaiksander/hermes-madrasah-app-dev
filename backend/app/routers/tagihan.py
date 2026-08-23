@@ -138,14 +138,16 @@ def toggle_jenis(
 @router.post("/generate")
 def generate_tagihan(
     jenis_id: int | None = Query(None),
+    tingkat: str | None = Query(None, description="Tingkat kelas: 7, 8, 9"),
     periode: str = Query(..., description="YYYY-MM (bulan tagihan)"),
     user: dict = Depends(require_permission("tagihan.kelola")),
     db: Session = Depends(get_tenant_db),
 ):
-    """Generate tagihan bulanan: semua murid aktif × jenis auto_generate.
+    """Generate tagihan bulanan: murid aktif × jenis auto_generate.
 
-    Idempotent: murid yang sudah punya tagihan di periode itu di-skip.
-    Optional: filter jenis_id (kalau mau generate satu jenis saja).
+    Idempotent: murid yang sudah punya tagihan di bulan itu di-skip.
+    Optional: filter jenis_id (satu jenis saja) dan tingkat (7/8/9,
+    berdasarkan digit pertama nama_kelas).
     """
     try:
         datetime.strptime(periode, "%Y-%m")
@@ -162,10 +164,13 @@ def generate_tagihan(
     for j in jenis_list:
         if j.periode != "bulanan" or not j.auto_generate:
             continue
-        murids = (db.query(Murid)
-                  .join(Kelas, Murid.kelas_id == Kelas.id)
-                  .filter(Murid.is_active == True)  # noqa: E712
-                  .all())
+        q_murid = (db.query(Murid)
+                   .filter(Murid.is_active == True))  # noqa: E712
+        if tingkat:
+            q_murid = (q_murid
+                       .join(Kelas, Murid.kelas_id == Kelas.id)
+                       .filter(Kelas.nama_kelas.like(f"{tingkat}%")))
+        murids = q_murid.all()
         baru = 0
         for m in murids:
             # Skip kalau sudah ada tagihan murid×jenis×periode

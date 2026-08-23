@@ -7,14 +7,14 @@
         <h1 class="text-2xl font-bold text-zinc-800">Riwayat Jurnal</h1>
         <div class="flex items-center gap-2">
             {% if has_perm(user, "jurnal.export") or has_perm(user, "jurnal.verify") %}
-            <a href="/madrasah-app/jurnal/export?dari={{ filter_dari or '' }}&sampai={{ filter_sampai or '' }}&kelas_id={{ filter_kelas_id or '' }}"
+            <a href="/apps/jurnal/export?dari={{ filter_dari or '' }}&sampai={{ filter_sampai or '' }}&kelas_id={{ filter_kelas_id or '' }}"
                class="flex items-center gap-1.5 bg-teal-600 hover:bg-teal-700 text-white font-medium px-4 py-2 rounded-lg transition-colors text-sm">
                 <i data-lucide="download" class="w-4 h-4"></i>
                 Export
             </a>
             {% endif %}
             {% if has_perm(user, "jurnal.input") %}
-            <a href="/madrasah-app/jurnal/input"
+            <a href="/apps/jurnal/input"
                class="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white font-medium px-4 py-2 rounded-lg transition-colors text-sm">
                 <i data-lucide="plus" class="w-4 h-4"></i>
                 Input Jurnal
@@ -24,7 +24,7 @@
     </div>
 
     {# Filter form #}
-    <form method="GET" action="/madrasah-app/jurnal/riwayat"
+    <form method="GET" action="/apps/jurnal/riwayat"
           class="bg-white border border-zinc-200 rounded-xl shadow-sm p-4 mb-6">
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
             <div>
@@ -53,7 +53,7 @@
                     <i data-lucide="search" class="w-3.5 h-3.5"></i>
                     Filter
                 </button>
-                <a href="/madrasah-app/jurnal/riwayat"
+                <a href="/apps/jurnal/riwayat"
                    class="px-3 py-2 border border-zinc-300 rounded-lg text-zinc-600 hover:bg-zinc-50 text-sm">Reset</a>
             </div>
         </div>
@@ -63,7 +63,7 @@
     <div class="bg-white border border-zinc-200 rounded-xl shadow-sm overflow-x-auto">
         {% if jurnal_list %}
         <table class="w-full text-sm">
-            <thead class="bg-zinc-50 text-zinc-500 text-xs uppercase border-b border-zinc-100">
+            <thead class="bg-zinc-50 text-zinc-600 text-xs uppercase">
                 <tr>
                     <th class="text-left px-4 py-3">Tanggal</th>
                     <th class="text-left px-4 py-3">Kelas</th>
@@ -91,8 +91,8 @@
                         <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-teal-100 text-teal-700">Verified</span>
                         {% endif %}
                     </td>
-                    <td class="px-4 py-3 text-right">
-                        <a href="/madrasah-app/jurnal/{{ j.id }}"
+                    <td class="px-4 py-3 text-right whitespace-nowrap">
+                        <a href="/apps/jurnal/{{ j.id }}"
                            class="text-teal-600 hover:text-teal-800 font-medium text-sm">Buka</a>
                     </td>
                 </tr>

@@ -8,7 +8,7 @@
 <div class="max-w-2xl">
     <div class="mb-4 flex items-center justify-between">
         <div>
-            <a href="/madrasah-app/jurnal/riwayat" class="text-sm text-zinc-500 hover:text-zinc-700">
+            <a href="/apps/jurnal/riwayat" class="text-sm text-zinc-500 hover:text-zinc-700">
                 <i data-lucide="arrow-left" class="w-4 h-4 inline"></i> Kembali ke Riwayat
             </a>
             <h1 class="text-2xl font-bold text-zinc-800 mt-2">Export Jurnal Mengajar</h1>
@@ -78,17 +78,17 @@
 
         {# Tombol aksi — formaction ke endpoint spesifik #}
         <div class="flex items-center gap-3">
-            <button type="submit" formaction="/madrasah-app/jurnal/export-xlsx"
+            <button type="submit" formaction="/apps/jurnal/export-xlsx"
                     class="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white font-medium px-5 py-2.5 rounded-lg transition-colors text-sm">
                 <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
                 Download Excel
             </button>
-            <button type="submit" formaction="/madrasah-app/jurnal/export-pdf"
+            <button type="submit" formaction="/apps/jurnal/export-pdf"
                     class="flex items-center gap-2 border border-teal-600 text-teal-700 hover:bg-teal-50 font-medium px-5 py-2.5 rounded-lg transition-colors text-sm">
                 <i data-lucide="file-text" class="w-4 h-4"></i>
                 Download PDF
             </button>
-            <a href="/madrasah-app/jurnal/export"
+            <a href="/apps/jurnal/export"
                class="px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-100 rounded-lg">Reset</a>
         </div>
     </form>

@@ -8,7 +8,7 @@
 <div class="max-w-6xl">
     <div class="mb-4 flex items-center justify-between">
         <div>
-            <a href="/madrasah-app/pembayaran" class="text-sm text-zinc-500 hover:text-zinc-700">
+            <a href="/apps/pembayaran" class="text-sm text-zinc-500 hover:text-zinc-700">
                 <i data-lucide="arrow-left" class="w-4 h-4 inline"></i> Kembali
             </a>
             <h1 class="text-2xl font-bold text-zinc-800 mt-2">Input Cepat Pembayaran</h1>
@@ -29,7 +29,7 @@
     {% endif %}
 
     {# Filter #}
-    <form method="GET" action="/madrasah-app/pembayaran/input-cepat"
+    <form method="GET" action="/apps/pembayaran/input-cepat"
           class="bg-white border border-zinc-200 rounded-xl shadow-sm p-4 mb-5">
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
             <div>
@@ -64,7 +64,7 @@
             <button type="submit" class="bg-teal-600 hover:bg-teal-700 text-white font-medium px-4 py-2 rounded-lg text-sm">
                 <i data-lucide="search" class="w-3.5 h-3.5 inline"></i> Tampilkan
             </button>
-            <a href="/madrasah-app/pembayaran/input-cepat"
+            <a href="/apps/pembayaran/input-cepat"
                class="px-4 py-2 border border-zinc-300 rounded-lg text-zinc-600 hover:bg-zinc-50 text-sm">Reset</a>
         </div>
     </form>
@@ -73,7 +73,7 @@
     <form id="bulk-form">
         <div class="bg-white border border-zinc-200 rounded-xl shadow-sm overflow-x-auto">
             <table class="w-full text-sm min-w-[900px]" id="bulk-table">
-                <thead class="bg-zinc-50 text-zinc-500 text-xs uppercase border-b border-zinc-100">
+                <thead class="bg-zinc-50 text-zinc-600 text-xs uppercase">
                     <tr>
                         <th class="text-left px-4 py-3 w-8"><input type="checkbox" id="check-all" class="w-4 h-4 accent-teal-600" checked></th>
                         <th class="text-left px-4 py-3">Murid</th>
@@ -185,13 +185,13 @@ async function simpanBulk() {
     });
     if (entries.length === 0) { alert('Tidak ada baris yang diisi.'); return; }
     if (!confirm(`Simpan ${entries.length} pembayaran (total Rp${entries.reduce((a,e)=>a+e.nominal,0).toLocaleString('id-ID')})?`)) return;
-    const res = await fetch('/madrasah-app/pembayaran/input-cepat/simpan', {
+    const res = await fetch('/apps/pembayaran/input-cepat/simpan', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(entries)
     });
     if (res.redirected) window.location.href = res.url;
-    else window.location.href = '/madrasah-app/pembayaran/input-cepat?err=1';
+    else window.location.href = '/apps/pembayaran/input-cepat?err=1';
 }
 </script>
 {% endblock %}

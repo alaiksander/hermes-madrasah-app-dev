@@ -9,15 +9,15 @@
     </summary>
     <div class="sidebar-group-items">
         {% if has_perm(user, "bk.view") %}
-        <a href="/madrasah-app/bk"
-           class="flex items-center gap-2 px-3 py-2 rounded-lg {% if request.url.path == '/madrasah-app/bk' or request.url.path == '/madrasah-app/bk/' %}bg-teal-50 text-teal-700 font-medium{% else %}text-zinc-700 hover:bg-zinc-100{% endif %}"
+        <a href="/apps/bk"
+           class="flex items-center gap-2 px-3 py-2 rounded-lg {% if request.url.path == '/apps/bk' or request.url.path == '/apps/bk/' %}bg-teal-50 text-teal-700 font-medium{% else %}text-zinc-700 hover:bg-zinc-100{% endif %}"
            title="Dashboard BK">
             <i data-lucide="layout-dashboard" class="w-4 h-4 flex-shrink-0 menu-icon"></i>
             <span class="menu-text">Dashboard</span>
         </a>
         {% endif %}
         {% if has_perm(user, "bk.catatan") %}
-        <a href="/madrasah-app/bk/catatan"
+        <a href="/apps/bk/catatan"
            class="flex items-center gap-2 px-3 py-2 rounded-lg {% if '/bk/catatan' in request.url.path %}bg-teal-50 text-teal-700 font-medium{% else %}text-zinc-700 hover:bg-zinc-100{% endif %}"
            title="Catatan BK">
             <i data-lucide="clipboard-list" class="w-4 h-4 flex-shrink-0 menu-icon"></i>
@@ -25,7 +25,7 @@
         </a>
         {% endif %}
         {% if has_perm(user, "bk.sesi") %}
-        <a href="/madrasah-app/bk/sesi"
+        <a href="/apps/bk/sesi"
            class="flex items-center gap-2 px-3 py-2 rounded-lg {% if '/bk/sesi' in request.url.path %}bg-teal-50 text-teal-700 font-medium{% else %}text-zinc-700 hover:bg-zinc-100{% endif %}"
            title="Sesi Konseling">
             <i data-lucide="message-circle" class="w-4 h-4 flex-shrink-0 menu-icon"></i>
@@ -33,15 +33,15 @@
         </a>
         {% endif %}
         {% if has_perm(user, "bk.export") or has_perm(user, "bk.monitor") %}
-        <a href="/madrasah-app/bk/rekap"
-           class="flex items-center gap-2 px-3 py-2 rounded-lg {% if request.url.path == '/madrasah-app/bk/rekap' %}bg-teal-50 text-teal-700 font-medium{% else %}text-zinc-700 hover:bg-zinc-100{% endif %}"
+        <a href="/apps/bk/rekap"
+           class="flex items-center gap-2 px-3 py-2 rounded-lg {% if request.url.path == '/apps/bk/rekap' %}bg-teal-50 text-teal-700 font-medium{% else %}text-zinc-700 hover:bg-zinc-100{% endif %}"
            title="Rekap Poin">
             <i data-lucide="trophy" class="w-4 h-4 flex-shrink-0 menu-icon"></i>
             <span class="menu-text">Rekap Poin</span>
         </a>
         {% endif %}
         {% if has_perm(user, "bk.master") or has_perm(user, "bk.monitor") or has_perm(user, "bk.catatan") %}
-        <a href="/madrasah-app/bk/master"
+        <a href="/apps/bk/master"
            class="flex items-center gap-2 px-3 py-2 rounded-lg {% if '/bk/master' in request.url.path or '/bk/konfigurasi' in request.url.path %}bg-teal-50 text-teal-700 font-medium{% else %}text-zinc-700 hover:bg-zinc-100{% endif %}"
            title="Master & Konfigurasi">
             <i data-lucide="book-marked" class="w-4 h-4 flex-shrink-0 menu-icon"></i>

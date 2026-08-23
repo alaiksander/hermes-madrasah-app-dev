@@ -42,14 +42,14 @@
 
         <div class="flex gap-2 mt-4">
             {% if has_perm(user, "jurnal.input") %}
-            <a href="/madrasah-app/jurnal/{{ jurnal.id }}/edit"
+            <a href="/apps/jurnal/{{ jurnal.id }}/edit"
                class="flex items-center gap-1.5 px-3 py-1.5 border border-zinc-300 rounded-lg text-sm text-zinc-600 hover:bg-zinc-50 transition-colors">
                 <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
                 Edit
             </a>
             {% endif %}
             {% if jurnal.status == 'draft' and has_perm(user, "jurnal.input") %}
-            <form method="POST" action="/madrasah-app/jurnal/{{ jurnal.id }}/submit" style="display:inline">
+            <form method="POST" action="/apps/jurnal/{{ jurnal.id }}/submit" style="display:inline">
                 <button type="submit"
                         class="flex items-center gap-1.5 px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-sm transition-colors">
                     <i data-lucide="send" class="w-3.5 h-3.5"></i>
@@ -68,10 +68,10 @@
         </div>
 
         {% if jurnal.absensi %}
-        <form method="POST" action="/madrasah-app/jurnal/{{ jurnal.id }}/absensi">
+        <form method="POST" action="/apps/jurnal/{{ jurnal.id }}/absensi">
             <div class="overflow-x-auto">
             <table class="w-full text-sm">
-                <thead class="bg-zinc-50 text-zinc-500 text-xs uppercase">
+                <thead class="bg-zinc-50 text-zinc-600 text-xs uppercase">
                     <tr>
                         <th class="text-left px-4 py-2 w-8">#</th>
                         <th class="text-left px-4 py-2">Nama Murid</th>
