@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}{{ ekskul.nama }}{% endblock %}
+{% block topbar_title %}Modul Ekskul{% endblock %}
+
+{% block sidebar_menu %}{% include "absensi/_sidebar_menu.html" %}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl">
+    <div class="flex items-center justify-between mb-4">
+        <h1 class="text-xl font-bold text-zinc-900">{{ ekskul.nama }}</h1>
+        <a href="/apps/ekskul" class="text-sm text-zinc-500 hover:text-zinc-700">← Kembali</a>
+    </div>
+
+    <!-- Info ekskul -->
+    <div class="bg-white rounded-lg border border-zinc-200 p-5 mb-4">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+            <div><span class="text-zinc-500 text-xs block">Pembina</span><span class="font-medium">{{ ekskul.pembina_nama or '—' }}</span></div>
+            <div><span class="text-zinc-500 text-xs block">Jadwal</span><span class="font-medium">{{ ekskul.hari or '—' }}{% if ekskul.jam_mulai %} {{ ekskul.jam_mulai }}{% endif %}</span></div>
+            <div><span class="text-zinc-500 text-xs block">Anggota</span><span class="font-medium">{{ ekskul.jumlah_anggota }} / {{ ekskul.kuota or '∞' }}</span></div>
+            <div><span class="text-zinc-500 text-xs block">Status</span><span class="font-medium">{{ 'Aktif' if ekskul.is_active else 'Nonaktif' }}</span></div>
+        </div>
+        {% if ekskul.deskripsi %}<p class="text-sm text-zinc-600 mt-3">{{ ekskul.deskripsi }}</p>{% endif %}
+    </div>
+
+    <!-- Anggota -->
+    <div class="bg-white rounded-lg border border-zinc-200 p-5 mb-4">
+        <h2 class="text-sm font-semibold text-zinc-800 mb-3">Anggota</h2>
+        <form method="post" action="/apps/ekskul/{{ ekskul.id }}/anggota" class="flex gap-2 mb-3">
+            <select name="murid_id" class="border border-zinc-300 rounded px-3 py-2 text-sm flex-1">
+                <option value="">— Pilih Murid —</option>
+                {% for m in murid_list %}
+                <option value="{{ m.id }}">{{ m.nama }} — {{ m.kelas_nama if m.kelas_nama else '' }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-primary text-sm">Tambah</button>
+        </form>
+        {% if anggota %}
+        <table class="table-dense w-full text-sm">
+            <thead class="bg-zinc-50 text-zinc-600 text-xs uppercase">
+                <tr><th>Nama</th><th>NISN</th><th class="w-20">Aksi</th></tr>
+            </thead>
+            <tbody>
+                {% for a in anggota %}
+                <tr>
+                    <td>{{ a.nama }}</td>
+                    <td class="font-mono text-xs">{{ a.nisn or '—' }}</td>
+                    <td class="text-right">
+                        <form method="post" action="/apps/ekskul/{{ ekskul.id }}/anggota/{{ a.id }}/hapus" class="inline"
+                              onsubmit="return confirm('Hapus {{ a.nama }} dari ekskul?')">
+                            <button type="submit" class="text-red-600 hover:underline text-xs bg-transparent border-0 p-0 cursor-pointer">Hapus</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="text-sm text-zinc-500">Belum ada anggota.</p>
+        {% endif %}
+    </div>
+
+    <!-- Kegiatan + Presensi -->
+    <div class="bg-white rounded-lg border border-zinc-200 p-5">
+        <h2 class="text-sm font-semibold text-zinc-800 mb-3">Kegiatan & Presensi</h2>
+        <form method="post" action="/apps/ekskul/{{ ekskul.id }}/kegiatan" class="flex gap-2 mb-4">
+            <input type="date" name="tanggal" required class="border border-zinc-300 rounded px-3 py-2 text-sm">
+            <input type="text" name="topik" placeholder="Topik kegiatan" class="border border-zinc-300 rounded px-3 py-2 text-sm flex-1">
+            <button type="submit" class="btn btn-primary text-sm">Tambah Kegiatan</button>
+        </form>
+
+        {% if kegiatan %}
+        {% for k in kegiatan %}
+        <div class="border border-zinc-200 rounded-lg p-4 mb-3">
+            <div class="flex items-center justify-between mb-2">
+                <div class="text-sm font-medium">{{ k.tanggal }} {% if k.topik %}<span class="text-zinc-500">— {{ k.topik }}</span>{% endif %}</div>
+                <span class="text-xs text-zinc-500">{{ k.jumlah_hadir }}/{{ k.jumlah_anggota }} hadir</span>
+            </div>
+            {% if anggota %}
+            <form method="post" action="/apps/ekskul/{{ ekskul.id }}/kegiatan/{{ k.id }}/presensi">
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-1 mb-2">
+                    {% for a in anggota %}
+                    <label class="flex items-center gap-2 text-sm">
+                        <input type="checkbox" name="hadir" value="{{ a.murid_id }}" checked class="accent-teal-600">
+                        {{ a.nama }}
+                    </label>
+                    {% endfor %}
+                </div>
+                <button type="submit" class="btn btn-secondary text-xs">Simpan Presensi</button>
+            </form>
+            {% else %}
+            <p class="text-xs text-zinc-500">Tambah anggota dulu untuk presensi.</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+        {% else %}
+        <p class="text-sm text-zinc-500">Belum ada kegiatan.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

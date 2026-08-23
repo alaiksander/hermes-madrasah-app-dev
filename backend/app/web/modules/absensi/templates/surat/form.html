@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}{{ form_title }}{% endblock %}
+{% block topbar_title %}Modul Tata Usaha · Surat{% endblock %}
+
+{% block sidebar_menu %}{% include "absensi/_sidebar_menu.html" %}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl">
+    <div class="flex items-center justify-between mb-4">
+        <h1 class="text-xl font-bold text-zinc-900">{{ form_title }}</h1>
+        <a href="/apps/tata-usaha" class="text-sm text-zinc-500 hover:text-zinc-700">← Kembali</a>
+    </div>
+
+    {% if error %}<div class="bg-red-50 border border-red-200 rounded-lg p-3 mb-3 text-sm text-red-700">{{ error }}</div>{% endif %}
+
+    <div class="bg-white rounded-lg border border-zinc-200 p-5">
+        <form method="post" action="{{ form_action }}">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                <div>
+                    <label class="block text-sm font-medium text-zinc-700 mb-1">Jenis Surat</label>
+                    <select name="jenis" class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                        <option value="masuk" {% if surat and surat.jenis == 'masuk' %}selected{% endif %}>Surat Masuk</option>
+                        <option value="keluar" {% if surat and surat.jenis == 'keluar' %}selected{% endif %}>Surat Keluar</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-zinc-700 mb-1">Nomor Agenda</label>
+                    <input type="text" name="nomor_agenda" required value="{{ surat.nomor_agenda if surat else '' }}"
+                           placeholder="001/ag/2026" class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                <div>
+                    <label class="block text-sm font-medium text-zinc-700 mb-1">Tanggal</label>
+                    <input type="date" name="tanggal" required value="{{ surat.tanggal if surat else '' }}"
+                           class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-zinc-700 mb-1">{{ 'Dari' if not surat or surat.jenis == 'masuk' else 'Kepada' }}</label>
+                    <input type="text" name="dari_kepada" required value="{{ surat.dari_kepada if surat else '' }}"
+                           placeholder="Kemenag Kudus" class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="block text-sm font-medium text-zinc-700 mb-1">Perihal</label>
+                <input type="text" name="perihal" required value="{{ surat.perihal if surat else '' }}"
+                       placeholder="Undangan Rapat" class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+            </div>
+            <div class="mb-3">
+                <label class="block text-sm font-medium text-zinc-700 mb-1">Isi Surat</label>
+                <textarea name="isi" rows="4" class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">{{ surat.isi if surat else '' }}</textarea>
+            </div>
+            <div class="mb-3">
+                <label class="block text-sm font-medium text-zinc-700 mb-1">Lampiran (link Google Drive / URL)</label>
+                <input type="url" name="lampiran" value="{{ surat.lampiran if surat else '' }}"
+                       placeholder="https://drive.google.com/..." class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                <p class="text-xs text-zinc-500 mt-1">Tempel link dokumen (Google Drive, dsb). Akan tampil sebagai preview di detail surat.</p>
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-zinc-700 mb-1">Status</label>
+                <select name="status" class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                    <option value="draft" {% if surat and surat.status == 'draft' %}selected{% endif %}>Draft</option>
+                    <option value="proses" {% if surat and surat.status == 'proses' %}selected{% endif %}>Proses</option>
+                    <option value="selesai" {% if surat and surat.status == 'selesai' %}selected{% endif %}>Selesai</option>
+                </select>
+            </div>
+            <div class="flex justify-end gap-2">
+                <a href="/apps/tata-usaha" class="btn btn-secondary text-sm">Batal</a>
+                <button type="submit" class="btn btn-primary text-sm">
+                    <i data-lucide="save" class="w-4 h-4"></i> Simpan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,20 @@
+<!-- Grup: Tata Usaha — Surat Menyurat -->
+{% if has_any_perm(user, "surat.view", "surat.create", "surat.update", "surat.delete", "surat.disposisi") %}
+<details class="sidebar-group" {% if '/tata-usaha' in request.url.path %}open{% endif %}>
+    <summary class="sidebar-group-summary" title="Surat Menyurat">
+        <i data-lucide="file-text" class="w-4 h-4 flex-shrink-0 menu-icon"></i>
+        <span class="menu-text">Tata Usaha</span>
+        <i data-lucide="chevron-right" class="sidebar-group-chevron w-3 h-3 ml-auto"></i>
+    </summary>
+    <div class="sidebar-group-items">
+        {% if has_perm(user, "surat.view") %}
+        <a href="/apps/tata-usaha"
+           class="flex items-center gap-2 px-3 py-2 rounded-lg {% if request.url.path.startswith('/apps/tata-usaha') %}bg-teal-50 text-teal-700 font-medium{% else %}text-zinc-700 hover:bg-zinc-100{% endif %}"
+           title="Surat Menyurat">
+            <i data-lucide="file-text" class="w-4 h-4 flex-shrink-0 menu-icon"></i>
+            <span class="menu-text">Surat Menyurat</span>
+        </a>
+        {% endif %}
+    </div>
+</details>
+{% endif %}

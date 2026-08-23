@@ -22,9 +22,9 @@ from .config import settings
 from .backup import run_backup
 from .db import GlobalSession, init_global_db, provision_tenant_db
 from .models import BackupLog, BackupSetting
-from .routers import (absensi, auth, bk, guru, guru_pengampu, jurnal, kelas,
-                      mapel, murid, pengaturan, qr, roles, superadmin,
-                      tahun_ajaran)
+from .routers import (absensi, auth, bk, ekskul, guru, guru_pengampu, jurnal,
+                      kelas, mapel, murid, pengaturan, qr, roles, superadmin,
+                      surat, tahun_ajaran)
 
 WIB = ZoneInfo("Asia/Jakarta")
 
@@ -329,6 +329,11 @@ from .web.modules.absensi import bk_web_router, jurnal_web_router
 app.include_router(bk_web_router, prefix="/apps")
 app.include_router(jurnal_web_router, prefix="/apps")
 
+from .web.modules.absensi.views.surat import router as surat_web_router
+from .web.modules.absensi.views.ekskul import router as ekskul_web_router
+app.include_router(surat_web_router, prefix="/apps/tata-usaha")
+app.include_router(ekskul_web_router, prefix="/apps/ekskul")
+
 from .web.modules.absensi.views.murid import router as murid_router
 from .web.modules.absensi.views.kelas import router as kelas_router
 from .web.modules.absensi.views.guru import router as guru_router
@@ -481,7 +486,7 @@ async def web_panel_http_exception_handler(request: Request, exc: StarletteHTTPE
 for r in (auth.router, superadmin.router, kelas.router, tahun_ajaran.router,
           guru.router, guru_pengampu.router, roles.router, qr.router,
           murid.router, absensi.router, bk.router, jurnal.router, mapel.router,
-          pengaturan.router):
+          pengaturan.router, surat.router, ekskul.router):
     app.include_router(r)
 
 

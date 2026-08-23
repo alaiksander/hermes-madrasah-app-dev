@@ -1,0 +1,20 @@
+<!-- Grup: Kesiswaan — Ekstrakurikuler -->
+{% if has_any_perm(user, "ekskul.view", "ekskul.kelola", "ekskul.presensi") %}
+<details class="sidebar-group" {% if '/ekskul' in request.url.path %}open{% endif %}>
+    <summary class="sidebar-group-summary" title="Ekstrakurikuler">
+        <i data-lucide="trophy" class="w-4 h-4 flex-shrink-0 menu-icon"></i>
+        <span class="menu-text">Kesiswaan</span>
+        <i data-lucide="chevron-right" class="sidebar-group-chevron w-3 h-3 ml-auto"></i>
+    </summary>
+    <div class="sidebar-group-items">
+        {% if has_perm(user, "ekskul.view") %}
+        <a href="/apps/ekskul"
+           class="flex items-center gap-2 px-3 py-2 rounded-lg {% if request.url.path.startswith('/apps/ekskul') %}bg-teal-50 text-teal-700 font-medium{% else %}text-zinc-700 hover:bg-zinc-100{% endif %}"
+           title="Ekstrakurikuler">
+            <i data-lucide="trophy" class="w-4 h-4 flex-shrink-0 menu-icon"></i>
+            <span class="menu-text">Ekstrakurikuler</span>
+        </a>
+        {% endif %}
+    </div>
+</details>
+{% endif %}

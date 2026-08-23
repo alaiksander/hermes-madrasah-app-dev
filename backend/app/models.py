@@ -721,3 +721,105 @@ class Pembayaran(TenantBase):
     tagihan: Mapped[Tagihan] = relationship(back_populates="pembayaran")
     guru: Mapped["Guru | None"] = relationship()
 
+
+# ── SURAT MENYURAT (Tata Usaha) ────────────────────────────────────────
+
+class Surat(TenantBase):
+    """Arsip surat masuk/keluar + disposisi."""
+
+    __tablename__ = "surat"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    jenis: Mapped[str] = mapped_column(String(10), index=True)  # masuk | keluar
+    nomor_agenda: Mapped[str] = mapped_column(String(50))
+    tanggal: Mapped[date] = mapped_column(Date, index=True)
+    dari_kepada: Mapped[str] = mapped_column(String(150))  # dari (masuk) / kepada (keluar)
+    perihal: Mapped[str] = mapped_column(String(200))
+    isi: Mapped[str | None] = mapped_column(Text, nullable=True)
+    lampiran: Mapped[str | None] = mapped_column(String(500), nullable=True)  # URL link (Google Drive dll)
+    status: Mapped[str] = mapped_column(String(20), default="draft", index=True)  # draft | proses | selesai
+    disposisi_kepada: Mapped[str | None] = mapped_column(String(150), nullable=True)
+    disposisi_catatan: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_by: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, onupdate=utcnow)
+
+
+# ── EKSTRAKURIKULER ────────────────────────────────────────────────────
+
+class Ekskul(TenantBase):
+    """Master ekstrakurikuler."""
+
+    __tablename__ = "ekskul"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    nama: Mapped[str] = mapped_column(String(100))
+    pembina_guru_id: Mapped[int | None] = mapped_column(
+        ForeignKey("guru.id"), nullable=True)
+    deskripsi: Mapped[str | None] = mapped_column(Text, nullable=True)
+    kuota: Mapped[int] = mapped_column(Integer, default=0)
+    hari: Mapped[str | None] = mapped_column(String(20), nullable=True)  # Senin..Sabtu
+    jam_mulai: Mapped[str | None] = mapped_column(String(5), nullable=True)  # HH:MM
+    jam_selesai: Mapped[str | None] = mapped_column(String(5), nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+    pembina: Mapped["Guru | None"] = relationship()
+    anggota: Mapped[list["EkskulAnggota"]] = relationship(
+        back_populates="ekskul", cascade="all, delete-orphan")
+    kegiatan: Mapped[list["EkskulKegiatan"]] = relationship(
+        back_populates="ekskul", cascade="all, delete-orphan")
+
+
+class EkskulAnggota(TenantBase):
+    """Keanggotaan murid di ekskul."""
+
+    __tablename__ = "ekskul_anggota"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    ekskul_id: Mapped[int] = mapped_column(
+        ForeignKey("ekskul.id", ondelete="CASCADE"), index=True)
+    murid_id: Mapped[int] = mapped_column(
+        ForeignKey("murid.id", ondelete="CASCADE"), index=True)
+    tanggal_daftar: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow)
+
+    ekskul: Mapped[Ekskul] = relationship(back_populates="anggota")
+    murid: Mapped["Murid"] = relationship()
+
+
+class EkskulKegiatan(TenantBase):
+    """Pertemuan/kegiatan ekskul (untuk presensi)."""
+
+    __tablename__ = "ekskul_kegiatan"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    ekskul_id: Mapped[int] = mapped_column(
+        ForeignKey("ekskul.id", ondelete="CASCADE"), index=True)
+    tanggal: Mapped[date] = mapped_column(Date, index=True)
+    topik: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    catatan: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+    ekskul: Mapped[Ekskul] = relationship(back_populates="kegiatan")
+    presensi: Mapped[list["EkskulPresensi"]] = relationship(
+        back_populates="kegiatan", cascade="all, delete-orphan")
+
+
+class EkskulPresensi(TenantBase):
+    """Kehadiran murid pada satu kegiatan ekskul (model manual)."""
+
+    __tablename__ = "ekskul_presensi"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    kegiatan_id: Mapped[int] = mapped_column(
+        ForeignKey("ekskul_kegiatan.id", ondelete="CASCADE"), index=True)
+    murid_id: Mapped[int] = mapped_column(
+        ForeignKey("murid.id", ondelete="CASCADE"), index=True)
+    hadir: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+    kegiatan: Mapped[EkskulKegiatan] = relationship(back_populates="presensi")
+    murid: Mapped["Murid"] = relationship()
+

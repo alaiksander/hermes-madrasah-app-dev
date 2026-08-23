@@ -91,6 +91,20 @@ PERMISSIONS = [
     # ── Pengampu (guru × mapel × kelas)
     ("pengampu.view", "sistem", "Lihat penugasan mengajar"),
     ("pengampu.kelola", "sistem", "Set penugasan mengajar (admin)"),
+
+    # ── Surat Menyurat (Tata Usaha)
+    ("surat.view", "surat", "Lihat arsip surat"),
+    ("surat.create", "surat", "Tambah/input surat"),
+    ("surat.update", "surat", "Edit surat"),
+    ("surat.delete", "surat", "Hapus surat"),
+    ("surat.disposisi", "surat", "Berikan disposisi"),
+    ("surat.export", "surat", "Export surat (Excel)"),
+
+    # ── Ekstrakurikuler
+    ("ekskul.view", "ekskul", "Lihat ekskul & keanggotaan"),
+    ("ekskul.kelola", "ekskul", "Kelola data ekskul (tambah/edit/hapus)"),
+    ("ekskul.presensi", "ekskul", "Input presensi kegiatan"),
+    ("ekskul.export", "ekskul", "Export rekap ekskul"),
 ]
 
 # Default permission per role legacy (backfill awal)
@@ -107,6 +121,8 @@ ROLE_DEFAULT_PERMISSIONS = {
         "tagihan.view",
         "pengampu.view",  # guru bisa lihat penugasan sendiri
         "bk.view", "bk.catatan_mapel",  # lihat BK + catat insiden mapel (scope pengampu)
+        "surat.view",  # guru bisa lihat arsip surat
+        "ekskul.view",  # guru bisa lihat ekskul
     ],
 }
 
