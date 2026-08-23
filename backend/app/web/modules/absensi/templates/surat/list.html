@@ -5,41 +5,86 @@
 {% block sidebar_menu %}{% include "absensi/_sidebar_menu.html" %}{% endblock %}
 
 {% block content %}
-<div class="flex items-center justify-between mb-4">
+<!-- Header: stack di mobile, sejajar di desktop -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
     <h1 class="text-xl font-bold text-zinc-900">Surat Menyurat</h1>
-    <a href="/apps/tata-usaha/tambah" class="btn btn-primary">
+    <a href="/apps/tata-usaha/tambah" class="btn btn-primary w-full sm:w-auto justify-center">
         <i data-lucide="file-plus" class="w-4 h-4"></i> Tambah Surat
     </a>
 </div>
 
 <!-- Tab masuk/keluar (Alpine.js — state client-side) -->
 <div x-data="{ jenis: '{{ jenis }}' }" class="mb-4">
-    <div class="flex gap-1 bg-zinc-100 p-1 rounded-lg w-fit">
+    <div class="flex gap-1 bg-zinc-100 p-1 rounded-lg w-full sm:w-fit">
         <button type="button" @click="jenis='masuk'; window.location='/apps/tata-usaha?jenis=masuk'"
                 :class="jenis==='masuk' ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-600 hover:text-zinc-900'"
-                class="px-4 py-1.5 rounded-md text-sm font-medium">
+                class="flex-1 sm:flex-none px-4 py-1.5 rounded-md text-sm font-medium">
             Surat Masuk
         </button>
         <button type="button" @click="jenis='keluar'; window.location='/apps/tata-usaha?jenis=keluar'"
                 :class="jenis==='keluar' ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-600 hover:text-zinc-900'"
-                class="px-4 py-1.5 rounded-md text-sm font-medium">
+                class="flex-1 sm:flex-none px-4 py-1.5 rounded-md text-sm font-medium">
             Surat Keluar
         </button>
     </div>
 </div>
 
-<!-- Filter -->
-<form method="get" class="flex gap-2 mb-4">
+<!-- Filter: full width di mobile, row di desktop -->
+<form method="get" class="flex flex-col sm:flex-row gap-2 mb-4">
     <input type="hidden" name="jenis" value="{{ jenis }}">
     <input type="text" name="q" value="{{ q }}" placeholder="Cari perihal / nomor / asal..."
-           class="border border-zinc-300 rounded-lg px-3 py-2 text-sm w-72">
+           class="border border-zinc-300 rounded-lg px-3 py-2 text-sm flex-1">
     <button type="submit" class="btn btn-secondary text-sm">
         <i data-lucide="search" class="w-4 h-4"></i> Cari
     </button>
 </form>
 
-<!-- Tabel surat -->
-<div class="bg-white rounded-lg border border-zinc-200 overflow-x-auto">
+<!-- MOBILE: card list (md:hidden) -->
+<div class="md:hidden space-y-3">
+    {% if surat_list %}
+    {% for s in surat_list %}
+    <div class="bg-white rounded-lg border border-zinc-200 p-4">
+        <div class="flex items-start justify-between gap-2 mb-2">
+            <div class="flex-1 min-w-0">
+                <div class="font-medium text-sm leading-snug">{{ s.perihal }}</div>
+                <div class="text-xs text-zinc-500 mt-0.5">{{ s.dari_kepada }}</div>
+            </div>
+            {% if s.status == 'selesai' %}
+            <span class="flex-shrink-0 inline-block px-2 py-0.5 rounded text-xs bg-green-100 text-green-700">Selesai</span>
+            {% elif s.status == 'proses' %}
+            <span class="flex-shrink-0 inline-block px-2 py-0.5 rounded text-xs bg-amber-100 text-amber-700">Proses</span>
+            {% else %}
+            <span class="flex-shrink-0 inline-block px-2 py-0.5 rounded text-xs bg-zinc-200 text-zinc-600">Draft</span>
+            {% endif %}
+        </div>
+        <div class="grid grid-cols-2 gap-x-2 gap-y-1 text-xs text-zinc-600 mb-2">
+            <div><span class="text-zinc-400">No:</span> <span class="font-mono">{{ s.nomor_agenda }}</span></div>
+            <div><span class="text-zinc-400">Tgl:</span> {{ s.tanggal }}</div>
+            {% if s.disposisi_kepada %}
+            <div class="col-span-2"><span class="text-zinc-400">Disposisi:</span> {{ s.disposisi_kepada }}</div>
+            {% endif %}
+            {% if s.lampiran %}<div class="col-span-2 text-teal-600">🔗 Lampiran</div>{% endif %}
+        </div>
+        <div class="flex items-center gap-3 border-t border-zinc-100 pt-2">
+            <a href="/apps/tata-usaha/{{ s.id }}" class="text-teal-700 hover:underline text-sm">Detail</a>
+            <form method="post" action="/apps/tata-usaha/{{ s.id }}/hapus"
+                  onsubmit="return confirm('Hapus surat {{ s.nomor_agenda }}?')">
+                <button type="submit" class="text-red-600 hover:underline text-sm bg-transparent border-0 p-0 cursor-pointer">Hapus</button>
+            </form>
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="p-10 text-center text-zinc-500 bg-white rounded-lg border border-zinc-200">
+        <i data-lucide="file-text" class="w-12 h-12 mx-auto mb-2 text-zinc-300"></i>
+        <p class="font-medium">Belum ada surat</p>
+        <p class="text-xs mt-1">Klik "Tambah Surat" untuk mulai.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- DESKTOP: tabel (hidden md:block) -->
+<div class="hidden md:block bg-white rounded-lg border border-zinc-200 overflow-x-auto">
     {% if surat_list %}
     <table class="table-dense w-full text-sm">
         <thead class="bg-zinc-50 text-zinc-600 text-xs uppercase">

@@ -6,18 +6,18 @@
 
 {% block content %}
 <div class="max-w-3xl">
-    <div class="flex items-center justify-between mb-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
         <h1 class="text-xl font-bold text-zinc-900">Detail Surat</h1>
         <a href="/apps/tata-usaha?jenis={{ surat.jenis }}" class="text-sm text-zinc-500 hover:text-zinc-700">← Kembali</a>
     </div>
 
-    <div class="bg-white rounded-lg border border-zinc-200 p-5 mb-4">
-        <div class="flex items-center justify-between mb-4">
-            <div>
+    <div class="bg-white rounded-lg border border-zinc-200 p-4 sm:p-5 mb-4">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+            <div class="flex flex-wrap items-center gap-2">
                 <span class="inline-block px-2 py-0.5 rounded text-xs {% if surat.jenis == 'masuk' %}bg-blue-100 text-blue-700{% else %}bg-purple-100 text-purple-700{% endif %}">
                     {{ 'Surat Masuk' if surat.jenis == 'masuk' else 'Surat Keluar' }}
                 </span>
-                <span class="ml-2 font-mono text-sm text-zinc-500">{{ surat.nomor_agenda }}</span>
+                <span class="font-mono text-sm text-zinc-500">{{ surat.nomor_agenda }}</span>
             </div>
             <span class="inline-block px-2 py-0.5 rounded text-xs {% if surat.status == 'selesai' %}bg-green-100 text-green-700{% elif surat.status == 'proses' %}bg-amber-100 text-amber-700{% else %}bg-zinc-200 text-zinc-600{% endif %}">
                 {{ surat.status|title }}
@@ -57,7 +57,7 @@
             <i data-lucide="external-link" class="w-4 h-4"></i> Buka Lampiran di tab baru
         </a>
         <div class="border border-zinc-200 rounded-lg overflow-hidden">
-            <iframe src="{{ surat.lampiran }}" class="w-full h-96" frameborder="0"
+            <iframe src="{{ surat.lampiran }}" class="w-full h-64 sm:h-96" frameborder="0"
                     allowfullscreen loading="lazy"></iframe>
         </div>
     </div>
@@ -89,7 +89,7 @@
                        placeholder="Catatan disposisi" class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
             </div>
             <div class="sm:col-span-2 flex justify-end">
-                <button type="submit" class="btn btn-primary text-sm">
+                <button type="submit" class="btn btn-primary text-sm w-full sm:w-auto justify-center">
                     <i data-lucide="send" class="w-4 h-4"></i> Simpan Disposisi
                 </button>
             </div>
