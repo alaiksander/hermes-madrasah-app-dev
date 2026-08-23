@@ -79,18 +79,18 @@
                     <a href="/apps/pengampu/{{ g.id }}" class="text-teal-700 hover:underline text-xs">
                         Set Pengampu
                     </a>
-                    <a href="/apps/data/guru/{{ g.id }}/edit" class="text-teal-700 hover:underline text-xs">
+                    <a href="/apps/data/guru/{{ g.id }}/edit" class="text-teal-700 hover:underline text-xs ml-2">
                         Edit
                     </a>
                     {% if g.is_active %}
                     {% if g.id != current_user_id %}
                     <button type="button" onclick="resetPassword({{ g.id }}, '{{ g.nama }}')"
-                            class="text-amber-700 hover:underline text-xs bg-transparent border-0 p-0 cursor-pointer">
+                            class="text-amber-700 hover:underline text-xs ml-2 bg-transparent border-0 p-0 cursor-pointer">
                         Reset Password
                     </button>
                     <form method="post" action="/apps/data/guru/{{ g.id }}/hapus"
                           class="inline" onsubmit="return confirm('Arsipkan {{ g.nama }}? Wali kelas yang ditunjuk guru ini akan dikosongkan.')">
-                        <button type="submit" class="text-red-600 hover:underline text-xs bg-transparent border-0 p-0 cursor-pointer">Arsip</button>
+                        <button type="submit" class="text-red-600 hover:underline text-xs ml-2 bg-transparent border-0 p-0 cursor-pointer">Arsip</button>
                     </form>
                     {% endif %}
                     {% else %}
