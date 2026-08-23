@@ -93,11 +93,15 @@ async def ekskul_detail(
     kegiatan_r = await api_get(request, f"/api/ekskul/{ekskul_id}/kegiatan")
     kegiatan = kegiatan_r.json() if kegiatan_r.status_code == 200 else []
     murid_r = await api_get(request, "/api/murid")
-    murid_list = murid_r.json() if murid_r.status_code == 200 else []
+    murid_data = murid_r.json() if murid_r.status_code == 200 else {}
+    # API murid: {total, items:[...]} — ekstrak items
+    murid_list = murid_data.get("items", murid_data if isinstance(murid_data, list) else [])
+    import json as _json
     return templates.TemplateResponse(
         request, "ekskul/detail.html",
         {"user": user, "ekskul": ekskul, "anggota": anggota,
-         "kegiatan": kegiatan, "murid_list": murid_list},
+         "kegiatan": kegiatan, "murid_list": murid_list,
+         "murid_list_json": _json.dumps(murid_list)},
     )
 
 

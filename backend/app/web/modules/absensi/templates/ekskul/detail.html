@@ -31,26 +31,51 @@
     <!-- Anggota -->
     <div class="bg-white rounded-lg border border-zinc-200 p-5 mb-4">
         <h2 class="text-sm font-semibold text-zinc-800 mb-3">Anggota</h2>
-        <!-- Tombol masukkan semua murid per tingkat (manual trigger) -->
-        <div class="flex flex-wrap gap-2 mb-3">
-            <span class="text-xs text-zinc-500 self-center mr-1">Masukkan semua murid:</span>
-            {% for t in [('7','Tingkat 7'),('8','Tingkat 8'),('9','Tingkat 9'),('semua','Semua Tingkat')] %}
-            <form method="post" action="/apps/ekskul/{{ ekskul.id }}/masukkan-tingkat" class="inline"
-                  onsubmit="return confirm('Masukkan semua murid {{ t[1] }} ke ekskul ini?')">
-                <input type="hidden" name="tingkat" value="{{ t[0] }}">
-                <button type="submit" class="btn btn-secondary text-xs">{{ t[1] }}</button>
-            </form>
-            {% endfor %}
-        </div>
-        <form method="post" action="/apps/ekskul/{{ ekskul.id }}/anggota" class="flex flex-col sm:flex-row gap-2 mb-3">
-            <select name="murid_id" class="border border-zinc-300 rounded px-3 py-2 text-sm flex-1">
-                <option value="">— Pilih Murid —</option>
-                {% for m in murid_list %}
-                <option value="{{ m.id }}">{{ m.nama }} — {{ m.kelas_nama if m.kelas_nama else '' }}</option>
+
+        <!-- Tombol masukkan semua murid per tingkat (rapi di mobile: grid) -->
+        <div class="mb-3">
+            <div class="text-xs text-zinc-500 mb-1.5">Masukkan semua murid:</div>
+            <div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
+                {% for t in [('7','Tingkat 7'),('8','Tingkat 8'),('9','Tingkat 9'),('semua','Semua Tingkat')] %}
+                <form method="post" action="/apps/ekskul/{{ ekskul.id }}/masukkan-tingkat"
+                      onsubmit="return confirm('Masukkan semua murid {{ t[1] }} ke ekskul ini?')">
+                    <input type="hidden" name="tingkat" value="{{ t[0] }}">
+                    <button type="submit" class="btn btn-secondary text-xs w-full sm:w-auto justify-center">{{ t[1] }}</button>
+                </form>
                 {% endfor %}
-            </select>
-            <button type="submit" class="btn btn-primary text-sm w-full sm:w-auto justify-center">Tambah</button>
-        </form>
+            </div>
+        </div>
+
+        <!-- Tambah anggota: search murid (Alpine) -->
+        <div x-data="muridSearch()" class="mb-3">
+            <div class="flex flex-col sm:flex-row gap-2">
+                <div class="relative flex-1">
+                    <input type="text" x-model="q" @input="filtered = filterMurid(q)"
+                           placeholder="Cari nama murid..." autocomplete="off"
+                           class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                    <div x-show="q.length > 0" x-cloak
+                         class="absolute z-10 mt-1 w-full bg-white border border-zinc-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                        <template x-for="m in filtered" :key="m.id">
+                            <button type="button" @click="pilih(m)"
+                                    class="block w-full text-left px-3 py-2 text-sm hover:bg-teal-50">
+                                <span x-text="m.nama"></span>
+                                <span class="text-xs text-zinc-500" x-text="m.kelas_nama ? ' — ' + m.kelas_nama : ''"></span>
+                            </button>
+                        </template>
+                        <div x-show="filtered.length === 0" class="px-3 py-2 text-sm text-zinc-500">Tidak ditemukan</div>
+                    </div>
+                </div>
+                <button type="button" @click="submitPilih()" :disabled="!selected"
+                        class="btn btn-primary text-sm w-full sm:w-auto justify-center"
+                        :class="selected ? '' : 'opacity-50 cursor-not-allowed'">
+                    Tambah
+                </button>
+            </div>
+            <form method="post" action="/apps/ekskul/{{ ekskul.id }}/anggota" id="form-tambah-anggota" class="hidden">
+                <input type="hidden" name="murid_id" id="input-murid-id">
+            </form>
+        </div>
+
         {% if anggota %}
         <!-- Mobile: list anggota (md:hidden) -->
         <div class="md:hidden space-y-2 mb-3">
@@ -104,18 +129,46 @@
         {% if kegiatan %}
         {% for k in kegiatan %}
         <div class="border border-zinc-200 rounded-lg p-4 mb-3"
-             x-data="{ total: {{ k.jumlah_anggota }}, hadir: {{ k.jumlah_hadir }} }">
+             x-data="presensi($el, {{ k.jumlah_anggota }}, {{ k.jumlah_hadir }})">
             <div class="flex items-center justify-between mb-2">
                 <div class="text-sm font-medium">{{ k.tanggal }} {% if k.topik %}<span class="text-zinc-500">— {{ k.topik }}</span>{% endif %}</div>
                 <span class="text-xs text-zinc-500" x-text="hadir + '/' + total + ' hadir'">{{ k.jumlah_hadir }}/{{ k.jumlah_anggota }} hadir</span>
             </div>
             {% if anggota %}
             <form method="post" action="/apps/ekskul/{{ ekskul.id }}/kegiatan/{{ k.id }}/presensi" @submit="hadir = $el.querySelectorAll('input[name=hadir]:checked').length">
-                <div class="grid grid-cols-2 sm:grid-cols-3 gap-1 mb-2">
+                <!-- Filter per kelas + search -->
+                <div class="flex flex-col sm:flex-row gap-2 mb-2">
+                    <select x-model="filterKelas" @change="filterList()" class="border border-zinc-300 rounded px-2 py-1.5 text-xs sm:w-40">
+                        <option value="">Semua kelas</option>
+                        {% set kelas_set = [] %}
+                        {% for a in anggota %}
+                            {% if a.kelas_nama and a.kelas_nama not in kelas_set %}
+                                {% set _ = kelas_set.append(a.kelas_nama) %}
+                            {% endif %}
+                        {% endfor %}
+                        {% for kls in kelas_set|sort %}
+                        <option value="{{ kls }}">{{ kls }}</option>
+                        {% endfor %}
+                    </select>
+                    <input type="text" x-model="cari" @input="filterList()" placeholder="Cari siswa..."
+                           class="border border-zinc-300 rounded px-2 py-1.5 text-xs flex-1">
+                    <div class="flex items-center gap-2 text-xs text-zinc-500">
+                        <span>Semua hadir</span>
+                        <button type="button" @click="toggleSemua()" class="relative inline-flex items-center h-5 w-9 rounded-full transition-colors"
+                                :class="semuaHadir ? 'bg-teal-600' : 'bg-zinc-300'">
+                            <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+                                  :class="semuaHadir ? 'translate-x-4' : 'translate-x-0'"></span>
+                        </button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-1 mb-2">
                     {% for a in anggota %}
-                    <label class="flex items-center gap-2 text-sm">
-                        <input type="checkbox" name="hadir" value="{{ a.murid_id }}" checked class="accent-teal-600" @change="hadir = $root.querySelectorAll('input[name=hadir]:checked').length">
-                        {{ a.nama }}
+                    <label class="flex items-center gap-2 text-sm" data-kelas="{{ a.kelas_nama or '' }}"
+                           x-show="tampil('{{ a.kelas_nama or '' }}', '{{ a.nama }}')">
+                        <input type="checkbox" name="hadir" value="{{ a.murid_id }}" checked class="accent-teal-600"
+                               @change="hitung()">
+                        <span class="truncate">{{ a.nama }}</span>
+                        {% if a.kelas_nama %}<span class="text-[10px] text-zinc-400 flex-shrink-0">{{ a.kelas_nama }}</span>{% endif %}
                     </label>
                     {% endfor %}
                 </div>
@@ -131,4 +184,63 @@
         {% endif %}
     </div>
 </div>
+
+<script>
+function muridSearch() {
+    return {
+        q: '',
+        filtered: [],
+        selected: null,
+        allMurid: {{ murid_list_json|safe }},
+        filterMurid(q) {
+            if (!q) return [];
+            const s = q.toLowerCase();
+            return this.allMurid.filter(m =>
+                (m.nama || '').toLowerCase().includes(s) ||
+                (m.kelas_nama || '').toLowerCase().includes(s)
+            ).slice(0, 20);
+        },
+        pilih(m) {
+            this.selected = m;
+            this.q = m.nama + (m.kelas_nama ? ' — ' + m.kelas_nama : '');
+            this.filtered = [];
+        },
+        submitPilih() {
+            if (!this.selected) return;
+            document.getElementById('input-murid-id').value = this.selected.id;
+            document.getElementById('form-tambah-anggota').submit();
+        }
+    };
+}
+function presensi(el, total, hadir) {
+    return {
+        el: el,
+        total: total,
+        hadir: hadir,
+        semuaHadir: true,
+        filterKelas: '',
+        cari: '',
+        hitung() {
+            this.hadir = this.el.querySelectorAll('input[name=hadir]:checked').length;
+        },
+        tampil(kelas, nama) {
+            const k = this.filterKelas;
+            const c = this.cari.toLowerCase();
+            if (k && kelas !== k) return false;
+            if (c && !nama.toLowerCase().includes(c)) return false;
+            return true;
+        },
+        filterList() {
+            this.$nextTick(() => {});
+        },
+        toggleSemua() {
+            this.semuaHadir = !this.semuaHadir;
+            this.el.querySelectorAll('input[name=hadir]').forEach(cb => {
+                cb.checked = this.semuaHadir;
+            });
+            this.hitung();
+        }
+    };
+}
+</script>
 {% endblock %}

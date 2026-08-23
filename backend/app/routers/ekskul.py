@@ -192,6 +192,7 @@ def anggota_list(
             "murid_id": a.murid_id,
             "nama": a.murid.nama if a.murid else "?",
             "nisn": a.murid.nisn if a.murid else None,
+            "kelas_nama": a.murid.kelas.nama_kelas if a.murid and a.murid.kelas else "",
             "tanggal_daftar": a.tanggal_daftar.isoformat() if a.tanggal_daftar else None,
         })
     return out
