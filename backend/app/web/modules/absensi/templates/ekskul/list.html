@@ -5,14 +5,50 @@
 {% block sidebar_menu %}{% include "absensi/_sidebar_menu.html" %}{% endblock %}
 
 {% block content %}
-<div class="flex items-center justify-between mb-4">
+<!-- Header: stack di mobile -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
     <h1 class="text-xl font-bold text-zinc-900">Ekstrakurikuler</h1>
-    <a href="/apps/ekskul/tambah" class="btn btn-primary">
+    <a href="/apps/ekskul/tambah" class="btn btn-primary w-full sm:w-auto justify-center">
         <i data-lucide="plus" class="w-4 h-4"></i> Tambah Ekskul
     </a>
 </div>
 
-<div class="bg-white rounded-lg border border-zinc-200 overflow-x-auto">
+<!-- MOBILE: card list (md:hidden) -->
+<div class="md:hidden space-y-3">
+    {% if ekskul_list %}
+    {% for e in ekskul_list %}
+    <div class="bg-white rounded-lg border border-zinc-200 p-4">
+        <div class="flex items-start justify-between gap-2 mb-2">
+            <div class="flex-1 min-w-0">
+                <div class="font-medium text-sm">{{ e.nama }}</div>
+                <div class="text-xs text-zinc-500 mt-0.5">{{ e.pembina_nama or 'Tanpa pembina' }}</div>
+            </div>
+            {% if e.is_active %}
+            <span class="flex-shrink-0 inline-block px-2 py-0.5 rounded text-xs bg-green-100 text-green-700">Aktif</span>
+            {% else %}
+            <span class="flex-shrink-0 inline-block px-2 py-0.5 rounded text-xs bg-zinc-200 text-zinc-600">Nonaktif</span>
+            {% endif %}
+        </div>
+        <div class="grid grid-cols-2 gap-x-2 gap-y-1 text-xs text-zinc-600 mb-2">
+            <div><span class="text-zinc-400">Jadwal:</span> {% if e.hari %}{{ e.hari }}{% if e.jam_mulai %} {{ e.jam_mulai }}{% endif %}{% else %}—{% endif %}</div>
+            <div><span class="text-zinc-400">Anggota:</span> {{ e.jumlah_anggota }} / {{ e.kuota or '∞' }}</div>
+        </div>
+        <div class="border-t border-zinc-100 pt-2">
+            <a href="/apps/ekskul/{{ e.id }}" class="text-teal-700 hover:underline text-sm">Detail</a>
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="p-10 text-center text-zinc-500 bg-white rounded-lg border border-zinc-200">
+        <i data-lucide="trophy" class="w-12 h-12 mx-auto mb-2 text-zinc-300"></i>
+        <p class="font-medium">Belum ada ekskul</p>
+        <p class="text-xs mt-1">Klik "Tambah Ekskul" untuk mulai.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- DESKTOP: tabel (hidden md:block) -->
+<div class="hidden md:block bg-white rounded-lg border border-zinc-200 overflow-x-auto">
     {% if ekskul_list %}
     <table class="table-dense w-full text-sm">
         <thead class="bg-zinc-50 text-zinc-600 text-xs uppercase">
