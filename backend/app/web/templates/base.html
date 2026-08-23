@@ -71,7 +71,8 @@
                       fixed inset-y-0 left-0 z-40 -translate-x-full
                       lg:static lg:translate-x-0">
             <div class="p-4 border-b border-zinc-200 flex items-center justify-between flex-shrink-0">
-                <a href="/apps/" class="flex items-center gap-2 text-zinc-900 brand-link">
+                <a href="/apps/" onclick="return handleBrandClick(event)"
+                   class="flex items-center gap-2 text-zinc-900 brand-link">
                     <img src="/apps/static/favicon.png" alt="Tarbeya" class="w-6 h-6 rounded flex-shrink-0">
                     <span class="font-semibold brand-text">{{ get_nama_aplikasi(user) }}</span>
                 </a>

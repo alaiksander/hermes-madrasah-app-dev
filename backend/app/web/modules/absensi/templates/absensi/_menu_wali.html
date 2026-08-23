@@ -3,7 +3,7 @@
 {% if has_any_perm(user, "wali.view", "kelas.view") %}
 <details class="sidebar-group" {% if '/wali-kelas' in request.url.path %}open{% endif %}>
     <summary class="sidebar-group-summary" title="Perwalian">
-        <i data-lucide="heart-handshake" class="w-4 h-4 flex-shrink-0 menu-icon"></i>
+        <i data-lucide="shield-check" class="w-4 h-4 flex-shrink-0 menu-icon"></i>
         <span class="menu-text">Perwalian</span>
         <i data-lucide="chevron-right" class="sidebar-group-chevron w-3 h-3 ml-auto"></i>
     </summary>

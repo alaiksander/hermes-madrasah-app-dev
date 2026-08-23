@@ -27,8 +27,26 @@ STATE_FILE = Path(__file__).resolve().parent.parent / "data" / "alert_state.json
 
 
 def _cfg() -> tuple[str | None, str | None]:
-    return (settings.alert_telegram_token or None,
-            settings.alert_telegram_chat_id or None)
+    """Token & chat_id alert Telegram.
+
+    Prioritas: GlobalConfig (DB, bisa diubah via UI) → fallback .env.
+    """
+    tok = chat = None
+    try:
+        from .db import GlobalSession
+        from .models import GlobalConfig
+        with GlobalSession() as s:
+            tok = s.get(GlobalConfig, "alert_telegram_token")
+            chat = s.get(GlobalConfig, "alert_telegram_chat_id")
+            tok = tok.value if tok and tok.value else None
+            chat = chat.value if chat and chat.value else None
+    except Exception:  # noqa: BLE001 — DB error → fallback .env
+        tok = chat = None
+    if not tok:
+        tok = settings.alert_telegram_token or None
+    if not chat:
+        chat = settings.alert_telegram_chat_id or None
+    return tok, chat
 
 
 def send_telegram(text: str) -> dict:

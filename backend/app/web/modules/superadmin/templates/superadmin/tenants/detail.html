@@ -5,189 +5,474 @@
 {% block sidebar_menu %}{% include "superadmin/_sidebar_menu.html" %}{% endblock %}
 
 {% block content %}
-<div class="flex items-center justify-between mb-4">
-    <div>
-        <a href="/apps/superadmin/tenants"
-           class="inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-700 mb-1">
-            <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke Tenants
-        </a>
-        <h1 class="text-xl font-bold text-zinc-900">{{ tenant.nama }}</h1>
-        <p class="text-sm text-zinc-500">
-            <span class="font-mono">{{ tenant.kode }}</span>
-            {% if tenant.status == 'active' %}
-            <span class="inline-block ml-2 px-2 py-0.5 rounded text-xs bg-green-100 text-green-700">Aktif</span>
-            {% elif tenant.status == 'trial' %}
-            <span class="inline-block ml-2 px-2 py-0.5 rounded text-xs bg-amber-100 text-amber-700">Trial</span>
-            {% elif tenant.status == 'suspended' %}
-            <span class="inline-block ml-2 px-2 py-0.5 rounded text-xs bg-red-100 text-red-700">Ditangguhkan</span>
-            {% else %}
-            <span class="inline-block ml-2 px-2 py-0.5 rounded text-xs bg-zinc-200 text-zinc-600">{{ tenant.status }}</span>
-            {% endif %}
-        </p>
-    </div>
-    <div class="flex items-center gap-2">
-        <form method="get" action="/apps/superadmin/tenants/{{ tenant.id }}/backup">
-            <button type="submit" class="btn btn-secondary text-sm">
-                <i data-lucide="database-backup" class="w-4 h-4"></i> Backup
+<div class="max-w-6xl">
+    <!-- Header -->
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <div>
+            <a href="/apps/superadmin/tenants"
+               class="inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-700 mb-1">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke Tenants
+            </a>
+            <h1 class="text-xl font-bold text-zinc-900">{{ tenant.nama }}</h1>
+            <p class="text-sm text-zinc-500">
+                <span class="font-mono">{{ tenant.kode }}</span>
+                {% if tenant.status == 'active' %}
+                <span class="inline-block ml-2 px-2 py-0.5 rounded text-xs bg-green-100 text-green-700">Aktif</span>
+                {% elif tenant.status == 'trial' %}
+                <span class="inline-block ml-2 px-2 py-0.5 rounded text-xs bg-amber-100 text-amber-700">Trial</span>
+                {% elif tenant.status == 'suspended' %}
+                <span class="inline-block ml-2 px-2 py-0.5 rounded text-xs bg-red-100 text-red-700">Ditangguhkan</span>
+                {% else %}
+                <span class="inline-block ml-2 px-2 py-0.5 rounded text-xs bg-zinc-200 text-zinc-600">{{ tenant.status }}</span>
+                {% endif %}
+            </p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+            <button type="button" onclick="openModal('modal-tambah-admin')" class="btn btn-primary text-sm">
+                <i data-lucide="user-plus" class="w-4 h-4"></i> Tambah User
             </button>
-        </form>
-        <a href="/apps/superadmin/tenants/{{ tenant.id }}/edit" class="btn btn-secondary text-sm">
-            <i data-lucide="edit-3" class="w-4 h-4"></i> Edit
-        </a>
+            <a href="/apps/superadmin/tenants/{{ tenant.id }}/edit" class="btn btn-secondary text-sm">
+                <i data-lucide="edit-3" class="w-4 h-4"></i> Edit
+            </a>
+        </div>
     </div>
-</div>
 
-<!-- Info cards -->
-<div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-    <div class="bg-white rounded-xl border border-zinc-200 p-4">
-        <div class="text-xs uppercase text-zinc-500 tracking-wider mb-1">Plan</div>
-        <div class="text-lg font-bold">{{ tenant.plan or '—' }}</div>
+    <!-- Ringkasan Kesehatan -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+        <div class="bg-white rounded-xl border border-zinc-200 p-4">
+            <div class="text-xs uppercase text-zinc-500 tracking-wider mb-1">Status Aktivitas</div>
+            {% set st = k.aktivitas.status if k.aktivitas else 'tidak_aktif' %}
+            <div class="text-lg font-bold {% if st == 'aktif' %}text-green-600{% elif st == 'jarang' %}text-amber-600{% else %}text-red-600{% endif %}">
+                {{ {'aktif':'Aktif','jarang':'Jarang','tidak_aktif':'Tidak Aktif'}.get(st, st) }}
+            </div>
+            <div class="text-xs text-zinc-500 mt-1">Absen bulan ini: {{ k.aktivitas.absen_bulan_ini if k.aktivitas else 0 }}</div>
+        </div>
+        <div class="bg-white rounded-xl border border-zinc-200 p-4">
+            <div class="text-xs uppercase text-zinc-500 tracking-wider mb-1">Kuota Murid</div>
+            {% if k.kuota and k.kuota.kuota_murid_pct is not none %}
+            <div class="text-lg font-bold text-zinc-900">{{ k.kuota.jumlah_murid }} / {{ k.kuota.max_murid }}</div>
+            <div class="h-1.5 bg-zinc-100 rounded overflow-hidden mt-2">
+                <div class="h-full {% if k.kuota.kuota_murid_pct > 90 %}bg-red-500{% elif k.kuota.kuota_murid_pct > 70 %}bg-amber-500{% else %}bg-teal-500{% endif %}"
+                     style="width: {{ k.kuota.kuota_murid_pct }}%"></div>
+            </div>
+            <div class="text-xs text-zinc-500 mt-1">{{ k.kuota.kuota_murid_pct }}% terpakai</div>
+            {% else %}
+            <div class="text-lg font-bold text-zinc-900">{{ k.kuota.jumlah_murid if k.kuota else 0 }}</div>
+            <div class="text-xs text-zinc-500 mt-1">Tanpa batas</div>
+            {% endif %}
+        </div>
+        <div class="bg-white rounded-xl border border-zinc-200 p-4">
+            <div class="text-xs uppercase text-zinc-500 tracking-wider mb-1">Langganan</div>
+            {% set lt = k.langganan.tingkat if k.langganan else 'tanpa_batas' %}
+            <div class="text-lg font-bold {% if lt == 'kadaluwarsa' %}text-red-600{% elif lt in ('kritis','waspada') %}text-amber-600{% else %}text-green-600{% endif %}">
+                {{ {'kadaluwarsa':'Kadaluwarsa','kritis':'Kritis','waspada':'Waspada','info':'Segera','aman':'Aman','tanpa_batas':'Tanpa Batas'}.get(lt, lt) }}
+            </div>
+            <div class="text-xs text-zinc-500 mt-1">
+                {% if k.langganan and k.langganan.masa_langganan_hingga %}
+                s.d. {{ k.langganan.masa_langganan_hingga }} ({{ k.langganan.sisa_hari }} hari)
+                {% else %}—{% endif %}
+            </div>
+        </div>
+        <div class="bg-white rounded-xl border border-zinc-200 p-4">
+            <div class="text-xs uppercase text-zinc-500 tracking-wider mb-1">Backup Terakhir</div>
+            <div class="text-lg font-bold {% if k.backup and k.backup.status == 'ok' %}text-green-600{% else %}text-zinc-400{% endif %}">
+                {{ 'OK' if k.backup and k.backup.status == 'ok' else '—' }}
+            </div>
+            <div class="text-xs text-zinc-500 mt-1">{{ k.backup.terakhir if k.backup and k.backup.terakhir else 'Belum ada' }}</div>
+        </div>
     </div>
-    <div class="bg-white rounded-xl border border-zinc-200 p-4">
-        <div class="text-xs uppercase text-zinc-500 tracking-wider mb-1">Max Murid</div>
-        <div class="text-lg font-bold">{{ tenant.max_murid or '∞' }}</div>
-    </div>
-    <div class="bg-white rounded-xl border border-zinc-200 p-4">
-        <div class="text-xs uppercase text-zinc-500 tracking-wider mb-1">Total Murid</div>
-        <div class="text-lg font-bold">{{ tenant.total_murid or tenant.get('murid_count', '—') }}</div>
-    </div>
-    <div class="bg-white rounded-xl border border-zinc-200 p-4">
-        <div class="text-xs uppercase text-zinc-500 tracking-wider mb-1">Total Guru</div>
-        <div class="text-lg font-bold">{{ tenant.total_guru or tenant.get('guru_count', '—') }}</div>
-    </div>
-</div>
 
-<!-- Reset password -->
-<div class="bg-white rounded-lg border border-zinc-200 p-4 mb-4">
-    <h2 class="text-sm font-semibold text-zinc-800 mb-2 flex items-center gap-2">
-        <i data-lucide="key" class="w-4 h-4 text-zinc-500"></i> Reset Password Akun
-    </h2>
-    <p class="text-xs text-zinc-500 mb-3">Reset password akun admin/guru di tenant ini</p>
-    <form method="post" action="/apps/superadmin/tenants/{{ tenant.id }}/reset-password"
-          class="flex items-end gap-2">
-        <div class="w-48">
-            <label class="block text-xs font-medium text-zinc-600 mb-1">Username Akun</label>
-            <input type="text" name="username" required placeholder="contoh: admin"
-                   class="w-full border border-zinc-300 rounded px-3 py-2 text-sm font-mono">
+    <!-- Info Kontak + Statistik -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div class="bg-white rounded-xl border border-zinc-200 overflow-hidden">
+            <div class="px-4 py-3 border-b border-zinc-200 flex items-center gap-2">
+                <i data-lucide="contact" class="w-4 h-4 text-zinc-500"></i>
+                <h2 class="text-sm font-semibold text-zinc-800">Info Kontak (PIC)</h2>
+            </div>
+            <div class="p-5 grid grid-cols-1 gap-4 text-sm">
+                <div>
+                    <div class="text-xs uppercase text-zinc-400 mb-1">Nama Penanggung Jawab</div>
+                    <div class="font-medium">{{ k.kontak.nama if k.kontak and k.kontak.nama else '—' }}</div>
+                </div>
+                <div>
+                    <div class="text-xs uppercase text-zinc-400 mb-1">Email</div>
+                    <div class="font-medium">{{ k.kontak.email if k.kontak and k.kontak.email else '—' }}</div>
+                </div>
+                <div>
+                    <div class="text-xs uppercase text-zinc-400 mb-1">Telepon / WhatsApp</div>
+                    <div class="font-medium">{{ k.kontak.telepon if k.kontak and k.kontak.telepon else '—' }}</div>
+                </div>
+                <div>
+                    <div class="text-xs uppercase text-zinc-400 mb-1">Alamat</div>
+                    <div class="font-medium">{{ k.kontak.alamat if k.kontak and k.kontak.alamat else '—' }}</div>
+                </div>
+            </div>
         </div>
-        <div class="flex-1">
-            <label class="block text-xs font-medium text-zinc-600 mb-1">Password Baru</label>
-            <input type="password" name="password" required minlength="6"
-                   placeholder="Minimal 6 karakter"
-                   class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+        <div class="bg-white rounded-xl border border-zinc-200 overflow-hidden">
+            <div class="px-4 py-3 border-b border-zinc-200">
+                <h2 class="text-sm font-semibold text-zinc-800">Statistik & Aktivitas</h2>
+            </div>
+            <div class="p-5 space-y-3 text-sm">
+                <div class="flex justify-between"><span class="text-zinc-500">Plan</span><span class="font-mono text-xs">{{ k.plan or tenant.plan or '—' }}</span></div>
+                <div class="flex justify-between"><span class="text-zinc-500">Max Murid</span><span class="font-semibold">{{ k.kuota.max_murid if k.kuota and k.kuota.max_murid else '∞' }}</span></div>
+                <div class="flex justify-between"><span class="text-zinc-500">Guru</span><span class="font-semibold">{{ k.kuota.jumlah_guru if k.kuota else 0 }}</span></div>
+                <div class="flex justify-between"><span class="text-zinc-500">Murid (total)</span><span class="font-semibold">{{ k.kuota.jumlah_murid if k.kuota else 0 }}</span></div>
+                <div class="flex justify-between"><span class="text-zinc-500">Murid aktif</span><span class="font-semibold">{{ k.kuota.murid_aktif if k.kuota else 0 }}</span></div>
+                <div class="flex justify-between"><span class="text-zinc-500">Absen bulan ini</span><span class="font-semibold">{{ k.aktivitas.absen_bulan_ini if k.aktivitas else 0 }}</span></div>
+                <div class="flex justify-between"><span class="text-zinc-500">Login terakhir</span><span class="font-mono text-xs">{{ k.aktivitas.login_terakhir if k.aktivitas and k.aktivitas.login_terakhir else '—' }}</span></div>
+                <div class="flex justify-between"><span class="text-zinc-500">Absen terakhir</span><span class="font-mono text-xs">{{ k.aktivitas.absen_terakhir if k.aktivitas and k.aktivitas.absen_terakhir else '—' }}</span></div>
+            </div>
         </div>
-        <button type="submit" class="btn btn-primary text-sm">
-            <i data-lucide="refresh-cw" class="w-4 h-4"></i> Reset
-        </button>
-    </form>
-</div>
-
-<!-- Tambah Admin -->
-<div class="bg-white rounded-lg border border-zinc-200 p-4 mb-4">
-    <h2 class="text-sm font-semibold text-zinc-800 mb-2 flex items-center gap-2">
-        <i data-lucide="user-plus" class="w-4 h-4 text-zinc-500"></i> Tambah Admin
-    </h2>
-    <p class="text-xs text-zinc-500 mb-3">
-        Buat akun admin pertama atau tambah admin baru untuk tenant ini
-        (tenant baru wajib punya admin agar bisa login)
-    </p>
-    <form method="post" action="/apps/superadmin/tenants/{{ tenant.id }}/admin"
-          class="grid grid-cols-1 md:grid-cols-4 gap-2 items-end">
-        <div>
-            <label class="block text-xs font-medium text-zinc-600 mb-1">Nama Lengkap</label>
-            <input type="text" name="nama" required placeholder="contoh: Bu Sari"
-                   class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
-        </div>
-        <div>
-            <label class="block text-xs font-medium text-zinc-600 mb-1">Username</label>
-            <input type="text" name="username" required minlength="3" placeholder="contoh: admin"
-                   class="w-full border border-zinc-300 rounded px-3 py-2 text-sm font-mono">
-        </div>
-        <div>
-            <label class="block text-xs font-medium text-zinc-600 mb-1">Password</label>
-            <input type="password" name="password" required minlength="6"
-                   placeholder="Minimal 6 karakter"
-                   class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
-        </div>
-        <button type="submit" class="btn btn-primary text-sm">
-            <i data-lucide="user-plus" class="w-4 h-4"></i> Tambah Admin
-        </button>
-    </form>
-</div>
-
-<!-- Admins -->
-<div class="bg-white rounded-lg border border-zinc-200 overflow-hidden mb-4">
-    <div class="px-4 py-3 border-b border-zinc-200 flex items-center justify-between">
-        <h2 class="text-sm font-semibold text-zinc-800">Admin Tenant</h2>
-        <span class="text-xs text-zinc-500">{{ admins | length }} akun</span>
     </div>
-    {% if admins %}
-    <table class="table-dense w-full text-sm">
-        <thead class="bg-zinc-50 text-zinc-600 text-xs uppercase">
-            <tr>
-                <th>Nama</th>
-                <th>Username</th>
-                <th>Role</th>
-                <th>Status</th>
-                <th class="text-right">Aksi</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for a in admins %}
-            <tr>
-                <td class="font-medium">{{ a.nama }}</td>
-                <td class="font-mono text-xs">{{ a.username }}</td>
-                <td class="text-xs">{{ a.role }}</td>
-                <td>
-                    {% if a.is_active %}
-                    <span class="inline-block px-2 py-0.5 rounded text-xs bg-green-100 text-green-700">Aktif</span>
-                    {% else %}
-                    <span class="inline-block px-2 py-0.5 rounded text-xs bg-zinc-200 text-zinc-600">Nonaktif</span>
-                    {% endif %}
-                </td>
-                <td class="text-right">
-                    <form method="post" action="/apps/superadmin/tenants/{{ tenant.id }}/admins/{{ a.id }}/toggle"
-                          class="inline">
-                        <button type="submit"
-                                class="text-xs {% if a.is_active %}text-amber-600 hover:underline{% else %}text-green-600 hover:underline{% endif %}">
-                            {% if a.is_active %}Nonaktifkan{% else %}Aktifkan{% endif %}
+
+    <!-- Tenant Users -->
+    <div class="bg-white rounded-lg border border-zinc-200 overflow-x-auto mb-4">
+        <div class="px-4 py-3 border-b border-zinc-200 flex items-center justify-between">
+            <h2 class="text-sm font-semibold text-zinc-800">Tenant Users</h2>
+            <span class="text-xs text-zinc-500">{{ admins | length }} akun</span>
+        </div>
+        {% if admins %}
+        <table class="table-dense w-full text-sm">
+            <thead class="bg-zinc-50 text-zinc-600 text-xs uppercase">
+                <tr>
+                    <th>Nama</th>
+                    <th>Username</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th class="text-right">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for a in admins %}
+                <tr>
+                    <td class="font-medium">{{ a.nama }}</td>
+                    <td class="font-mono text-xs">{{ a.username }}</td>
+                    <td>
+                        {% if a.role == 'admin' %}
+                        <span class="inline-block px-2 py-0.5 rounded text-xs bg-purple-100 text-purple-700">Admin</span>
+                        {% else %}
+                        <span class="inline-block px-2 py-0.5 rounded text-xs bg-blue-100 text-blue-700">Guru</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if a.is_active %}
+                        <span class="inline-block px-2 py-0.5 rounded text-xs bg-green-100 text-green-700">Aktif</span>
+                        {% else %}
+                        <span class="inline-block px-2 py-0.5 rounded text-xs bg-zinc-200 text-zinc-600">Nonaktif</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-right whitespace-nowrap">
+                        <button type="button" onclick="openEditModal({{ a.id }}, '{{ a.nama }}', '{{ a.role }}')"
+                                class="text-teal-700 hover:underline text-xs bg-transparent border-0 p-0 cursor-pointer">Edit</button>
+                        <form method="post" action="/apps/superadmin/tenants/{{ tenant.id }}/admins/{{ a.id }}/toggle"
+                              class="inline">
+                            <button type="submit"
+                                    class="text-xs {% if a.is_active %}text-amber-600 hover:underline{% else %}text-green-600 hover:underline{% endif %} ml-2 bg-transparent border-0 p-0 cursor-pointer">
+                                {% if a.is_active %}Nonaktifkan{% else %}Aktifkan{% endif %}
+                            </button>
+                        </form>
+                        <button type="button" onclick="openResetModal({{ a.id }}, '{{ a.username }}')"
+                                class="text-amber-700 hover:underline text-xs ml-2 bg-transparent border-0 p-0 cursor-pointer">Reset Password</button>
+                        <form method="post" action="/apps/superadmin/tenants/{{ tenant.id }}/admins/{{ a.id }}/hapus"
+                              class="inline"
+                              onsubmit="return confirm('Hapus akun {{ a.username }}?')">
+                            <button type="submit" class="text-xs text-red-600 hover:underline ml-2 bg-transparent border-0 p-0 cursor-pointer">Hapus</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="p-6 text-center text-sm text-zinc-500">
+            Belum ada user. Klik "Tambah User" untuk membuat akun pertama.
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Backup & Pemulihan -->
+    <div class="bg-white rounded-xl border border-zinc-200 overflow-hidden mb-4">
+        <div class="px-4 py-3 border-b border-zinc-200 flex items-center gap-2">
+            <i data-lucide="database-backup" class="w-4 h-4 text-zinc-500"></i>
+            <h2 class="text-sm font-semibold text-zinc-800">Backup & Pemulihan</h2>
+        </div>
+        <div class="p-5 space-y-5">
+            <!-- Backup + Restore -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-zinc-50 rounded-lg border border-zinc-200 p-4">
+                    <h3 class="text-sm font-semibold text-zinc-800 mb-1 flex items-center gap-1.5">
+                        <i data-lucide="download" class="w-4 h-4 text-zinc-500"></i> Backup (Portabel)
+                    </h3>
+                    <p class="text-xs text-zinc-500 mb-3">Unduh data tenant sebagai file JSON portabel (bisa dipindah antar mesin).</p>
+                    <a href="/apps/superadmin/tenants/{{ tenant.id }}/backup" class="btn btn-secondary text-sm">
+                        <i data-lucide="download" class="w-4 h-4"></i> Download Backup
+                    </a>
+                </div>
+                <div class="bg-zinc-50 rounded-lg border border-zinc-200 p-4">
+                    <h3 class="text-sm font-semibold text-zinc-800 mb-1 flex items-center gap-1.5">
+                        <i data-lucide="upload" class="w-4 h-4 text-zinc-500"></i> Restore (Upload)
+                    </h3>
+                    <p class="text-xs text-zinc-500 mb-3">Pulihkan data tenant dari file backup JSON.</p>
+                    <form method="post" action="/apps/superadmin/tenants/{{ tenant.id }}/restore"
+                          enctype="multipart/form-data" class="space-y-2"
+                          onsubmit="return confirm('Restore data tenant dari file ini? Data yang ada akan diganti.')">
+                        <input type="file" name="file" accept=".json,application/json" required
+                               class="block w-full text-xs text-zinc-500 file:mr-2 file:py-1.5 file:px-2 file:rounded file:border-0 file:bg-teal-50 file:text-teal-700 file:text-xs file:font-medium hover:file:bg-teal-100">
+                        <label class="flex items-center gap-1.5 text-xs text-zinc-600">
+                            <input type="checkbox" name="force" value="on" class="w-3.5 h-3.5 text-teal-600 rounded">
+                            Timpa data yang sudah ada
+                        </label>
+                        <button type="submit" class="btn btn-primary text-sm">
+                            <i data-lucide="upload" class="w-4 h-4"></i> Restore
                         </button>
                     </form>
-                    <form method="post" action="/apps/superadmin/tenants/{{ tenant.id }}/admins/{{ a.id }}/hapus"
-                          class="inline"
-                          onsubmit="return confirm('Hapus akun {{ a.username }}?')">
-                        <button type="submit" class="text-xs text-red-600 hover:underline ml-2">Hapus</button>
+                </div>
+            </div>
+
+            <!-- Snapshot -->
+            <div class="border-t border-zinc-100 pt-4">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-sm font-semibold text-zinc-800 flex items-center gap-1.5">
+                        <i data-lucide="camera" class="w-4 h-4 text-zinc-500"></i> Snapshot & Rollback
+                    </h3>
+                    <form method="post" action="/apps/superadmin/tenants/{{ tenant.id }}/snapshots">
+                        <button type="submit" class="btn btn-primary text-sm">
+                            <i data-lucide="camera" class="w-4 h-4"></i> Buat Snapshot
+                        </button>
                     </form>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <div class="p-6 text-center text-sm text-zinc-500">
-        Belum ada admin. Gunakan form di atas untuk membuat akun admin pertama.
+                </div>
+                <p class="text-xs text-zinc-500 mb-3">
+                    Snapshot = salinan penuh data tenant pada satu waktu. Rollback mengembalikan data ke snapshot
+                    (tenant harus <strong>di-suspend</strong> dulu).
+                </p>
+                {% if snapshots %}
+                <div class="overflow-x-auto">
+                <table class="table-dense w-full text-sm">
+                    <thead class="bg-zinc-50 text-zinc-600 text-xs uppercase">
+                        <tr>
+                            <th>Waktu</th>
+                            <th>Jenis</th>
+                            <th>Ukuran</th>
+                            <th>Oleh</th>
+                            <th class="text-right">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in snapshots %}
+                        <tr>
+                            <td class="font-mono text-xs">{{ s.waktu[:16].replace('T', ' ') }}</td>
+                            <td>
+                                {% if s.jenis == 'otomatis' %}
+                                <span class="inline-block px-2 py-0.5 rounded text-xs bg-blue-100 text-blue-700">Otomatis</span>
+                                {% else %}
+                                <span class="inline-block px-2 py-0.5 rounded text-xs bg-zinc-100 text-zinc-600">Manual</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-xs">{{ (s.ukuran / 1024) | round(1) }} KB</td>
+                            <td class="text-xs">{{ s.user }}</td>
+                            <td class="text-right whitespace-nowrap">
+                                <form method="post" action="/apps/superadmin/tenants/{{ tenant.id }}/snapshots/{{ s.id }}/rollback"
+                                      class="inline"
+                                      onsubmit="return confirm('Rollback tenant ke snapshot {{ s.waktu[:16].replace('T', ' ') }}? Data saat ini akan diganti (backup otomatis dibuat).')">
+                                    <button type="submit" class="text-amber-700 hover:underline text-xs bg-transparent border-0 p-0 cursor-pointer">Rollback</button>
+                                </form>
+                                <form method="post" action="/apps/superadmin/tenants/{{ tenant.id }}/snapshots/{{ s.id }}/hapus"
+                                      class="inline"
+                                      onsubmit="return confirm('Hapus snapshot ini?')">
+                                    <button type="submit" class="text-red-600 hover:underline text-xs ml-2 bg-transparent border-0 p-0 cursor-pointer">Hapus</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                </div>
+                {% else %}
+                <div class="p-6 text-center text-sm text-zinc-500">
+                    Belum ada snapshot. Klik "Buat Snapshot" untuk membuat titik pemulihan.
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Snapshot otomatis -->
+            <div class="border-t border-zinc-100 pt-4">
+                <h3 class="text-sm font-semibold text-zinc-800 mb-3 flex items-center gap-1.5">
+                    <i data-lucide="clock" class="w-4 h-4 text-zinc-500"></i> Snapshot Otomatis
+                </h3>
+                <form method="post" action="/apps/superadmin/tenants/{{ tenant.id }}/snapshot-config"
+                      class="flex flex-col sm:flex-row items-stretch sm:items-end gap-3">
+                    <label class="flex items-center gap-2 text-sm text-zinc-700">
+                        <input type="checkbox" name="enabled" value="on"
+                               {% if snap_cfg.enabled %}checked{% endif %}
+                               class="w-4 h-4 text-teal-600 rounded">
+                        Aktifkan snapshot otomatis harian
+                    </label>
+                    <div>
+                        <label class="block text-xs font-medium text-zinc-600 mb-1">Jam (WIB)</label>
+                        <input type="time" name="jam" value="{{ snap_cfg.jam or '02:00' }}"
+                               class="border border-zinc-300 rounded px-3 py-2 text-sm font-mono">
+                    </div>
+                    <button type="submit" class="btn btn-secondary text-sm">
+                        <i data-lucide="save" class="w-4 h-4"></i> Simpan
+                    </button>
+                </form>
+            </div>
+        </div>
     </div>
-    {% endif %}
+
+    <!-- Danger zone -->
+    <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+        <h2 class="text-sm font-semibold text-red-800 mb-2 flex items-center gap-2">
+            <i data-lucide="alert-triangle" class="w-4 h-4"></i> Zona Berbahaya
+        </h2>
+        <form method="post" action="/apps/superadmin/tenants/{{ tenant.id }}/hapus"
+              onsubmit="return confirm('HAPUS PERMANEN tenant {{ tenant.nama }}? Semua data murid, guru, absensi akan hilang!')"
+              class="flex flex-col sm:flex-row items-stretch sm:items-end gap-2">
+            <div class="flex-1">
+                <label class="block text-xs font-medium text-red-700 mb-1">
+                    Ketik nama tenant untuk konfirmasi hapus
+                </label>
+                <input type="text" name="konfirmasi" required placeholder="{{ tenant.nama }}"
+                       class="w-full border border-red-300 rounded px-3 py-2 text-sm">
+            </div>
+            <button type="submit" class="btn bg-red-600 text-white text-sm hover:bg-red-700 sm:self-end">
+                <i data-lucide="trash-2" class="w-4 h-4"></i> Hapus Permanen
+            </button>
+        </form>
+    </div>
 </div>
 
-<!-- Danger zone -->
-<div class="bg-red-50 border border-red-200 rounded-lg p-4">
-    <h2 class="text-sm font-semibold text-red-800 mb-2 flex items-center gap-2">
-        <i data-lucide="alert-triangle" class="w-4 h-4"></i> Zona Berbahaya
-    </h2>
-    <form method="post" action="/apps/superadmin/tenants/{{ tenant.id }}/hapus"
-          onsubmit="return confirm('HAPUS PERMANEN tenant {{ tenant.nama }}? Semua data murid, guru, absensi akan hilang!')"
-          class="flex items-end gap-2">
-        <div class="flex-1">
-            <label class="block text-xs font-medium text-red-700 mb-1">
-                Ketik nama tenant untuk konfirmasi hapus
-            </label>
-            <input type="text" name="konfirmasi" required placeholder="{{ tenant.nama }}"
-                   class="w-full border border-red-300 rounded px-3 py-2 text-sm">
+<!-- Modal: Tambah User -->
+<div id="modal-tambah-admin" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center">
+    <div class="bg-white rounded-lg p-6 w-full max-w-md">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-bold flex items-center gap-2">
+                <i data-lucide="user-plus" class="w-5 h-5 text-zinc-500"></i> Tambah User
+            </h3>
+            <button type="button" onclick="closeModal('modal-tambah-admin')"
+                    class="text-zinc-400 hover:text-zinc-600">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
         </div>
-        <button type="submit" class="btn bg-red-600 text-white text-sm hover:bg-red-700">
-            <i data-lucide="trash-2" class="w-4 h-4"></i> Hapus Permanen
-        </button>
-    </form>
+        <p class="text-xs text-zinc-500 mb-4">
+            Buat akun user untuk tenant ini (tenant baru wajib punya admin agar bisa login).
+        </p>
+        <form method="post" action="/apps/superadmin/tenants/{{ tenant.id }}/admin" class="space-y-3">
+            <div>
+                <label class="block text-sm font-medium text-zinc-700 mb-1">Nama Lengkap</label>
+                <input type="text" name="nama" required placeholder="contoh: Bu Sari"
+                       class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-zinc-700 mb-1">Username</label>
+                <input type="text" name="username" required minlength="3" placeholder="contoh: admin"
+                       class="w-full border border-zinc-300 rounded px-3 py-2 text-sm font-mono">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-zinc-700 mb-1">Password</label>
+                <input type="password" name="password" required minlength="6"
+                       placeholder="Minimal 6 karakter"
+                       class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-zinc-700 mb-1">Role</label>
+                <select name="role" class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                    <option value="guru">Guru</option>
+                    <option value="admin">Admin</option>
+                </select>
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button type="button" onclick="closeModal('modal-tambah-admin')" class="btn btn-secondary text-sm">Batal</button>
+                <button type="submit" class="btn btn-primary text-sm">
+                    <i data-lucide="user-plus" class="w-4 h-4"></i> Tambah User
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
+
+<!-- Modal: Edit User -->
+<div id="modal-edit-user" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center">
+    <div class="bg-white rounded-lg p-6 w-full max-w-md">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-bold flex items-center gap-2">
+                <i data-lucide="edit-3" class="w-5 h-5 text-zinc-500"></i> Edit User
+            </h3>
+            <button type="button" onclick="closeModal('modal-edit-user')"
+                    class="text-zinc-400 hover:text-zinc-600">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+        <form method="post" id="edit-user-form" action="" class="space-y-3">
+            <div>
+                <label class="block text-sm font-medium text-zinc-700 mb-1">Nama Lengkap</label>
+                <input type="text" name="nama" id="edit-nama" required
+                       class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-zinc-700 mb-1">Role</label>
+                <select name="role" id="edit-role" class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+                    <option value="guru">Guru</option>
+                    <option value="admin">Admin</option>
+                </select>
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button type="button" onclick="closeModal('modal-edit-user')" class="btn btn-secondary text-sm">Batal</button>
+                <button type="submit" class="btn btn-primary text-sm">
+                    <i data-lucide="save" class="w-4 h-4"></i> Simpan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Reset Password -->
+<div id="modal-reset-password" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center">
+    <div class="bg-white rounded-lg p-6 w-full max-w-md">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-bold flex items-center gap-2">
+                <i data-lucide="key" class="w-5 h-5 text-zinc-500"></i> Reset Password
+            </h3>
+            <button type="button" onclick="closeModal('modal-reset-password')"
+                    class="text-zinc-400 hover:text-zinc-600">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+        <p class="text-xs text-zinc-500 mb-4">Reset password untuk <span id="reset-username" class="font-mono"></span></p>
+        <form method="post" id="reset-form" action="" class="space-y-3">
+            <div>
+                <label class="block text-sm font-medium text-zinc-700 mb-1">Password Baru</label>
+                <input type="password" name="password" required minlength="6"
+                       placeholder="Minimal 6 karakter"
+                       class="w-full border border-zinc-300 rounded px-3 py-2 text-sm">
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button type="button" onclick="closeModal('modal-reset-password')" class="btn btn-secondary text-sm">Batal</button>
+                <button type="submit" class="btn btn-primary text-sm">
+                    <i data-lucide="refresh-cw" class="w-4 h-4"></i> Reset
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openModal(id) {
+    document.getElementById(id).classList.remove('hidden');
+}
+function closeModal(id) {
+    document.getElementById(id).classList.add('hidden');
+}
+function openEditModal(id, nama, role) {
+    document.getElementById('edit-nama').value = nama;
+    document.getElementById('edit-role').value = role;
+    document.getElementById('edit-user-form').action = '/apps/superadmin/tenants/{{ tenant.id }}/admins/' + id + '/edit';
+    openModal('modal-edit-user');
+}
+function openResetModal(id, username) {
+    document.getElementById('reset-username').textContent = username;
+    document.getElementById('reset-form').action = '/apps/superadmin/tenants/{{ tenant.id }}/admins/' + id + '/reset-password';
+    openModal('modal-reset-password');
+}
+</script>
 {% endblock %}

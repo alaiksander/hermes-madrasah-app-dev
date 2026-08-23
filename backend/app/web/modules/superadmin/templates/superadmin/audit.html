@@ -38,12 +38,20 @@
         <i data-lucide="x" class="w-4 h-4"></i> Reset
     </a>
     {% endif %}
+    <a href="/apps/superadmin/audit/export.csv?{% if tanggal_dari %}&tanggal_dari={{ tanggal_dari }}{% endif %}{% if tanggal_sampai %}&tanggal_sampai={{ tanggal_sampai }}{% endif %}{% if tenant %}&tenant={{ tenant }}{% endif %}"
+       class="btn btn-secondary text-sm">
+        <i data-lucide="download" class="w-4 h-4"></i> Export CSV
+    </a>
+    <a href="/apps/superadmin/audit/export.xlsx?{% if tanggal_dari %}&tanggal_dari={{ tanggal_dari }}{% endif %}{% if tanggal_sampai %}&tanggal_sampai={{ tanggal_sampai }}{% endif %}{% if tenant %}&tenant={{ tenant }}{% endif %}"
+       class="btn btn-secondary text-sm">
+        <i data-lucide="sheet" class="w-4 h-4"></i> Export Excel
+    </a>
     <div class="flex-1"></div>
     <span class="text-xs text-zinc-500">{{ total }} total log</span>
 </form>
 
 <!-- Tabel -->
-<div class="bg-white rounded-lg border border-zinc-200 overflow-hidden">
+<div class="bg-white rounded-lg border border-zinc-200 overflow-x-auto">
     {% if items %}
     <table class="table-dense w-full text-sm">
         <thead class="bg-zinc-50 text-zinc-600 text-xs uppercase">

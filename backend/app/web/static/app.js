@@ -237,6 +237,7 @@
     window.applyAllFilters = applyAllFilters;
     window.resetFilters = resetFilters;
     window.toggleSidebar = toggleSidebar;
+    window.handleBrandClick = handleBrandClick;
     window.MuridSearch = {
         rebuildFuse: rebuildMuridFuse,
         applyAllFilters: applyAllFilters,
@@ -265,6 +266,19 @@
         // chevrons-left → chevrons-right saat collapsed
         icon.setAttribute('data-lucide', state === 'expanded' ? 'chevrons-left' : 'chevrons-right');
         if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    // Klik logo saat sidebar collapsed → toggle expand (bukan navigasi).
+    // Saat expanded → navigasi normal ke /apps/.
+    function handleBrandClick(e) {
+        const sidebar = document.getElementById('app-sidebar');
+        if (!sidebar) return true;
+        if (sidebar.dataset.state === 'collapsed') {
+            e.preventDefault();
+            toggleSidebar();
+            return false;
+        }
+        return true;
     }
 
     // ── Mobile Sidebar Drawer (P-WEB-82) ─────────────────────────────

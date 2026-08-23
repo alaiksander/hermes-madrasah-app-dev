@@ -129,3 +129,29 @@ async def settings_logo_delete(
     except Exception:
         pass
     return _redirect("/apps/superadmin/settings", detail, "error")
+
+
+@router.post("/settings/ganti-password")
+async def settings_ganti_password(
+    request: Request,
+    password_lama: str = Form(...),
+    password_baru: str = Form(...),
+    user: dict = Depends(require_super_admin_web),
+):
+    """Ganti password akun superadmin sendiri."""
+    r = await api_post(
+        request,
+        "/api/super/ganti-password",
+        json={"password_lama": password_lama, "password_baru": password_baru},
+    )
+    if r.status_code == 200:
+        _audit(user, "ganti_password_superadmin_web",
+               "Password superadmin diganti via panel")
+        return _redirect("/apps/superadmin/settings",
+                         "Password berhasil diganti")
+    detail = "Gagal mengganti password"
+    try:
+        detail = r.json().get("detail", detail)
+    except Exception:
+        pass
+    return _redirect("/apps/superadmin/settings", detail, "error")
