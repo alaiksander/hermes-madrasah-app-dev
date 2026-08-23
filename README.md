@@ -109,7 +109,6 @@ tarbeya/
 │   ├── web/                    # Web build output (gitignored)
 │   └── pubspec.yaml
 │
-├── marketing/                  # Marketing materials (slides, social cards)
 ├── README.md                   # ← you are here
 ├── .gitignore                  # Comprehensive (secrets, venv, DB, build artifacts)
 └── LICENSE                     # TBD
@@ -296,6 +295,7 @@ Be kind. This is built by an Indonesian teacher who codes at night after teachin
 **Mr. Alaik** (alaiksander)
 - 🏫 Guru MTs N 2 Kudus, Indonesia
 - 🤖 Built with assistance from [Hermes Agent](https://hermes-agent.nousresearch.com/)
+- 🚀 Development sponsored by [kenari.id](https://kenari.id)
 
 ---
 
@@ -310,7 +310,6 @@ If this project helps your school or community, consider giving it a star ⭐ �
 This repo tracks extensive in-repo documentation:
 
 - `backend/alembic/` — Database migration history
-- `marketing/` — Landing page copy, social media assets
 - Skill references (in the Hermes Agent ecosystem): `madrasah-app`, `tarbeya-migrate-path`, `permission-driven-menu`, `mobile-friendly-patterns`
 
 ---
