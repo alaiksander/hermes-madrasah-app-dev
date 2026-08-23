@@ -78,18 +78,18 @@
                     </form>
                     {% endif %}
                     <a href="/apps/data/tahun-ajaran/{{ t.id }}/periode"
-                       class="text-blue-700 hover:underline">
+                       class="text-blue-700 hover:underline ml-2">
                         Atur Semester
                     </a>
                     <a href="/apps/data/tahun-ajaran/{{ t.id }}/edit"
-                       class="text-teal-700 hover:underline text-xs">
+                       class="text-teal-700 hover:underline text-xs ml-2">
                         Edit
                     </a>
                     {% if t.jumlah_kelas == 0 %}
                     <form method="post" action="/apps/data/tahun-ajaran/{{ t.id }}/hapus"
                           class="inline"
                           onsubmit="return confirm('Hapus tahun ajaran {{ t.nama }}?')">
-                        <button type="submit" class="text-red-600 hover:underline text-xs bg-transparent border-0 p-0 cursor-pointer">
+                        <button type="submit" class="text-red-600 hover:underline text-xs ml-2 bg-transparent border-0 p-0 cursor-pointer">
                             Hapus
                         </button>
                     </form>
