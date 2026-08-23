@@ -109,7 +109,7 @@
                     {% if has_perm(user, 'penilaian.input') %}
                     <form method="post" action="/apps/penilaian/materi/{{ m.id }}/hapus"
                           class="inline" onsubmit="return confirm('Hapus penilaian {{ m.nama }}? Semua nilainya ikut terhapus.')">
-                        <button type="submit" class="text-red-600 hover:underline text-xs ml-2">Hapus</button>
+                        <button type="submit" class="text-red-600 hover:underline text-xs ml-2 bg-transparent border-0 p-0 cursor-pointer">Hapus</button>
                     </form>
                     {% endif %}
                 </td>

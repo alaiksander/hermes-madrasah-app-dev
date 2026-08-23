@@ -121,12 +121,12 @@
         </div>
         <div class="flex items-center gap-3">
             <button type="button" onclick="openEditKategori({{ k.id }}, '{{ k.nama }}', '{{ k.jenis }}')"
-                    class="text-xs text-teal-700 hover:underline">
+                    class="text-xs text-teal-700 hover:underline bg-transparent border-0 p-0 cursor-pointer">
                 Edit
             </button>
             <form method="post" action="/apps/bk/kategori/{{ k.id }}/delete"
                   onsubmit="return confirm('Hapus kategori? Item harus dihapus dulu.')">
-                <button type="submit" class="text-xs text-red-700 hover:underline">Hapus</button>
+                <button type="submit" class="text-xs text-red-700 hover:underline bg-transparent border-0 p-0 cursor-pointer">Hapus</button>
             </form>
         </div>
     </div>
@@ -142,12 +142,12 @@
                 <td class="px-4 py-2 text-right w-24">
                     <div class="flex items-center justify-end gap-3">
                         <button type="button" onclick="openEditItem({{ p.id }}, '{{ p.nama }}', {{ p.poin }}, '{{ p.tingkat or '' }}')"
-                                class="text-xs text-teal-700 hover:underline">
+                                class="text-xs text-teal-700 hover:underline bg-transparent border-0 p-0 cursor-pointer">
                             Edit
                         </button>
                         <form method="post" action="/apps/bk/pelanggaran/{{ p.id }}/delete"
                               onsubmit="return confirm('Hapus item?')" class="inline">
-                            <button type="submit" class="text-xs text-red-700 hover:underline">Hapus</button>
+                            <button type="submit" class="text-xs text-red-700 hover:underline bg-transparent border-0 p-0 cursor-pointer">Hapus</button>
                         </form>
                     </div>
                 </td>

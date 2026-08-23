@@ -75,7 +75,7 @@
                     {% if has_perm(user, 'kelas.update') %}
                     <form method="post" action="/apps/data/murid/{{ m.id }}/hapus"
                           class="inline" onsubmit="return confirm('Arsipkan {{ m.nama }}?')">
-                        <button type="submit" class="text-red-600 hover:underline text-xs ml-2">Arsip</button>
+                        <button type="submit" class="text-red-600 hover:underline text-xs ml-2 bg-transparent border-0 p-0 cursor-pointer">Arsip</button>
                     </form>
                     {% endif %}
                 </td>
