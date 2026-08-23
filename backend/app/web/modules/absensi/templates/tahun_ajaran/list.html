@@ -67,7 +67,7 @@
                     {% endif %}
                 </td>
                 {% if has_perm(user, 'ta.update') %}
-                <td class="text-right space-x-2 text-xs">
+                <td class="text-right whitespace-nowrap">
                     {% if not t.is_active %}
                     <form method="post" action="/apps/data/tahun-ajaran/{{ t.id }}/aktifkan"
                           class="inline"
